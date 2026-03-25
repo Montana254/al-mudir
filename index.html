@@ -180,7 +180,8 @@
         /* Theme toggle button */
         .theme-toggle {
             position: fixed;
-            top-20 right-8;
+            top: 20px;
+            right: 8px;
             z-index: 40;
             width: 50px;
             height: 50px;
@@ -1290,12 +1291,12 @@
         });
         
         // ===== Form Validation and Submission =====
-        const contactForm = document.querySelector('form[action*="formsubmit"]');
+        const contactFormElement = document.querySelector('form[action*="formsubmit"]');
         const newsletterForm = document.getElementById('newsletterForm');
         
         // Contact form validation
-        if (contactForm) {
-            contactForm.addEventListener('submit', function(e) {
+        if (contactFormElement) {
+            contactFormElement.addEventListener('submit', function(e) {
                 const inputs = this.querySelectorAll('[required]');
                 let isValid = true;
                 
