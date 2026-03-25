@@ -985,22 +985,17 @@
                     
                     <!-- Wallet Selection -->
                     <div class="mb-8">
-                        <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-4 font-semibold">Select Wallet</label>
-                        <div class="grid md:grid-cols-3 gap-4">
-                            <button id="metamaskBtn" class="border-gold glass-effect p-4 rounded-lg hover:bg-gold/10 transition text-center">
+                        <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-4 font-semibold">Available Wallets</label>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <button id="trustwalletBtn" class="border-gold glass-effect p-4 rounded-lg hover:bg-gold/10 transition text-center">
                                 <i class="fas fa-wallet text-2xl text-gold-gradient mb-2"></i>
+                                <div class="text-sm font-bold text-white">Trust Wallet</div>
+                                <div class="text-xs text-gray-500 mt-1">Recommended</div>
+                            </button>
+                            <button id="metamaskBtn" class="border-gold glass-effect p-4 rounded-lg hover:bg-gold/10 transition text-center">
+                                <i class="fas fa-shield text-2xl text-gold-gradient mb-2"></i>
                                 <div class="text-sm font-bold text-white">MetaMask</div>
-                                <div class="text-xs text-gray-500 mt-1">Most Popular</div>
-                            </button>
-                            <button id="walletconnectBtn" class="border-gold glass-effect p-4 rounded-lg hover:bg-gold/10 transition text-center">
-                                <i class="fas fa-link text-2xl text-gold-gradient mb-2"></i>
-                                <div class="text-sm font-bold text-white">WalletConnect</div>
-                                <div class="text-xs text-gray-500 mt-1">Mobile Wallets</div>
-                            </button>
-                            <button id="coinbaseBtn" class="border-gold glass-effect p-4 rounded-lg hover:bg-gold/10 transition text-center">
-                                <i class="fas fa-cube text-2xl text-gold-gradient mb-2"></i>
-                                <div class="text-sm font-bold text-white">Coinbase</div>
-                                <div class="text-xs text-gray-500 mt-1">Coinbase Wallet</div>
+                                <div class="text-xs text-gray-500 mt-1">Alternative</div>
                             </button>
                         </div>
                     </div>
@@ -1010,10 +1005,8 @@
                         <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-4 font-semibold">Select Network</label>
                         <select id="networkSelect" class="w-full bg-transparent border-2 border-gold/30 p-4 outline-none text-white rounded-lg focus:border-gold/80">
                             <option value="1">Ethereum (ETH)</option>
-                            <option value="137">Polygon (MATIC)</option>
-                            <option value="42161">Arbitrum (ARB)</option>
-                            <option value="10">Optimism (OP)</option>
-                            <option value="56">BSC (BNB)</option>
+                            <option value="56">BSC - Binance Smart Chain (BNB)</option>
+                            <option value="195">TRON (TRX)</option>
                         </select>
                     </div>
                     
@@ -1032,10 +1025,10 @@
                                 >
                                 <select id="currencySelect" class="absolute right-4 top-4 bg-transparent text-white border-l border-gold/30 pl-3 ml-3 outline-none">
                                     <option>ETH</option>
-                                    <option>USDC</option>
-                                    <option>USDT</option>
-                                    <option>MATIC</option>
                                     <option>BNB</option>
+                                    <option>USDT</option>
+                                    <option>TRON</option>
+                                    <option>BTC</option>
                                 </select>
                             </div>
                         </div>
@@ -1467,16 +1460,45 @@
             });
         }
         
-        // Wallet connection handlers
+        // Wallet selection variables
+        let selectedWallet = 'trustwallet'; // Default to Trust Wallet
         const connectWalletBtn = document.getElementById('connectWalletBtn');
         const disconnectWalletBtn = document.getElementById('disconnectWalletBtn');
+        const trustwalletBtn = document.getElementById('trustwalletBtn');
+        const metamaskBtn = document.getElementById('metamaskBtn');
         
+        // Wallet selection handlers
+        if (trustwalletBtn) {
+            trustwalletBtn.addEventListener('click', () => {
+                selectedWallet = 'trustwallet';
+                trustwalletBtn.classList.add('border-gold', 'bg-gold/20');
+                trustwalletBtn.classList.remove('border-gold/30');
+                if (metamaskBtn) {
+                    metamaskBtn.classList.remove('border-gold', 'bg-gold/20');
+                    metamaskBtn.classList.add('border-gold/30');
+                }
+            });
+        }
+        
+        if (metamaskBtn) {
+            metamaskBtn.addEventListener('click', () => {
+                selectedWallet = 'metamask';
+                metamaskBtn.classList.add('border-gold', 'bg-gold/20');
+                metamaskBtn.classList.remove('border-gold/30');
+                if (trustwalletBtn) {
+                    trustwalletBtn.classList.remove('border-gold', 'bg-gold/20');
+                    trustwalletBtn.classList.add('border-gold/30');
+                }
+            });
+        }
+        
+        // Connect wallet button handler
         if (connectWalletBtn) {
             connectWalletBtn.addEventListener('click', async () => {
                 try {
                     if (!cryptoManager) await initCryptoPayments();
                     
-                    const result = await cryptoManager.connectWallet('metamask');
+                    const result = await cryptoManager.connectWallet(selectedWallet);
                     updateWalletUI(result);
                     connectWalletBtn.textContent = 'Connected ✓';
                     connectWalletBtn.disabled = true;
@@ -1487,7 +1509,7 @@
                     
                     // Track event
                     if (typeof gtag !== 'undefined') {
-                        gtag('event', 'wallet_connected', {'wallet_type': 'metamask'});
+                        gtag('event', 'wallet_connected', {'wallet_type': selectedWallet});
                     }
                 } catch (error) {
                     console.error('Wallet connection failed:', error);
@@ -1514,6 +1536,11 @@
                 const processBtn = document.getElementById('processPaymentBtn');
                 if (processBtn) processBtn.disabled = true;
             });
+        }
+        
+        // Initialize Trust Wallet as selected (highlight on load)
+        if (trustwalletBtn) {
+            trustwalletBtn.classList.add('border-gold', 'bg-gold/20');
         }
         
         // Update wallet UI with connection info

@@ -1,26 +1,41 @@
 // AL-MUDIR Crypto Wallet Payment Integration Module
-// Supports: MetaMask, WalletConnect, Coinbase Wallet, Trust Wallet
+// Optimized for Trust Wallet + MetaMask
+// Supports: USDT, BTC, TRON, ETH, BNB
 
 class CryptoPaymentManager {
   constructor() {
     this.web3Instance = null;
     this.userAccount = null;
     this.chainId = null;
+    
+    // Simplified: Focus on main chains for Trust Wallet
     this.supportedChains = {
-      1: { name: 'Ethereum', symbol: 'ETH', rpc: 'https://eth.llamarpc.com' },
-      137: { name: 'Polygon', symbol: 'MATIC', rpc: 'https://polygon-rpc.com' },
-      42161: { name: 'Arbitrum', symbol: 'ETH', rpc: 'https://arb1.arbitrum.io/rpc' },
-      10: { name: 'Optimism', symbol: 'ETH', rpc: 'https://mainnet.optimism.io' },
-      56: { name: 'BSC', symbol: 'BNB', rpc: 'https://bsc-dataseed.binance.org' }
+      1: { name: 'Ethereum', symbol: 'ETH', rpc: 'https://eth.llamarpc.com', nativeToken: 'ETH' },
+      56: { name: 'BSC', symbol: 'BNB', rpc: 'https://bsc-dataseed.binance.org', nativeToken: 'BNB' },
+      195: { name: 'TRON', symbol: 'TRX', rpc: 'https://api.trongrid.io', nativeToken: 'TRX' }
     };
     
     // Payment rates (in USD, update from price feed)
     this.paymentRates = {
-      ETH: 2800,
-      USDC: 1,
-      USDT: 1,
-      MATIC: 0.8,
-      BNB: 620
+      ETH: 3500,
+      BNB: 650,
+      USDT: 1.00,
+      TRON: 0.35,
+      BTC: 72000
+    };
+    
+    // Supported tokens by network
+    this.tokensByNetwork = {
+      1: ['ETH', 'USDT'],      // Ethereum: ETH, USDT
+      56: ['BNB', 'USDT'],     // BSC: BNB, USDT
+      195: ['TRON', 'USDT']    // TRON: TRX, USDT
+    };
+    
+    // USDT contract addresses by chain
+    this.usdtAddresses = {
+      1: '0xdAC17F958D2ee523a2206206994597C13D831ec7',   // Ethereum USDT
+      56: '0x55d398326f99059fF775485246999027B3197955',  // BSC USDT
+      195: 'TR7NHqjeKQxGTCi8q282KGLP235aKxaxS8'           // TRON USDT
     };
     
     this.walletConnected = false;
@@ -28,22 +43,21 @@ class CryptoPaymentManager {
   }
 
   /**
-   * Initialize Web3 instance
+   * Initialize Web3 instance - Trust Wallet or MetaMask
    */
   async initWeb3() {
     if (typeof window.ethereum === 'undefined') {
-      throw new Error('No web3 provider detected. Install MetaMask or use WalletConnect.');
+      throw new Error('No crypto wallet detected. Please install Trust Wallet or MetaMask.');
     }
     
-    // For now, using ethers.js would be ideal, but we'll use minimal implementation
     this.web3Instance = window.ethereum;
     return this.web3Instance;
   }
 
   /**
-   * Connect wallet - MetaMask, WalletConnect, etc.
+   * Connect wallet - Trust Wallet via WalletConnect or MetaMask
    */
-  async connectWallet(walletType = 'metamask') {
+  async connectWallet(walletType = 'trustwallet') {
     try {
       const provider = await this.getProvider(walletType);
       const accounts = await provider.request({ method: 'eth_requestAccounts' });
@@ -55,10 +69,15 @@ class CryptoPaymentManager {
       const chainId = await provider.request({ method: 'eth_chainId' });
       this.chainId = parseInt(chainId, 16);
       
+      // Validate chain is supported
+      if (!this.supportedChains[this.chainId]) {
+        throw new Error(`Chain ID ${this.chainId} not supported. Please switch to Ethereum, BSC, or TRON.`);
+      }
+      
       return {
         account: this.userAccount,
         chain: this.chainId,
-        chainName: this.supportedChains[this.chainId]?.name || 'Unknown'
+        chainName: this.supportedChains[this.chainId].name
       };
     } catch (error) {
       console.error('Wallet connection failed:', error);
@@ -70,18 +89,12 @@ class CryptoPaymentManager {
    * Get provider based on wallet type
    */
   async getProvider(walletType) {
-    if (walletType === 'metamask' && window.ethereum) {
+    // Trust Wallet uses window.ethereum just like MetaMask
+    // Both are compatible with EVM chains
+    if ((walletType === 'trustwallet' || walletType === 'metamask') && window.ethereum) {
       return window.ethereum;
-    } else if (walletType === 'walletconnect') {
-      // WalletConnect integration would require additional library
-      throw new Error('WalletConnect requires ethers.js library. Install @walletconnect/web3-provider');
-    } else if (walletType === 'coinbase') {
-      if (window.coinbaseWalletProvider) {
-        return window.coinbaseWalletProvider;
-      }
-      throw new Error('Coinbase Wallet not installed');
     }
-    throw new Error('Unsupported wallet type');
+    throw new Error('Trust Wallet or MetaMask not detected. Please install one of these wallets.');
   }
 
   /**
