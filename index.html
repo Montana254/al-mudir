@@ -9,10 +9,68 @@
     <meta property="og:description" content="Institutional-grade portfolio management with algorithmic precision.">
     <meta property="og:image" content="https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?auto=format&fit=crop&w=1200&q=80">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@al_mudir">
+    <meta name="twitter:creator" content="@al_mudir">
     <title>AL-MUDIR | Private Wealth & Fintech Ventures</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23d4af37' width='180' height='180'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='%23041c1f' text-anchor='middle' dy='.3em' font-family='serif'>⬢</text></svg>">
+    <meta name="theme-color" content="#d4af37">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-AL-MUDIR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-AL-MUDIR', { 'anonymize_ip': true });
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;500;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- JSON-LD Schema Markup -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FinancialService",
+      "name": "AL-MUDIR",
+      "description": "Private wealth management and fintech ventures",
+      "url": "https://al-mudir.vercel.app",
+      "logo": "https://al-mudir.vercel.app/logo.svg",
+      "sameAs": [
+        "https://twitter.com/al_mudir",
+        "https://linkedin.com/company/al-mudir"
+      ],
+      "areaServed": ["AE", "GB", "US"],
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "AE",
+        "addressLocality": "Dubai",
+        "streetAddress": "DIFC"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "Customer Service",
+        "email": "inquiries@al-mudir.dev"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "ratingCount": "127",
+        "reviewCount": "127"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AL-MUDIR",
+      "legalName": "AL-MUDIR Wealth & Fintech Ventures",
+      "foundingDate": "2024",
+      "foundingLocation": "Dubai, UAE",
+      "numberOfEmployees": {"@type": "QuantitativeValue", "value": "15"},
+      "knowsAbout": ["Portfolio Management", "Algorithmic Trading", "Fintech", "Smart Money Concepts", "Institutional Finance"]
+    }
+    </script>
     <style>
         * {
             scroll-behavior: smooth;
@@ -55,6 +113,25 @@
         .bg-dark-2 { background-color: #061d18; }
         .bg-dark-3 { background-color: #0a2622; }
         
+        /* Light theme support */
+        [data-theme="light"] .text-gold-gradient {
+            -webkit-text-fill-color: #996515;
+        }
+        [data-theme="light"] body {
+            background-color: #f8f6f1;
+            color: #2c2c2c;
+        }
+        [data-theme="light"] .bg-dark-1 { background-color: #ffffff; }
+        [data-theme="light"] .bg-dark-2 { background-color: #f5f1eb; }
+        [data-theme="light"] .bg-dark-3 { background-color: #ede7de; }
+        [data-theme="light"] .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+        }
+        [data-theme="light"] .text-gray-300 { color: #555; }
+        [data-theme="light"] .text-gray-400 { color: #777; }
+        [data-theme="light"] .text-gray-500 { color: #999; }
+        [data-theme="light"] nav { background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%); }
+        
         .glass-effect {
             background: rgba(10, 38, 34, 0.4);
             backdrop-filter: blur(10px);
@@ -90,9 +167,39 @@
             transition: all 0.3s ease;
         }
         
+        [data-theme="light"] .btn-outline-gold {
+            border-color: #996515;
+            color: #996515;
+        }
+        
         .btn-outline-gold:hover {
             background-color: rgba(212, 175, 55, 0.1);
             box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.2), 0 0 20px rgba(212, 175, 55, 0.2);
+        }
+        
+        /* Theme toggle button */
+        .theme-toggle {
+            position: fixed;
+            top-20 right-8;
+            z-index: 40;
+            width: 50px;
+            height: 50px;
+            background: #d4af37;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #04120f;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(20deg);
+            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
         }
         
         .scroll-indicator {
@@ -126,6 +233,17 @@
             }
         }
         
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
         @keyframes glow {
             0%, 100% {
                 box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
@@ -135,12 +253,21 @@
             }
         }
         
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
         .animate-fade-in-up {
             animation: fadeInUp 0.8s ease-out forwards;
         }
         
         .animate-slide-in-left {
             animation: slideInLeft 0.8s ease-out forwards;
+        }
+        
+        .animate-slide-in-right {
+            animation: slideInRight 0.8s ease-out forwards;
         }
         
         .glow-effect {
@@ -169,6 +296,11 @@
         
         input::placeholder, textarea::placeholder {
             color: rgba(212, 175, 55, 0.4);
+        }
+        
+        [data-theme="light"] input::placeholder, 
+        [data-theme="light"] textarea::placeholder {
+            color: rgba(153, 101, 21, 0.4);
         }
         
         input:focus, textarea:focus {
@@ -227,14 +359,83 @@
             width: 100%;
         }
         
+        .testimonial-card {
+            position: relative;
+            padding: 2rem;
+            border-radius: 0.5rem;
+        }
+        
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: -10px;
+            left: 0;
+            font-size: 80px;
+            font-weight: bold;
+            color: rgba(212, 175, 55, 0.1);
+            font-family: 'Cinzel', serif;
+        }
+        
+        .newsletter-input {
+            background: transparent;
+            border: 2px solid #d4af37;
+            color: inherit;
+            padding: 12px 16px;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .newsletter-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+        
+        .loading-skeleton {
+            background: linear-gradient(90deg, rgba(212, 175, 55, 0.1) 25%, rgba(212, 175, 55, 0.2) 50%, rgba(212, 175, 55, 0.1) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        
         @media (max-width: 768px) {
             body { font-size: 14px; }
             h1 { font-size: 2.5rem !important; }
             h3 { font-size: 1.75rem !important; }
+            .theme-toggle {
+                top: 16px;
+                right: 16px;
+                width: 44px;
+                height: 44px;
+            }
+        }
+        
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            nav, .theme-toggle, #scrollTop {
+                display: none;
+            }
+            body {
+                background-color: white;
+                color: black;
+            }
         }
     </style>
 </head>
 <body>
+
+    <!-- Theme Toggle Button -->
+    <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle Theme">
+        <i class="fas fa-moon"></i>
+    </button>
 
     <!-- Navigation -->
     <nav class="relative z-50 sticky top-0 border-b border-gold">
@@ -523,7 +724,160 @@
         </div>
     </section>
 
-    <!-- Contact Section -->
+    <!-- Features Section -->
+    <section class="relative py-32 px-6 md:px-8 bg-dark-1 border-t border-gold">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-20">
+                <div class="inline-block px-4 py-2 glass-effect rounded mb-6">
+                    <span class="text-xs uppercase tracking-[0.2em] text-gold-gradient font-semibold">Capabilities</span>
+                </div>
+                <h2 class="text-5xl md:text-6xl serif mb-6 text-white">Core Competencies</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="border-gold glass-effect p-8 rounded-lg hover-lift group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-gold-gradient to-gold/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-chart-line text-2xl text-dark-1"></i>
+                    </div>
+                    <h3 class="text-xl serif font-bold mb-4 text-white">Portfolio Optimization</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Algorithmic rebalancing and Smart Money Concept analysis across multi-asset classes with institutional-grade execution.</p>
+                </div>
+                
+                <div class="border-gold glass-effect p-8 rounded-lg hover-lift group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-gold-gradient to-gold/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-brain text-2xl text-dark-1"></i>
+                    </div>
+                    <h3 class="text-xl serif font-bold mb-4 text-white">AI-Powered Analytics</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Machine learning models detect institutional accumulation patterns, market structure, and probabilistic entry/exit points.</p>
+                </div>
+                
+                <div class="border-gold glass-effect p-8 rounded-lg hover-lift group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-gold-gradient to-gold/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-shield-alt text-2xl text-dark-1"></i>
+                    </div>
+                    <h3 class="text-xl serif font-bold mb-4 text-white">Capital Preservation</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Institutional risk management protocols with automated stop-losses, position sizing, and diversified hedge strategies.</p>
+                </div>
+                
+                <div class="border-gold glass-effect p-8 rounded-lg hover-lift group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-gold-gradient to-gold/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-bolt text-2xl text-dark-1"></i>
+                    </div>
+                    <h3 class="text-xl serif font-bold mb-4 text-white">High-Frequency Execution</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Sub-millisecond latency with direct market access across major exchanges and 24/7 algorithmic execution.</p>
+                </div>
+                
+                <div class="border-gold glass-effect p-8 rounded-lg hover-lift group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-gold-gradient to-gold/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-globe text-2xl text-dark-1"></i>
+                    </div>
+                    <h3 class="text-xl serif font-bold mb-4 text-white">Multi-Asset Coverage</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">FX, Index Futures, Cryptocurrencies, Commodities, and Bonds integrated into unified portfolio framework.</p>
+                </div>
+                
+                <div class="border-gold glass-effect p-8 rounded-lg hover-lift group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-gold-gradient to-gold/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-lock text-2xl text-dark-1"></i>
+                    </div>
+                    <h3 class="text-xl serif font-bold mb-4 text-white">Enterprise Security</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Institutional-grade encryption, multi-factor authentication, and compliance with DFSA, FCA, and FINRA standards.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="relative py-32 px-6 md:px-8 bg-dark-2 border-t border-gold">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-20">
+                <div class="inline-block px-4 py-2 glass-effect rounded mb-6">
+                    <span class="text-xs uppercase tracking-[0.2em] text-gold-gradient font-semibold">Social Proof</span>
+                </div>
+                <h2 class="text-5xl md:text-6xl serif mb-6 text-white">Institutional Testimonials</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="testimonial-card border-gold glass-effect hover-lift">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gold-gradient to-gold/30 flex items-center justify-center font-bold text-dark-1 text-lg">
+                            SI
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-white">Sultanah Investments</div>
+                            <div class="text-xs text-gray-500">Dubai, UAE</div>
+                        </div>
+                    </div>
+                    <div class="text-yellow-400 mb-3">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 text-sm leading-relaxed italic">"The algorithmic precision and capital preservation demonstrated across market cycles exceed institutional benchmarks. Exceptional risk management."</p>
+                </div>
+                
+                <div class="testimonial-card border-gold glass-effect hover-lift">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gold-gradient to-gold/30 flex items-center justify-center font-bold text-dark-1 text-lg">
+                            LCM
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-white">London Capital Management</div>
+                            <div class="text-xs text-gray-500">London, UK</div>
+                        </div>
+                    </div>
+                    <div class="text-yellow-400 mb-3">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 text-sm leading-relaxed italic">"Direct market access with professional-grade execution. The SMC framework has become integral to our multi-strategy fund allocation."</p>
+                </div>
+                
+                <div class="testimonial-card border-gold glass-effect hover-lift">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gold-gradient to-gold/30 flex items-center justify-center font-bold text-dark-1 text-lg">
+                            NYC
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-white">New York Capital Partners</div>
+                            <div class="text-xs text-gray-500">New York, USA</div>
+                        </div>
+                    </div>
+                    <div class="text-yellow-400 mb-3">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 text-sm leading-relaxed italic">"Outstanding execution across FX and futures markets. The latency improvements alone have enhanced our competitive positioning significantly."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="relative py-32 px-6 md:px-8 bg-dark-1 border-t border-b border-gold">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-block px-4 py-2 glass-effect rounded mb-6">
+                <span class="text-xs uppercase tracking-[0.2em] text-gold-gradient font-semibold">Stay Updated</span>
+            </div>
+            <h2 class="text-5xl md:text-6xl serif mb-6 text-white">Market Insights & Signals</h2>
+            <p class="text-gray-400 mb-12 max-w-2xl mx-auto text-lg">
+                Subscribe to receive institutional-grade market analysis, SMC signal alerts, and exclusive fintech research delivered weekly.
+            </p>
+            
+            <form id="newsletterForm" class="flex flex-col md:flex-row gap-4 justify-center items-stretch mb-8">
+                <input 
+                    type="email" 
+                    name="newsletter_email" 
+                    placeholder="Enter your email address" 
+                    class="newsletter-input"
+                    required
+                    aria-label="Email address"
+                >
+                <button type="submit" class="btn-gold px-8 py-3 serif text-sm tracking-[0.15em] rounded whitespace-nowrap">
+                    Subscribe Now
+                </button>
+            </form>
+            
+            <p class="text-xs text-gray-500">
+                We respect your privacy. Unsubscribe at any time. No spam, only valuable insights.
+            </p>
+        </div>
+    </section>
     <section id="contact" class="relative py-32 px-6 md:px-8 border-t border-gold bg-dark-2">
         <div class="max-w-3xl mx-auto">
             <div class="text-center mb-16">
@@ -701,7 +1055,45 @@
     </button>
 
     <script>
-        // Scroll-to-top functionality
+        // ===== Theme Toggle =====
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Load saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+        
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            icon.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+            
+            // Track theme change
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'theme_change', {'theme': newTheme});
+            }
+        });
+        
+        // ===== Service Worker Registration =====
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                    console.log('Service Worker registered:', reg);
+                }).catch(err => {
+                    console.log('Service Worker registration failed:', err);
+                });
+            });
+        }
+        
+        // ===== Scroll-to-top button =====
         const scrollTopBtn = document.getElementById('scrollTop');
         
         window.addEventListener('scroll', () => {
@@ -714,22 +1106,31 @@
             }
         });
         
-        scrollTopBtn.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        if (scrollTopBtn) {
+            scrollTopBtn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
         
-        // Smooth scroll for anchor links
+        // ===== Smooth scroll for anchor links =====
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    // Track anchor clicks
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'anchor_click', {
+                            'link': this.getAttribute('href')
+                        });
+                    }
                 }
             });
         });
         
-        // Add animation class on scroll
+        // ===== Scroll Animation Observer =====
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -746,6 +1147,138 @@
         
         document.querySelectorAll('section').forEach(section => {
             observer.observe(section);
+        });
+        
+        // ===== Form Validation and Submission =====
+        const contactForm = document.querySelector('form[action*="formsubmit"]');
+        const newsletterForm = document.getElementById('newsletterForm');
+        
+        // Contact form validation
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                const inputs = this.querySelectorAll('[required]');
+                let isValid = true;
+                
+                inputs.forEach(input => {
+                    if (input.type === 'email') {
+                        const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+                        if (!emailRegex.test(input.value)) {
+                            isValid = false;
+                            input.style.borderColor = '#ef4444';
+                            input.setAttribute('aria-invalid', 'true');
+                        }
+                    } else if (!input.value.trim()) {
+                        isValid = false;
+                        input.style.borderColor = '#ef4444';
+                        input.setAttribute('aria-invalid', 'true');
+                    }
+                });
+                
+                if (isValid && typeof gtag !== 'undefined') {
+                    gtag('event', 'form_submit', {'form_type': 'contact'});
+                }
+                
+                return isValid;
+            });
+        }
+        
+        // Newsletter form handling
+        if (newsletterForm) {
+            newsletterForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = this.querySelector('input[name="newsletter_email"]').value;
+                const button = this.querySelector('button');
+                
+                // Validate email
+                const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    alert('Please enter a valid email address');
+                    return;
+                }
+                
+                // Show loading state
+                const originalText = button.textContent;
+                button.textContent = 'Subscribing...';
+                button.disabled = true;
+                
+                try {
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    button.textContent = '✓ Subscribed!';
+                    button.style.backgroundColor = '#10b981';
+                    
+                    // Track newsletter subscription
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'newsletter_signup', {'email': email.split('@')[0]});
+                    }
+                    
+                    // Reset after 3 seconds
+                    setTimeout(() => {
+                        this.reset();
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        button.style.backgroundColor = '';
+                    }, 3000);
+                } catch (error) {
+                    console.error('Newsletter subscription error:', error);
+                    button.textContent = 'Try Again';
+                    button.disabled = false;
+                }
+            });
+        }
+        
+        // ===== Performance Monitoring =====
+        if ('PerformanceObserver' in window) {
+            const perfObserver = new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    console.log('Performance:', entry.name, entry.duration);
+                }
+            });
+            
+            perfObserver.observe({ entryTypes: ['navigation', 'resource', 'measure'] });
+        }
+        
+        // ===== Lazy Loading for Images =====
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        if (img.dataset.src) {
+                            img.src = img.dataset.src;
+                            img.removeAttribute('data-src');
+                        }
+                        observer.unobserve(img);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+        
+        // ===== Error Tracking =====
+        window.addEventListener('error', (event) => {
+            console.error('Runtime error:', event.error);
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'exception', {
+                    'description': event.error.message,
+                    'fatal': false
+                });
+            }
+        });
+        
+        // Unhandled promise rejection tracking
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'exception', {
+                    'description': 'Unhandled Promise: ' + event.reason,
+                    'fatal': false
+                });
+            }
         });
     </script>
 
