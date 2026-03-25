@@ -1605,10 +1605,19 @@
                     processPaymentBtn.disabled = true;
                     processPaymentBtn.textContent = 'Processing...';
                     
+                    // Get recipient address based on currency and chain
+                    const addressKey = currency + '_' + cryptoManager.chainId;
+                    const recipientAddress = cryptoManager.recipientAddresses[addressKey] || 
+                                            (currency === 'BTC' ? cryptoManager.recipientAddresses['BTC'] : null);
+                    
+                    if (!recipientAddress) {
+                        throw new Error(`No recipient address configured for ${currency} on this chain`);
+                    }
+                    
                     const result = await cryptoManager.processPayment({
                         amount: amount,
                         currency: currency,
-                        recipientAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37AA96045', // Demo address
+                        recipientAddress: recipientAddress,
                         description: description || 'AL-MUDIR Advisory Payment'
                     });
                     
