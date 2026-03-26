@@ -2214,6 +2214,10 @@
                     return;
                 }
 
+                if (!cryptoManager) {
+                    await initCryptoPayments();
+                }
+
                 // Show loading state
                 const originalText = footerConverterConvertBtn.innerHTML;
                 footerConverterConvertBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
