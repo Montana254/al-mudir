@@ -897,6 +897,9 @@
                 <button id="cryptoTab" class="pb-4 px-4 text-sm uppercase tracking-[0.15em] border-b-2 border-transparent text-gray-400 hover:text-white transition">
                     Crypto Payment
                 </button>
+                <button id="freeAccessTab" class="pb-4 px-4 text-sm uppercase tracking-[0.15em] border-b-2 border-transparent text-gray-400 hover:text-white transition">
+                    Free Access
+                </button>
             </div>
             
             <!-- Contact Form Tab -->
@@ -1012,34 +1015,17 @@
                         </select>
                     </div>
                     
-                    <!-- Payment Details -->
-                    <div class="grid md:grid-cols-2 gap-6 mb-8">
-                        <div>
-                            <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-2 font-semibold">Amount</label>
-                            <div class="relative">
-                                <input 
-                                    type="number" 
-                                    id="paymentAmount" 
-                                    placeholder="0.00" 
-                                    step="0.01"
-                                    class="w-full bg-transparent border-2 border-gold/30 p-4 outline-none text-white rounded-lg focus:border-gold/80 focus:shadow-[0_0_20px_rgba(212,175,55,0.2)]"
-                                    required
-                                >
-                                <select id="currencySelect" class="absolute right-4 top-4 bg-transparent text-white border-l border-gold/30 pl-3 ml-3 outline-none">
-                                    <option>ETH</option>
-                                    <option>BNB</option>
-                                    <option>USDT</option>
-                                    <option>TRON</option>
-                                    <option>BTC</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-2 font-semibold">USD Value</label>
-                            <div class="bg-transparent border-2 border-gold/30 p-4 outline-none text-white rounded-lg">
-                                <span id="usdValue" class="text-lg font-bold text-gold-gradient">$0.00</span>
-                            </div>
-                        </div>
+                    <!-- Currency Selection -->
+                    <div class="mb-8">
+                        <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-4 font-semibold">Select Currency</label>
+                        <select id="currencySelect" class="w-full bg-transparent border-2 border-gold/30 p-4 outline-none text-white rounded-lg focus:border-gold/80">
+                            <option value="ETH">ETH (Ethereum)</option>
+                            <option value="BNB">BNB (BSC)</option>
+                            <option value="USDT">USDT (Stablecoin)</option>
+                            <option value="TRON">TRX (TRON)</option>
+                            <option value="BTC">BTC (Bitcoin)</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-2">USDT available on ERC20, BSC, TRC20 networks</p>
                     </div>
                     
                     <!-- Description -->
@@ -1075,6 +1061,17 @@
                         </div>
 
                         <div id="cardPaymentFields" class="mt-4 hidden">
+                            <div class="mb-4">
+                                <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-2 font-semibold">Card Type</label>
+                                <select id="cardType" class="w-full bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white">
+                                    <option>Visa</option>
+                                    <option>Mastercard</option>
+                                    <option>American Express</option>
+                                    <option>Discover</option>
+                                    <option>JCB</option>
+                                    <option>Diners Club</option>
+                                </select>
+                            </div>
                             <div class="grid md:grid-cols-3 gap-4 mb-3">
                                 <input id="cardNumber" type="text" maxlength="19" placeholder="Card Number" class="bg-transparent border-2 border-gold/30 p-3 rounded-lg text-sm text-white" autocomplete="cc-number" inputmode="numeric" />
                                 <input id="cardExpiry" type="text" maxlength="5" placeholder="MM/YY" class="bg-transparent border-2 border-gold/30 p-3 rounded-lg text-sm text-white" autocomplete="cc-exp" />
@@ -1128,6 +1125,69 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Free Access Tab -->
+            <div id="freeAccessPanel" class="hidden space-y-8">
+                <div class="bg-dark-3 border-gold glass-effect p-8 rounded-lg">
+                    <div class="mb-8">
+                        <h3 class="text-xl serif font-bold text-white mb-2">Free Access to VIP Signals</h3>
+                        <p class="text-gray-400 text-sm">Skip the $5 fee by signing up with our partner broker and join our VIP signals group for free.</p>
+                    </div>
+                    
+                    <!-- Broker Signup -->
+                    <div class="mb-8">
+                        <h4 class="text-lg serif font-bold text-white mb-4">Step 1: Sign Up with Broker</h4>
+                        <p class="text-gray-400 text-sm mb-4">Create a free account with our recommended broker for instant access.</p>
+                        <a href="https://broker-link-placeholder.com" target="_blank" class="btn-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg shadow-xl hover:shadow-2xl">
+                            Sign Up Free
+                        </a>
+                    </div>
+                    
+                    <!-- VIP Signals Group -->
+                    <div class="mb-8">
+                        <h4 class="text-lg serif font-bold text-white mb-4">Step 2: Join VIP Signals Group</h4>
+                        <p class="text-gray-400 text-sm mb-4">Access exclusive trading signals and market insights.</p>
+                        <a href="https://vip-signals-link-placeholder.com" target="_blank" class="btn-outline-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
+                            Join VIP Group
+                        </a>
+                    </div>
+                    
+                    <!-- KYC Verification -->
+                    <div class="mb-8">
+                        <h4 class="text-lg serif font-bold text-white mb-4">KYC Verification</h4>
+                        <p class="text-gray-400 text-sm mb-4">Complete identity verification for full access.</p>
+                        <button id="kycBtn" class="btn-outline-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
+                            Start KYC
+                        </button>
+                    </div>
+                    
+                    <!-- Currency Converter -->
+                    <div class="mb-8">
+                        <h4 class="text-lg serif font-bold text-white mb-4">Currency Converter</h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <input id="convertFrom" type="number" placeholder="Amount" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white" />
+                            <select id="convertFromCurrency" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white">
+                                <option>USD</option>
+                                <option>EUR</option>
+                                <option>BTC</option>
+                                <option>ETH</option>
+                            </select>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4 mt-4">
+                            <input id="convertTo" type="number" placeholder="Converted" readonly class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white" />
+                            <select id="convertToCurrency" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white">
+                                <option>USD</option>
+                                <option>EUR</option>
+                                <option>BTC</option>
+                                <option>ETH</option>
+                            </select>
+                        </div>
+                        <button id="convertBtn" class="btn-gold px-8 py-3 mt-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
+                            Convert
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -1143,11 +1203,17 @@
                         institutional-grade portfolio management and fintech innovation. Established 2024.
                     </p>
                     <div class="flex gap-4">
-                        <a href="#" class="w-8 h-8 border border-gold/30 hover:border-gold rounded flex items-center justify-center text-xs hover:bg-gold/10 transition">
+                        <a href="https://x.com/al_mudir" target="_blank" class="w-8 h-8 border border-gold/30 hover:border-gold rounded flex items-center justify-center text-xs hover:bg-gold/10 transition" title="Follow us on X">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://linkedin.com/company/al-mudir" target="_blank" class="w-8 h-8 border border-gold/30 hover:border-gold rounded flex items-center justify-center text-xs hover:bg-gold/10 transition" title="Connect on LinkedIn">
                             <i class="fab fa-linkedin"></i>
                         </a>
-                        <a href="#" class="w-8 h-8 border border-gold/30 hover:border-gold rounded flex items-center justify-center text-xs hover:bg-gold/10 transition">
-                            <i class="fab fa-twitter"></i>
+                        <a href="https://tiktok.com/@al_mudir" target="_blank" class="w-8 h-8 border border-gold/30 hover:border-gold rounded flex items-center justify-center text-xs hover:bg-gold/10 transition" title="Follow on TikTok">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        <a href="https://trustpilot.com/review/al-mudir.com" target="_blank" class="w-8 h-8 border border-gold/30 hover:border-gold rounded flex items-center justify-center text-xs hover:bg-gold/10 transition" title="5-Star Reviews on Trustpilot">
+                            <i class="fas fa-star"></i>
                         </a>
                     </div>
                 </div>
@@ -1211,6 +1277,8 @@
                         <p>✓ Registered with DFSA (Dubai)</p>
                         <p>✓ FCA Authorization (UK)</p>
                         <p>✓ Accredited with FINRA (USA)</p>
+                        <p>✓ GDPR Compliant</p>
+                        <p>✓ AML/KYC Verified</p>
                     </div>
                 </div>
             </div>
@@ -1505,27 +1573,47 @@
         // Tab switching logic
         const formTab = document.getElementById('formTab');
         const cryptoTab = document.getElementById('cryptoTab');
+        const freeAccessTab = document.getElementById('freeAccessTab');
         const contactForm = document.getElementById('contactForm');
         const cryptoPanel = document.getElementById('cryptoPanel');
+        const freeAccessPanel = document.getElementById('freeAccessPanel');
         
-        if (formTab && cryptoTab && contactForm && cryptoPanel) {
+        if (formTab && cryptoTab && freeAccessTab && contactForm && cryptoPanel && freeAccessPanel) {
             formTab.addEventListener('click', () => {
                 contactForm.classList.remove('hidden');
                 cryptoPanel.classList.add('hidden');
+                freeAccessPanel.classList.add('hidden');
                 formTab.classList.add('border-b-2', 'border-gold', 'font-bold', 'text-white');
                 formTab.classList.remove('border-transparent', 'text-gray-400');
                 cryptoTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
                 cryptoTab.classList.add('border-transparent', 'text-gray-400');
+                freeAccessTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
+                freeAccessTab.classList.add('border-transparent', 'text-gray-400');
             });
             
             cryptoTab.addEventListener('click', () => {
                 contactForm.classList.add('hidden');
                 cryptoPanel.classList.remove('hidden');
+                freeAccessPanel.classList.add('hidden');
                 cryptoTab.classList.add('border-b-2', 'border-gold', 'font-bold', 'text-white');
                 cryptoTab.classList.remove('border-transparent', 'text-gray-400');
                 formTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
                 formTab.classList.add('border-transparent', 'text-gray-400');
+                freeAccessTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
+                freeAccessTab.classList.add('border-transparent', 'text-gray-400');
                 initCryptoPayments();
+            });
+            
+            freeAccessTab.addEventListener('click', () => {
+                contactForm.classList.add('hidden');
+                cryptoPanel.classList.add('hidden');
+                freeAccessPanel.classList.remove('hidden');
+                freeAccessTab.classList.add('border-b-2', 'border-gold', 'font-bold', 'text-white');
+                freeAccessTab.classList.remove('border-transparent', 'text-gray-400');
+                formTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
+                formTab.classList.add('border-transparent', 'text-gray-400');
+                cryptoTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
+                cryptoTab.classList.add('border-transparent', 'text-gray-400');
             });
         }
         
@@ -1831,6 +1919,32 @@
                     processPaymentBtn.disabled = false;
                     processPaymentBtn.textContent = 'Process Payment';
                 }
+            });
+        }
+
+        const convertBtn = document.getElementById('convertBtn');
+        if (convertBtn) {
+            convertBtn.addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('convertFrom')?.value) || 0;
+                const fromCurrency = document.getElementById('convertFromCurrency')?.value;
+                const toCurrency = document.getElementById('convertToCurrency')?.value;
+                if (cryptoManager) {
+                    let converted = amount;
+                    if (fromCurrency !== toCurrency) {
+                        // Simple conversion using rates
+                        const fromRate = cryptoManager.paymentRates[fromCurrency] || 1;
+                        const toRate = cryptoManager.paymentRates[toCurrency] || 1;
+                        converted = (amount * fromRate) / toRate;
+                    }
+                    document.getElementById('convertTo').value = converted.toFixed(6);
+                }
+            });
+        }
+
+        const kycBtn = document.getElementById('kycBtn');
+        if (kycBtn) {
+            kycBtn.addEventListener('click', () => {
+                alert('KYC verification process would start here. In production, integrate with a KYC provider like Sumsub or Onfido.');
             });
         }
     </script>

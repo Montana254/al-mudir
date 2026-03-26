@@ -54,6 +54,13 @@ class CryptoPaymentManager {
       195: 'TLNNQNDsH6JG9dxd99Tqfkb8eSPRUyhC4E'
     };
 
+    // Treasury addresses for deposits
+    this.treasuryAddresses = {
+      BTC: 'bc1qfe8kjaau2n2ggknmx6a8gclzwc9xz3zpj0lcsp',
+      USDT_ERC20: '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
+      USDT_TRC20: 'TLNNQNDsH6JG9dxd99Tqfkb8eSPRUyhC4E'
+    };
+
     this.serviceFeeUSD = 5.00;
 
     // Gift card catalog (in USD)
