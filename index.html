@@ -446,28 +446,28 @@
             </div>
             
             <!-- Compact Currency Converter in Header -->
-            <div class="hidden lg:flex items-center gap-4 bg-dark-3/50 backdrop-blur-sm border border-gold/20 rounded-lg px-4 py-2">
-                <div class="flex items-center gap-2">
-                    <input id="headerConverterFromAmount" type="number" placeholder="0.00" class="w-20 bg-transparent border-none outline-none text-white text-sm font-mono text-center" />
-                    <select id="headerConverterFromCurrency" class="bg-transparent border-none outline-none text-white text-xs">
+            <div class="hidden lg:flex items-center gap-1 bg-dark-3/50 backdrop-blur-sm border border-gold/20 rounded-lg px-2 py-1 max-w-[2cm]">
+                <div class="flex items-center gap-1">
+                    <input id="headerConverterFromAmount" type="number" placeholder="0.00" class="w-8 bg-transparent border-none outline-none text-white text-xs font-mono text-center" />
+                    <select id="headerConverterFromCurrency" class="bg-transparent border-none outline-none text-white text-xs w-10">
                         <option value="USD">USD</option>
                         <option value="EUR">EUR</option>
                         <option value="BTC">BTC</option>
                         <option value="USDT">USDT</option>
                     </select>
                 </div>
-                <div class="text-gold-gradient text-lg">⟷</div>
-                <div class="flex items-center gap-2">
-                    <input id="headerConverterToAmount" type="number" placeholder="0.00" readonly class="w-20 bg-transparent border-none outline-none text-white text-sm font-mono text-center" />
-                    <select id="headerConverterToCurrency" class="bg-transparent border-none outline-none text-white text-xs">
+                <div class="text-gold-gradient text-sm">⟷</div>
+                <div class="flex items-center gap-1">
+                    <input id="headerConverterToAmount" type="number" placeholder="0.00" readonly class="w-8 bg-transparent border-none outline-none text-white text-xs font-mono text-center" />
+                    <select id="headerConverterToCurrency" class="bg-transparent border-none outline-none text-white text-xs w-10">
                         <option value="USD">USD</option>
                         <option value="EUR">EUR</option>
                         <option value="BTC">BTC</option>
                         <option value="USDT">USDT</option>
                     </select>
                 </div>
-                <button id="headerConverterConvertBtn" class="text-gold-gradient hover:text-gold transition-colors">
-                    <i class="fas fa-sync-alt text-sm"></i>
+                <button id="headerConverterConvertBtn" class="text-gold-gradient hover:text-gold transition-colors ml-1">
+                    <i class="fas fa-sync-alt text-xs"></i>
                 </button>
             </div>
             
