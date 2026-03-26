@@ -787,6 +787,62 @@
         </div>
     </section>
 
+    <!-- Currency Converter Section -->
+    <section class="relative py-32 px-6 md:px-8 bg-dark-1 border-t border-gold">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <div class="inline-block px-4 py-2 glass-effect rounded mb-6">
+                    <span class="text-xs uppercase tracking-[0.2em] text-gold-gradient font-semibold">Currency Tools</span>
+                </div>
+                <h2 class="text-5xl md:text-6xl serif mb-6 text-white">Real-Time Converter</h2>
+                <p class="text-gray-400 text-sm md:text-base">Convert between major currencies and cryptocurrencies instantly</p>
+            </div>
+            
+            <div class="border-gold glass-effect p-8 rounded-xl shadow-2xl max-w-2xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-3 font-semibold">From</label>
+                        <div class="flex gap-3">
+                            <input id="converterFromAmount" type="number" placeholder="0.00" class="flex-1 bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white text-lg font-mono focus:border-gold/80" />
+                            <select id="converterFromCurrency" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white min-w-[100px]">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="BTC">BTC</option>
+                                <option value="ETH">ETH</option>
+                                <option value="BNB">BNB</option>
+                                <option value="USDT">USDT</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-3 font-semibold">To</label>
+                        <div class="flex gap-3">
+                            <input id="converterToAmount" type="number" placeholder="0.00" readonly class="flex-1 bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white text-lg font-mono" />
+                            <select id="converterToCurrency" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white min-w-[100px]">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="BTC">BTC</option>
+                                <option value="ETH">ETH</option>
+                                <option value="BNB">BNB</option>
+                                <option value="USDT">USDT</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center mb-6">
+                    <button id="converterConvertBtn" class="btn-gold px-12 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg shadow-xl hover:shadow-2xl">
+                        Convert Now
+                    </button>
+                </div>
+                
+                <div class="text-center">
+                    <p class="text-xs text-gray-500">Rates updated in real-time • For informational purposes only</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Testimonials Section -->
     <section class="relative py-32 px-6 md:px-8 bg-dark-2 border-t border-gold">
         <div class="max-w-6xl mx-auto">
@@ -963,6 +1019,55 @@
                     </button>
                 </div>
             </form>
+            
+            <!-- KYC Verification Section (shown after form submission) -->
+            <div id="kycSection" class="hidden space-y-8 mt-12">
+                <div class="bg-dark-3 border-gold glass-effect p-8 rounded-lg">
+                    <div class="text-center mb-8">
+                        <h3 class="text-xl serif font-bold text-white mb-2">Identity Verification Required</h3>
+                        <p class="text-gray-400 text-sm">To proceed with your inquiry, please complete KYC verification</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-2 font-semibold">Full Name</label>
+                            <input type="text" id="kycName" class="w-full bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white focus:border-gold/80" />
+                        </div>
+                        <div>
+                            <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-2 font-semibold">Date of Birth</label>
+                            <input type="date" id="kycDob" class="w-full bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white focus:border-gold/80" />
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-2 font-semibold">ID Document</label>
+                        <div class="border-2 border-dashed border-gold/30 p-8 rounded-lg text-center">
+                            <i class="fas fa-upload text-3xl text-gold-gradient mb-4"></i>
+                            <p class="text-gray-400 text-sm mb-4">Upload passport or national ID</p>
+                            <input type="file" id="kycDocument" accept="image/*,.pdf" class="hidden" />
+                            <button type="button" onclick="document.getElementById('kycDocument').click()" class="btn-outline-gold px-6 py-3 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
+                                Choose File
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 mb-6">
+                        <input type="checkbox" id="kycConsent" class="w-4 h-4 accent-gold-gradient">
+                        <label for="kycConsent" class="text-xs text-gray-400">
+                            I consent to identity verification and agree to the privacy policy
+                        </label>
+                    </div>
+                    
+                    <div class="flex justify-center gap-4">
+                        <button id="kycSubmitBtn" class="btn-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg shadow-xl hover:shadow-2xl">
+                            Submit Verification
+                        </button>
+                        <button id="kycSkipBtn" class="btn-outline-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
+                            Skip for Now
+                        </button>
+                    </div>
+                </div>
+            </div>
             
             <!-- Crypto Payment Tab -->
             <div id="cryptoPanel" class="hidden space-y-8">
@@ -1158,32 +1263,6 @@
                         <p class="text-gray-400 text-sm mb-4">Complete identity verification for full access.</p>
                         <button id="kycBtn" class="btn-outline-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
                             Start KYC
-                        </button>
-                    </div>
-                    
-                    <!-- Currency Converter -->
-                    <div class="mb-8">
-                        <h4 class="text-lg serif font-bold text-white mb-4">Currency Converter</h4>
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <input id="convertFrom" type="number" placeholder="Amount" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white" />
-                            <select id="convertFromCurrency" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white">
-                                <option>USD</option>
-                                <option>EUR</option>
-                                <option>BTC</option>
-                                <option>ETH</option>
-                            </select>
-                        </div>
-                        <div class="grid md:grid-cols-2 gap-4 mt-4">
-                            <input id="convertTo" type="number" placeholder="Converted" readonly class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white" />
-                            <select id="convertToCurrency" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white">
-                                <option>USD</option>
-                                <option>EUR</option>
-                                <option>BTC</option>
-                                <option>ETH</option>
-                            </select>
-                        </div>
-                        <button id="convertBtn" class="btn-gold px-8 py-3 mt-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
-                            Convert
                         </button>
                     </div>
                 </div>
@@ -1434,11 +1513,19 @@
                     serviceFeePaidFlag.value = 'true';
                 }
 
-                if (isValid && typeof gtag !== 'undefined') {
-                    gtag('event', 'form_submit', {'form_type': 'contact'});
+                if (isValid) {
+                    // Show KYC section instead of submitting immediately
+                    e.preventDefault();
+                    contactFormElement.classList.add('hidden');
+                    document.getElementById('kycSection').classList.remove('hidden');
+                    
+                    // Track form submission
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'form_submit', {'form_type': 'contact'});
+                    }
                 }
                 
-                return isValid;
+                return false;
             });
         }
         
@@ -1941,10 +2028,63 @@
             });
         }
 
+        const converterConvertBtn = document.getElementById('converterConvertBtn');
+        if (converterConvertBtn) {
+            converterConvertBtn.addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('converterFromAmount')?.value) || 0;
+                const fromCurrency = document.getElementById('converterFromCurrency')?.value;
+                const toCurrency = document.getElementById('converterToCurrency')?.value;
+                if (cryptoManager) {
+                    let converted = amount;
+                    if (fromCurrency !== toCurrency) {
+                        // Simple conversion using rates
+                        const fromRate = cryptoManager.paymentRates[fromCurrency] || 1;
+                        const toRate = cryptoManager.paymentRates[toCurrency] || 1;
+                        converted = (amount * fromRate) / toRate;
+                    }
+                    document.getElementById('converterToAmount').value = converted.toFixed(6);
+                }
+            });
+        }
+
         const kycBtn = document.getElementById('kycBtn');
         if (kycBtn) {
             kycBtn.addEventListener('click', () => {
                 alert('KYC verification process would start here. In production, integrate with a KYC provider like Sumsub or Onfido.');
+            });
+        }
+
+        const kycSubmitBtn = document.getElementById('kycSubmitBtn');
+        if (kycSubmitBtn) {
+            kycSubmitBtn.addEventListener('click', () => {
+                const name = document.getElementById('kycName')?.value;
+                const dob = document.getElementById('kycDob')?.value;
+                const document = document.getElementById('kycDocument')?.files[0];
+                const consent = document.getElementById('kycConsent')?.checked;
+
+                if (!name || !dob || !consent) {
+                    alert('Please fill all required fields and provide consent.');
+                    return;
+                }
+
+                if (!document) {
+                    alert('Please upload an ID document.');
+                    return;
+                }
+
+                // In production, submit to KYC provider
+                alert('KYC verification submitted successfully. You will receive confirmation via email.');
+                
+                // Submit the original form
+                document.getElementById('contactForm').submit();
+            });
+        }
+
+        const kycSkipBtn = document.getElementById('kycSkipBtn');
+        if (kycSkipBtn) {
+            kycSkipBtn.addEventListener('click', () => {
+                // Submit the original form without KYC
+                document.getElementById('contactForm').submit();
             });
         }
     </script>
