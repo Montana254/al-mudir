@@ -17,11 +17,31 @@ class CryptoPaymentManager {
     
     // Payment rates (in USD, update from price feed)
     this.paymentRates = {
+      // Fiat Currencies
+      USD: 1.00,
+      EUR: 0.92,
+      GBP: 0.79,
+      JPY: 150.50,
+      CHF: 0.91,
+      CAD: 1.35,
+      AUD: 1.52,
+      CNY: 7.25,
+      INR: 83.50,
+      BRL: 5.20,
+      ZAR: 18.75,
+      AED: 3.67,
+      // Cryptocurrencies
+      BTC: 72000,
       ETH: 3500,
       BNB: 650,
       USDT: 1.00,
-      TRON: 0.35,
-      BTC: 72000
+      USDC: 1.00,
+      ADA: 0.45,
+      SOL: 180,
+      DOT: 6.80,
+      LINK: 18.50,
+      UNI: 8.90,
+      TRON: 0.35
     };
     
     // Supported tokens by network
