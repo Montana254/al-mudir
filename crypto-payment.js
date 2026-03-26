@@ -367,6 +367,26 @@ class CryptoPaymentManager {
   }
 
   /**
+   * Fetch live float rates as a Google-like converter fallback.
+   */
+  async fetchGoogleLiveRate(fromCurrency, toCurrency) {
+    try {
+      const base = fromCurrency.toUpperCase();
+      const quote = toCurrency.toUpperCase();
+      const response = await fetch(`https://api.exchangerate.host/convert?from=${base}&to=${quote}`);
+      const data = await response.json();
+      
+      if (data && data.result && typeof data.result === 'number') {
+        return data.result;
+      }
+      throw new Error('Invalid google-like live rate response');
+    } catch (error) {
+      console.error('Failed to fetch google-like live rate:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get cached rate or fetch new one if expired
    */
   async getRate(currency) {
@@ -391,7 +411,13 @@ class CryptoPaymentManager {
         return fiatRate;
       }
 
-      console.warn(`Fiat rate not found for ${upperCurrency}, falling back to static`);
+      console.warn(`Fiat rate not found for ${upperCurrency}, trying Google-style fallback`);
+      const fallbackRate = await this.fetchGoogleLiveRate(upperCurrency, 'USD');
+      if (fallbackRate && fallbackRate > 0) {
+        return fallbackRate;
+      }
+
+      console.warn(`Google-style fallback failed for ${upperCurrency}, falling back to static`);
       return this.paymentRates[upperCurrency] || 1;
     }
 
