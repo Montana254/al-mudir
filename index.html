@@ -1022,10 +1022,24 @@
             
             <!-- KYC Verification Section (shown after form submission) -->
             <div id="kycSection" class="hidden space-y-8 mt-12">
-                <div class="bg-dark-3 border-gold glass-effect p-8 rounded-lg">
+                <!-- KYC Verification Status -->
+                <div id="kycStatusDisplay" class="hidden">
+                    <div class="bg-dark-3 border-gold glass-effect p-8 rounded-lg text-center">
+                        <div class="mb-6">
+                            <i class="fas fa-spinner fa-spin text-4xl text-gold-gradient mb-4"></i>
+                        </div>
+                        <h3 class="text-xl serif font-bold text-white mb-2">Verifying Your Identity</h3>
+                        <p class="text-gray-400 text-sm mb-4">Your KYC verification is being processed...</p>
+                        <p id="verificationTimer" class="text-gold text-lg serif font-bold mb-4">Processing: 3-5 minutes</p>
+                        <p class="text-gray-400 text-xs">You will receive access to the VIP Telegram group shortly</p>
+                    </div>
+                </div>
+                
+                <!-- KYC Form -->
+                <div id="kycFormDisplay" class="bg-dark-3 border-gold glass-effect p-8 rounded-lg">
                     <div class="text-center mb-8">
                         <h3 class="text-xl serif font-bold text-white mb-2">Identity Verification Required</h3>
-                        <p class="text-gray-400 text-sm">To proceed with your inquiry, please complete KYC verification</p>
+                        <p class="text-gray-400 text-sm">To proceed with your inquiry, please complete KYC verification (3-5 minutes)</p>
                     </div>
                     
                     <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -1064,6 +1078,37 @@
                         </button>
                         <button id="kycSkipBtn" class="btn-outline-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
                             Skip for Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- KYC Success Section (shown after verification) -->
+            <div id="kycSuccessSection" class="hidden space-y-8 mt-12">
+                <div class="bg-dark-3 border-gold glass-effect p-8 rounded-lg">
+                    <div class="text-center mb-8">
+                        <i class="fas fa-check-circle text-5xl text-green-400 mb-4"></i>
+                        <h3 class="text-2xl serif font-bold text-white mb-2">Identity Verified ✓</h3>
+                        <p class="text-green-400 text-sm mb-6">Your KYC verification has been completed successfully</p>
+                    </div>
+                    
+                    <div class="bg-dark-2 border border-gold/30 p-6 rounded-lg mb-6">
+                        <h4 class="text-lg serif font-bold text-gold mb-4">Your VIP Access Unlocked</h4>
+                        <p class="text-gray-400 text-sm mb-4">You now have access to the exclusive VIP Signals group with:</p>
+                        <ul class="text-gray-400 text-sm space-y-2 ml-4">
+                            <li>✓ Daily market analysis and trading signals</li>
+                            <li>✓ Real-time risk management strategies</li>
+                            <li>✓ Exclusive market insights from professional traders</li>
+                            <li>✓ Direct community support and networking</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="flex flex-col gap-4">
+                        <a href="https://t.me/forbesclubfx" target="_blank" class="btn-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg shadow-xl hover:shadow-2xl text-center">
+                            <i class="fab fa-telegram mr-2"></i>Open VIP Telegram Group
+                        </a>
+                        <button onclick="location.reload()" class="btn-outline-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
+                            Return to Home
                         </button>
                     </div>
                 </div>
@@ -1243,17 +1288,17 @@
                     <div class="mb-8">
                         <h4 class="text-lg serif font-bold text-white mb-4">Step 1: Sign Up with Broker</h4>
                         <p class="text-gray-400 text-sm mb-4">Create a free account with our recommended broker for instant access.</p>
-                        <a href="https://broker-link-placeholder.com" target="_blank" class="btn-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg shadow-xl hover:shadow-2xl">
-                            Sign Up Free
+                        <a href="https://one.exnesstrack.org/a/aczb4cfol7" target="_blank" class="btn-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg shadow-xl hover:shadow-2xl">
+                            Sign Up Free with Exness
                         </a>
                     </div>
                     
-                    <!-- VIP Signals Group -->
-                    <div class="mb-8">
+                    <!-- VIP Signals Group (shown after KYC) -->
+                    <div id="vipGroupSection" class="mb-8 hidden">
                         <h4 class="text-lg serif font-bold text-white mb-4">Step 2: Join VIP Signals Group</h4>
-                        <p class="text-gray-400 text-sm mb-4">Access exclusive trading signals and market insights.</p>
-                        <a href="https://vip-signals-link-placeholder.com" target="_blank" class="btn-outline-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg">
-                            Join VIP Group
+                        <p class="text-green-400 text-sm mb-4">✓ KYC Verified - Access your exclusive VIP group</p>
+                        <a href="https://t.me/forbesclubfx" target="_blank" class="btn-gold px-8 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg shadow-xl hover:shadow-2xl">
+                            <i class="fab fa-telegram mr-2"></i>Join VIP Telegram Group
                         </a>
                     </div>
                     
@@ -2059,7 +2104,7 @@
             kycSubmitBtn.addEventListener('click', () => {
                 const name = document.getElementById('kycName')?.value;
                 const dob = document.getElementById('kycDob')?.value;
-                const document = document.getElementById('kycDocument')?.files[0];
+                const docFile = document.getElementById('kycDocument')?.files[0];
                 const consent = document.getElementById('kycConsent')?.checked;
 
                 if (!name || !dob || !consent) {
@@ -2067,16 +2112,42 @@
                     return;
                 }
 
-                if (!document) {
+                if (!docFile) {
                     alert('Please upload an ID document.');
                     return;
                 }
 
-                // In production, submit to KYC provider
-                alert('KYC verification submitted successfully. You will receive confirmation via email.');
+                // Hide KYC form and show processing status
+                document.getElementById('kycFormDisplay').classList.add('hidden');
+                document.getElementById('kycStatusDisplay').classList.remove('hidden');
                 
-                // Submit the original form
-                document.getElementById('contactForm').submit();
+                // Simulate KYC verification processing (3-5 minutes = 180-300 seconds)
+                // For demo, use 10 seconds
+                const verificationTime = 10000; // 10 seconds for demo
+                const startTime = Date.now();
+                
+                const timerInterval = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    const remaining = Math.max(0, verificationTime - elapsed);
+                    const seconds = Math.ceil(remaining / 1000);
+                    
+                    if (seconds > 0) {
+                        document.getElementById('verificationTimer').textContent = `Processing: ${seconds} seconds remaining`;
+                    } else {
+                        clearInterval(timerInterval);
+                        
+                        // Hide processing status and show success
+                        document.getElementById('kycStatusDisplay').classList.add('hidden');
+                        document.getElementById('kycFormDisplay').classList.add('hidden');
+                        document.getElementById('kycSuccessSection').classList.remove('hidden');
+                        
+                        // Show VIP link in Free Access section
+                        document.getElementById('vipGroupSection').classList.remove('hidden');
+                    }
+                }, 100);
+                
+                // In production, submit to KYC provider
+                console.log('KYC verification submitted with data:', { name, dob, consent });
             });
         }
 
