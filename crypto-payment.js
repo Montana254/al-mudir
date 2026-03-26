@@ -38,24 +38,6 @@ class CryptoPaymentManager {
       195: 'TR7NHqjeKQxGTCi8q282KGLP235aKxaxS8'           // TRON USDT
     };
     
-    // AL-MUDIR Recipient Addresses - Treasury Wallets
-    this.recipientAddresses = {
-      // Ethereum network (chainId: 1)
-      'ETH_1': '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
-      'USDT_1': '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
-      
-      // BSC - Binance Smart Chain (chainId: 56)
-      'BNB_56': '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
-      'USDT_56': '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
-      
-      // TRON Network (chainId: 195)
-      'TRON_195': 'TLNNQNDsH6JG9dxd99Tqfkb8eSPRUyhC4E',
-      'USDT_195': 'TLNNQNDsH6JG9dxd99Tqfkb8eSPRUyhC4E',
-      
-      // Bitcoin (non-EVM, external)
-      'BTC': 'bc1qfe8kjaau2n2ggknmx6a8gclzwc9xz3zpj0lcsp'
-    };
-    
     this.walletConnected = false;
     this.paymentInProgress = false;
   }
