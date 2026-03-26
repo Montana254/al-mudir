@@ -300,10 +300,165 @@ class CryptoPaymentManager {
   }
 
   /**
+   * Fetch real-time fiat currency rates from ExchangeRate-API
+   */
+  async fetchFiatRates() {
+    try {
+      const response = await fetch(this.fiatApiUrl);
+      const data = await response.json();
+
+      if (data && data.rates) {
+        // Inject USD base if missing
+        data.rates.USD = data.rates.USD || 1;
+
+        this.rateCache.fiat = {
+          rates: data.rates,
+          timestamp: Date.now()
+        };
+        return data.rates;
+      }
+      throw new Error('Invalid fiat rates response');
+    } catch (error) {
+      console.error('Failed to fetch fiat rates:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Fetch real-time cryptocurrency rates from CoinGecko
+   */
+  async fetchCryptoRates() {
+    try {
+      const cryptoIds = {
+        BTC: 'bitcoin',
+        ETH: 'ethereum',
+        BNB: 'binancecoin',
+        ADA: 'cardano',
+        SOL: 'solana',
+        DOT: 'polkadot',
+        LINK: 'chainlink',
+        UNI: 'uniswap'
+      };
+
+      const ids = Object.values(cryptoIds).join(',');
+      const response = await fetch(`${this.cryptoApiUrl}?ids=${ids}&vs_currencies=usd`);
+      const data = await response.json();
+
+      if (data) {
+        const rates = {};
+
+        Object.entries(cryptoIds).forEach(([code, id]) => {
+          if (data[id] && typeof data[id].usd === 'number') {
+            rates[code] = data[id].usd;
+          }
+        });
+
+        this.rateCache.crypto = {
+          rates,
+          timestamp: Date.now()
+        };
+        return rates;
+      }
+      throw new Error('Invalid crypto rates response');
+    } catch (error) {
+      console.error('Failed to fetch crypto rates:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get cached rate or fetch new one if expired
+   */
+  async getRate(currency) {
+    const upperCurrency = (currency || '').toUpperCase();
+
+    if (upperCurrency === 'USD') {
+      return 1;
+    }
+
+    const now = Date.now();
+
+    if (this.fiatCurrencies.includes(upperCurrency)) {
+      let rates = this.rateCache.fiat?.rates;
+
+      if (!rates || (now - this.rateCache.fiat.timestamp) > this.cacheExpiry) {
+        rates = await this.fetchFiatRates();
+      }
+
+      const fiatRate = rates?.[upperCurrency];
+      if (fiatRate) {
+        console.debug('fiat rate', upperCurrency, fiatRate);
+        return fiatRate;
+      }
+
+      console.warn(`Fiat rate not found for ${upperCurrency}, falling back to static`);
+      return this.paymentRates[upperCurrency] || 1;
+    }
+
+    if (this.cryptoCurrencies.includes(upperCurrency)) {
+      let rates = this.rateCache.crypto?.rates;
+
+      if (!rates || (now - this.rateCache.crypto.timestamp) > this.cacheExpiry) {
+        rates = await this.fetchCryptoRates();
+      }
+
+      const cryptoRate = rates?.[upperCurrency];
+      if (cryptoRate) {
+        console.debug('crypto rate', upperCurrency, cryptoRate);
+        return cryptoRate;
+      }
+
+      console.warn(`Crypto rate not found for ${upperCurrency}, falling back to static`);
+      return this.paymentRates[upperCurrency] || 1;
+    }
+
+    console.warn(`Currency ${upperCurrency} not in fiat or crypto list, falling back to static`);
+    return this.paymentRates[upperCurrency] || 1;
+  }
+
+  /**
+   * Convert amount from one currency to another with real-time rates
+   */
+  async convertCurrency(amount, fromCurrency, toCurrency) {
+    try {
+      const fromCode = (fromCurrency || '').toUpperCase();
+      const toCode = (toCurrency || '').toUpperCase();
+
+      if (!amount || amount <= 0) {
+        throw new Error('Invalid amount');
+      }
+
+      if (fromCode === toCode) {
+        return amount;
+      }
+
+      const [fromRate, toRate] = await Promise.all([
+        this.getRate(fromCode),
+        this.getRate(toCode)
+      ]);
+
+      if (!fromRate || !toRate) {
+        throw new Error('Rate lookup failed');
+      }
+
+      const usdAmount = amount / fromRate;
+      const convertedAmount = usdAmount * toRate;
+
+      return convertedAmount;
+    } catch (error) {
+      console.error('Currency conversion failed:', error);
+      const fromRate = this.paymentRates[fromCurrency] || 1;
+      const toRate = this.paymentRates[toCurrency] || 1;
+      return (amount * fromRate) / toRate;
+    }
+  }
+
+  /**
    * Convert any supported currency amount to the equivalent USDT amount
    */
   convertToUSDT(amount, currency) {
-    if (!this.paymentRates[currency] || !this.paymentRates.USDT) {
+    const rate = this.paymentRates[currency] || 0;
+    if (rate <= 0) {
       throw new Error('Currency conversion not supported');
     }
     const usdValue = this.calculateUSD(amount, currency);
