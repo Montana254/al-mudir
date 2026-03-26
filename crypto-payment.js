@@ -43,6 +43,18 @@ class CryptoPaymentManager {
       UNI: 8.90,
       TRON: 0.35
     };
+
+    // Real-time conversion cache
+    this.rateCache = {};
+    this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
+
+    // API endpoints for real-time rates
+    this.fiatApiUrl = 'https://api.exchangerate-api.com/v4/latest/USD';
+    this.cryptoApiUrl = 'https://api.coingecko.com/api/v3/simple/price';
+    
+    // Supported currencies for real-time conversion
+    this.fiatCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'CNY', 'INR', 'BRL', 'ZAR', 'AED'];
+    this.cryptoCurrencies = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOT', 'LINK', 'UNI'];
     
     // Supported tokens by network
     this.tokensByNetwork = {
@@ -422,6 +434,135 @@ class CryptoPaymentManager {
     } catch (error) {
       console.error('Failed to get balance:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Fetch real-time fiat currency rates from ExchangeRate-API
+   */
+  async fetchFiatRates() {
+    try {
+      const response = await fetch(this.fiatApiUrl);
+      const data = await response.json();
+
+      if (data.rates) {
+        // Cache the rates
+        this.rateCache.fiat = {
+          rates: data.rates,
+          timestamp: Date.now()
+        };
+        return data.rates;
+      }
+      throw new Error('Invalid fiat rates response');
+    } catch (error) {
+      console.error('Failed to fetch fiat rates:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Fetch real-time cryptocurrency rates from CoinGecko
+   */
+  async fetchCryptoRates() {
+    try {
+      const cryptoIds = {
+        BTC: 'bitcoin',
+        ETH: 'ethereum',
+        BNB: 'binancecoin',
+        ADA: 'cardano',
+        SOL: 'solana',
+        DOT: 'polkadot',
+        LINK: 'chainlink',
+        UNI: 'uniswap'
+      };
+
+      const ids = Object.values(cryptoIds).join(',');
+      const response = await fetch(`${this.cryptoApiUrl}?ids=${ids}&vs_currencies=usd`);
+      const data = await response.json();
+
+      if (data) {
+        // Convert back to our currency codes and cache
+        const rates = {};
+        Object.entries(cryptoIds).forEach(([code, id]) => {
+          if (data[id] && data[id].usd) {
+            rates[code] = data[id].usd;
+          }
+        });
+
+        this.rateCache.crypto = {
+          rates: rates,
+          timestamp: Date.now()
+        };
+        return rates;
+      }
+      throw new Error('Invalid crypto rates response');
+    } catch (error) {
+      console.error('Failed to fetch crypto rates:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get cached rate or fetch new one if expired
+   */
+  async getRate(currency) {
+    const now = Date.now();
+    let rates;
+
+    if (this.fiatCurrencies.includes(currency)) {
+      // Fiat currency
+      if (!this.rateCache.fiat || (now - this.rateCache.fiat.timestamp) > this.cacheExpiry) {
+        rates = await this.fetchFiatRates();
+      } else {
+        rates = this.rateCache.fiat.rates;
+      }
+
+      if (rates && rates[currency]) {
+        return rates[currency];
+      }
+    } else if (this.cryptoCurrencies.includes(currency)) {
+      // Cryptocurrency
+      if (!this.rateCache.crypto || (now - this.rateCache.crypto.timestamp) > this.cacheExpiry) {
+        rates = await this.fetchCryptoRates();
+      } else {
+        rates = this.rateCache.crypto.rates;
+      }
+
+      if (rates && rates[currency]) {
+        return rates[currency];
+      }
+    }
+
+    // Fallback to static rates
+    return this.paymentRates[currency] || 1;
+  }
+
+  /**
+   * Convert amount from one currency to another with real-time rates
+   */
+  async convertCurrency(amount, fromCurrency, toCurrency) {
+    try {
+      if (fromCurrency === toCurrency) {
+        return amount;
+      }
+
+      // Get real-time rates
+      const [fromRate, toRate] = await Promise.all([
+        this.getRate(fromCurrency),
+        this.getRate(toCurrency)
+      ]);
+
+      // Convert through USD as base
+      const usdAmount = amount / fromRate;
+      const convertedAmount = usdAmount * toRate;
+
+      return convertedAmount;
+    } catch (error) {
+      console.error('Currency conversion failed:', error);
+      // Fallback to static rates
+      const fromRate = this.paymentRates[fromCurrency] || 1;
+      const toRate = this.paymentRates[toCurrency] || 1;
+      return (amount * fromRate) / toRate;
     }
   }
 }

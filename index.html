@@ -1461,7 +1461,7 @@
                         </button>
                     </div>
                     <div class="text-center mt-2">
-                        <p class="text-xs text-gray-500">Real-time rates • For informational purposes</p>
+                        <p class="text-xs text-gray-500">Real-time rates • Last updated: <span id="rateUpdateTime">--:--:--</span></p>
                     </div>
                 </div>
             </div>
@@ -2204,7 +2204,7 @@
         // ===== Footer Currency Converter =====
         const footerConverterConvertBtn = document.getElementById('footerConverterConvertBtn');
         if (footerConverterConvertBtn) {
-            footerConverterConvertBtn.addEventListener('click', () => {
+            footerConverterConvertBtn.addEventListener('click', async () => {
                 const amount = parseFloat(document.getElementById('footerConverterFromAmount')?.value) || 0;
                 const fromCurrency = document.getElementById('footerConverterFromCurrency')?.value;
                 const toCurrency = document.getElementById('footerConverterToCurrency')?.value;
@@ -2214,14 +2214,35 @@
                     return;
                 }
 
-                let converted = amount;
-                if (cryptoManager && cryptoManager.paymentRates) {
-                    // Simple conversion using rates
-                    const fromRate = cryptoManager.paymentRates[fromCurrency] || 1;
-                    const toRate = cryptoManager.paymentRates[toCurrency] || 1;
-                    converted = (amount * fromRate) / toRate;
+                // Show loading state
+                const originalText = footerConverterConvertBtn.innerHTML;
+                footerConverterConvertBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                footerConverterConvertBtn.disabled = true;
+
+                try {
+                    // Use real-time conversion
+                    const convertedAmount = await cryptoManager.convertCurrency(amount, fromCurrency, toCurrency);
+                    document.getElementById('footerConverterToAmount').value = convertedAmount.toFixed(6);
+
+                    // Update last updated time
+                    const now = new Date();
+                    document.getElementById('rateUpdateTime').textContent = now.toLocaleTimeString();
+                } catch (error) {
+                    console.error('Conversion error:', error);
+                    alert('Failed to fetch real-time rates. Using cached rates.');
+                    // Fallback to static conversion
+                    let converted = amount;
+                    if (cryptoManager && cryptoManager.paymentRates) {
+                        const fromRate = cryptoManager.paymentRates[fromCurrency] || 1;
+                        const toRate = cryptoManager.paymentRates[toCurrency] || 1;
+                        converted = (amount * fromRate) / toRate;
+                    }
+                    document.getElementById('footerConverterToAmount').value = converted.toFixed(6);
+                } finally {
+                    // Reset button
+                    footerConverterConvertBtn.innerHTML = originalText;
+                    footerConverterConvertBtn.disabled = false;
                 }
-                document.getElementById('footerConverterToAmount').value = converted.toFixed(4);
             });
         }
     </script>
