@@ -445,14 +445,40 @@
                 <div class="text-2xl md:text-3xl serif font-bold text-gold-gradient tracking-[0.2em]">⬢ AL-MUDIR</div>
             </div>
             
+            <!-- Compact Currency Converter in Header -->
+            <div class="hidden lg:flex items-center gap-4 bg-dark-3/50 backdrop-blur-sm border border-gold/20 rounded-lg px-4 py-2">
+                <div class="flex items-center gap-2">
+                    <input id="headerConverterFromAmount" type="number" placeholder="0.00" class="w-20 bg-transparent border-none outline-none text-white text-sm font-mono text-center" />
+                    <select id="headerConverterFromCurrency" class="bg-transparent border-none outline-none text-white text-xs">
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="BTC">BTC</option>
+                        <option value="USDT">USDT</option>
+                    </select>
+                </div>
+                <div class="text-gold-gradient text-lg">⟷</div>
+                <div class="flex items-center gap-2">
+                    <input id="headerConverterToAmount" type="number" placeholder="0.00" readonly class="w-20 bg-transparent border-none outline-none text-white text-sm font-mono text-center" />
+                    <select id="headerConverterToCurrency" class="bg-transparent border-none outline-none text-white text-xs">
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="BTC">BTC</option>
+                        <option value="USDT">USDT</option>
+                    </select>
+                </div>
+                <button id="headerConverterConvertBtn" class="text-gold-gradient hover:text-gold transition-colors">
+                    <i class="fas fa-sync-alt text-sm"></i>
+                </button>
+            </div>
+            
             <div class="hidden md:flex space-x-12">
                 <a href="#about" class="nav-link text-xs uppercase tracking-[0.15em] text-gray-300 font-light">The Manager</a>
                 <a href="#metrics" class="nav-link text-xs uppercase tracking-[0.15em] text-gray-300 font-light">Portfolio</a>
                 <a href="#charts" class="nav-link text-xs uppercase tracking-[0.15em] text-gray-300 font-light">Terminal</a>
-                <a href="#contact" class="nav-link text-xs uppercase tracking-[0.15em] text-gray-300 font-light">Contact</a>
+                <a href="#signup" class="nav-link text-xs uppercase tracking-[0.15em] text-gray-300 font-light">Join</a>
             </div>
             
-            <a href="#contact" class="btn-outline-gold px-6 py-2.5 text-xs uppercase tracking-[0.15em] font-bold rounded">Access Portal</a>
+            <a href="#signup" class="btn-outline-gold px-6 py-2.5 text-xs uppercase tracking-[0.15em] font-bold rounded">Access Portal</a>
         </div>
     </nav>
 
@@ -480,7 +506,7 @@
             </p>
             
             <div class="flex flex-col md:flex-row gap-6 justify-center mb-16 animate-hero-cta" style="animation: fadeInUp 1s ease-out 0.4s both;">
-                <a href="#contact" class="btn-gold px-10 py-4 serif text-sm tracking-[0.15em] rounded">Schedule Briefing</a>
+                <a href="#signup" class="btn-gold px-10 py-4 serif text-sm tracking-[0.15em] rounded">Schedule Briefing</a>
                 <a href="#charts" class="btn-outline-gold px-10 py-4 serif text-sm tracking-[0.15em] rounded">View Terminal</a>
             </div>
             
@@ -787,61 +813,7 @@
         </div>
     </section>
 
-    <!-- Currency Converter Section -->
-    <section class="relative py-32 px-6 md:px-8 bg-dark-1 border-t border-gold">
-        <div class="max-w-4xl mx-auto">
-            <div class="text-center mb-16">
-                <div class="inline-block px-4 py-2 glass-effect rounded mb-6">
-                    <span class="text-xs uppercase tracking-[0.2em] text-gold-gradient font-semibold">Currency Tools</span>
-                </div>
-                <h2 class="text-5xl md:text-6xl serif mb-6 text-white">Real-Time Converter</h2>
-                <p class="text-gray-400 text-sm md:text-base">Convert between major currencies and cryptocurrencies instantly</p>
-            </div>
-            
-            <div class="border-gold glass-effect p-8 rounded-xl shadow-2xl max-w-2xl mx-auto">
-                <div class="grid md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-3 font-semibold">From</label>
-                        <div class="flex gap-3">
-                            <input id="converterFromAmount" type="number" placeholder="0.00" class="flex-1 bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white text-lg font-mono focus:border-gold/80" />
-                            <select id="converterFromCurrency" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white min-w-[100px]">
-                                <option value="USD">USD</option>
-                                <option value="EUR">EUR</option>
-                                <option value="BTC">BTC</option>
-                                <option value="ETH">ETH</option>
-                                <option value="BNB">BNB</option>
-                                <option value="USDT">USDT</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm uppercase tracking-[0.1em] text-gray-400 mb-3 font-semibold">To</label>
-                        <div class="flex gap-3">
-                            <input id="converterToAmount" type="number" placeholder="0.00" readonly class="flex-1 bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white text-lg font-mono" />
-                            <select id="converterToCurrency" class="bg-transparent border-2 border-gold/30 p-4 rounded-lg text-white min-w-[100px]">
-                                <option value="USD">USD</option>
-                                <option value="EUR">EUR</option>
-                                <option value="BTC">BTC</option>
-                                <option value="ETH">ETH</option>
-                                <option value="BNB">BNB</option>
-                                <option value="USDT">USDT</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex justify-center mb-6">
-                    <button id="converterConvertBtn" class="btn-gold px-12 py-4 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg shadow-xl hover:shadow-2xl">
-                        Convert Now
-                    </button>
-                </div>
-                
-                <div class="text-center">
-                    <p class="text-xs text-gray-500">Rates updated in real-time • For informational purposes only</p>
-                </div>
-            </div>
-        </div>
-    </section>
+
 
     <!-- Testimonials Section -->
     <section class="relative py-32 px-6 md:px-8 bg-dark-2 border-t border-gold">
@@ -935,20 +907,20 @@
             </p>
         </div>
     </section>
-    <section id="contact" class="relative py-32 px-6 md:px-8 border-t border-gold bg-dark-2">
+    <section id="signup" class="relative py-32 px-6 md:px-8 border-t border-gold bg-dark-2">
         <div class="max-w-4xl mx-auto">
             <div class="text-center mb-16">
                 <div class="inline-block px-4 py-2 glass-effect rounded mb-6">
-                    <span class="text-xs uppercase tracking-[0.2em] text-gold-gradient font-semibold">Get In Touch</span>
+                    <span class="text-xs uppercase tracking-[0.2em] text-gold-gradient font-semibold">Exclusive Access</span>
                 </div>
-                <h2 class="text-5xl md:text-6xl serif mb-6 text-gold-gradient">Schedule Briefing</h2>
-                <p class="text-gray-400 text-sm">Private inquiry for accredited investors & institutional partners</p>
+                <h2 class="text-5xl md:text-6xl serif mb-6 text-gold-gradient">Join AL-MUDIR</h2>
+                <p class="text-gray-400 text-sm">Secure your position in institutional-grade wealth management</p>
             </div>
             
             <!-- Tab Navigation -->
             <div class="flex gap-4 mb-12 border-b border-gold/30">
-                <button id="formTab" class="pb-4 px-4 text-sm uppercase tracking-[0.15em] border-b-2 border-gold font-bold text-white transition">
-                    Contact Form
+                <button id="signupTab" class="pb-4 px-4 text-sm uppercase tracking-[0.15em] border-b-2 border-gold font-bold text-white transition">
+                    User Registration
                 </button>
                 <button id="cryptoTab" class="pb-4 px-4 text-sm uppercase tracking-[0.15em] border-b-2 border-transparent text-gray-400 hover:text-white transition">
                     Crypto Payment
@@ -958,15 +930,15 @@
                 </button>
             </div>
             
-            <!-- Contact Form Tab -->
-            <form id="contactForm" action="https://formsubmit.co/inquiries@al-mudir.dev" method="POST" class="space-y-8">
+            <!-- User Registration Tab -->
+            <form id="signupForm" action="https://formsubmit.co/inquiries@al-mudir.dev" method="POST" class="space-y-8">
                 <input type="hidden" id="serviceFeePaidFlag" name="service_fee_paid" value="false" />
                 <div class="grid md:grid-cols-2 gap-8">
                     <div class="relative group">
                         <input 
                             type="text" 
-                            name="name" 
-                            placeholder="LEGAL NAME / ENTITY" 
+                            name="first_name" 
+                            placeholder="FIRST NAME" 
                             class="w-full bg-transparent border-b-2 border-gold/30 py-4 outline-none text-sm tracking-[0.1em] transition-all focus:border-gold/80 focus:shadow-[0_4px_0_rgba(212,175,55,0.2)]" 
                             required
                         >
@@ -974,9 +946,9 @@
                     
                     <div class="relative group">
                         <input 
-                            type="email" 
-                            name="email" 
-                            placeholder="OFFICIAL EMAIL ADDRESS" 
+                            type="text" 
+                            name="last_name" 
+                            placeholder="LAST NAME" 
                             class="w-full bg-transparent border-b-2 border-gold/30 py-4 outline-none text-sm tracking-[0.1em] transition-all focus:border-gold/80 focus:shadow-[0_4px_0_rgba(212,175,55,0.2)]" 
                             required
                         >
@@ -985,9 +957,46 @@
                 
                 <div class="relative group">
                     <input 
+                        type="email" 
+                        name="email" 
+                        placeholder="PROFESSIONAL EMAIL ADDRESS" 
+                        class="w-full bg-transparent border-b-2 border-gold/30 py-4 outline-none text-sm tracking-[0.1em] transition-all focus:border-gold/80 focus:shadow-[0_4px_0_rgba(212,175,55,0.2)]" 
+                        required
+                    >
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="relative group">
+                        <input 
+                            type="tel" 
+                            name="phone" 
+                            placeholder="PHONE NUMBER" 
+                            class="w-full bg-transparent border-b-2 border-gold/30 py-4 outline-none text-sm tracking-[0.1em] transition-all focus:border-gold/80 focus:shadow-[0_4px_0_rgba(212,175,55,0.2)]" 
+                            required
+                        >
+                    </div>
+                    
+                    <div class="relative group">
+                        <select 
+                            name="investment_experience" 
+                            class="w-full bg-transparent border-b-2 border-gold/30 py-4 outline-none text-sm tracking-[0.1em] transition-all focus:border-gold/80 focus:shadow-[0_4px_0_rgba(212,175,55,0.2)]" 
+                            required
+                        >
+                            <option value="" disabled selected>INVESTMENT EXPERIENCE</option>
+                            <option value="beginner">Beginner (0-2 years)</option>
+                            <option value="intermediate">Intermediate (2-5 years)</option>
+                            <option value="advanced">Advanced (5-10 years)</option>
+                            <option value="expert">Expert (10+ years)</option>
+                            <option value="institutional">Institutional</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="relative group">
+                    <input 
                         type="text" 
-                        name="aum" 
-                        placeholder="ASSETS UNDER MANAGEMENT (USD)" 
+                        name="investment_amount" 
+                        placeholder="PLANNED INVESTMENT AMOUNT (USD)" 
                         class="w-full bg-transparent border-b-2 border-gold/30 py-4 outline-none text-sm tracking-[0.1em] transition-all focus:border-gold/80 focus:shadow-[0_4px_0_rgba(212,175,55,0.2)]" 
                         required
                     >
@@ -995,9 +1004,9 @@
                 
                 <div class="relative group">
                     <textarea 
-                        name="message" 
-                        rows="5" 
-                        placeholder="INQUIRY DETAILS (VENTURES, PARTNERSHIP, OR ALLOCATION)" 
+                        name="objectives" 
+                        rows="4" 
+                        placeholder="INVESTMENT OBJECTIVES & RISK TOLERANCE" 
                         class="w-full bg-transparent border-2 border-gold/30 p-6 outline-none text-sm tracking-[0.05em] transition-all focus:border-gold/80 focus:shadow-[0_0_20px_rgba(212,175,55,0.2)] rounded-lg resize-none" 
                         required
                     ></textarea>
@@ -1006,7 +1015,7 @@
                 <div class="flex items-start gap-4">
                     <input type="checkbox" id="terms" name="terms" required class="mt-1 w-4 h-4 accent-gold-gradient">
                     <label for="terms" class="text-xs text-gray-400 leading-relaxed">
-                        I confirm I am an accredited investor or institutional entity. I agree to the terms of engagement and understand the risks of algorithmic trading and high-frequency execution.
+                        I certify I am at least 18 years old and an accredited investor. I understand the high-risk nature of algorithmic trading and accept full responsibility for investment decisions.
                     </label>
                 </div>
                 
@@ -1015,7 +1024,7 @@
                         type="submit" 
                         class="btn-gold px-16 py-5 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg shadow-xl hover:shadow-2xl"
                     >
-                        Submit Briefing Request
+                        Complete Registration
                     </button>
                 </div>
             </form>
@@ -1349,7 +1358,7 @@
                         <li><a href="#about" class="hover:text-gold-gradient transition">About</a></li>
                         <li><a href="#metrics" class="hover:text-gold-gradient transition">Portfolio</a></li>
                         <li><a href="#charts" class="hover:text-gold-gradient transition">Terminal</a></li>
-                        <li><a href="#contact" class="hover:text-gold-gradient transition">Contact</a></li>
+                        <li><a href="#signup" class="hover:text-gold-gradient transition">Join</a></li>
                     </ul>
                 </div>
                 
@@ -1523,12 +1532,12 @@
         });
         
         // ===== Form Validation and Submission =====
-        const contactFormElement = document.querySelector('form[action*="formsubmit"]');
+        const signupFormElement = document.querySelector('form[action*="formsubmit"]');
         const newsletterForm = document.getElementById('newsletterForm');
         
-        // Contact form validation
-        if (contactFormElement) {
-            contactFormElement.addEventListener('submit', function(e) {
+        // Signup form validation
+        if (signupFormElement) {
+            signupFormElement.addEventListener('submit', function(e) {
                 const inputs = this.querySelectorAll('[required]');
                 let isValid = true;
                 
@@ -1548,7 +1557,7 @@
                 });
                 
                 if (!serviceFeePaid || serviceFeePaidUSD < 5) {
-                    alert('Please complete the $5 service fee payment (crypto/card/gift card) before submitting your inquiry.');
+                    alert('Please complete the $5 registration fee payment (crypto/card/gift card) before submitting your registration.');
                     e.preventDefault();
                     return false;
                 }
@@ -1561,12 +1570,12 @@
                 if (isValid) {
                     // Show KYC section instead of submitting immediately
                     e.preventDefault();
-                    contactFormElement.classList.add('hidden');
+                    signupFormElement.classList.add('hidden');
                     document.getElementById('kycSection').classList.remove('hidden');
                     
                     // Track form submission
                     if (typeof gtag !== 'undefined') {
-                        gtag('event', 'form_submit', {'form_type': 'contact'});
+                        gtag('event', 'form_submit', {'form_type': 'signup'});
                     }
                 }
                 
@@ -1703,20 +1712,20 @@
         }
         
         // Tab switching logic
-        const formTab = document.getElementById('formTab');
+        const signupTab = document.getElementById('signupTab');
         const cryptoTab = document.getElementById('cryptoTab');
         const freeAccessTab = document.getElementById('freeAccessTab');
-        const contactForm = document.getElementById('contactForm');
+        const signupForm = document.getElementById('signupForm');
         const cryptoPanel = document.getElementById('cryptoPanel');
         const freeAccessPanel = document.getElementById('freeAccessPanel');
         
-        if (formTab && cryptoTab && freeAccessTab && contactForm && cryptoPanel && freeAccessPanel) {
-            formTab.addEventListener('click', () => {
-                contactForm.classList.remove('hidden');
+        if (signupTab && cryptoTab && freeAccessTab && signupForm && cryptoPanel && freeAccessPanel) {
+            signupTab.addEventListener('click', () => {
+                signupForm.classList.remove('hidden');
                 cryptoPanel.classList.add('hidden');
                 freeAccessPanel.classList.add('hidden');
-                formTab.classList.add('border-b-2', 'border-gold', 'font-bold', 'text-white');
-                formTab.classList.remove('border-transparent', 'text-gray-400');
+                signupTab.classList.add('border-b-2', 'border-gold', 'font-bold', 'text-white');
+                signupTab.classList.remove('border-transparent', 'text-gray-400');
                 cryptoTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
                 cryptoTab.classList.add('border-transparent', 'text-gray-400');
                 freeAccessTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
@@ -1724,26 +1733,26 @@
             });
             
             cryptoTab.addEventListener('click', () => {
-                contactForm.classList.add('hidden');
+                signupForm.classList.add('hidden');
                 cryptoPanel.classList.remove('hidden');
                 freeAccessPanel.classList.add('hidden');
                 cryptoTab.classList.add('border-b-2', 'border-gold', 'font-bold', 'text-white');
                 cryptoTab.classList.remove('border-transparent', 'text-gray-400');
-                formTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
-                formTab.classList.add('border-transparent', 'text-gray-400');
+                signupTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
+                signupTab.classList.add('border-transparent', 'text-gray-400');
                 freeAccessTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
                 freeAccessTab.classList.add('border-transparent', 'text-gray-400');
                 initCryptoPayments();
             });
             
             freeAccessTab.addEventListener('click', () => {
-                contactForm.classList.add('hidden');
+                signupForm.classList.add('hidden');
                 cryptoPanel.classList.add('hidden');
                 freeAccessPanel.classList.remove('hidden');
                 freeAccessTab.classList.add('border-b-2', 'border-gold', 'font-bold', 'text-white');
                 freeAccessTab.classList.remove('border-transparent', 'text-gray-400');
-                formTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
-                formTab.classList.add('border-transparent', 'text-gray-400');
+                signupTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
+                signupTab.classList.add('border-transparent', 'text-gray-400');
                 cryptoTab.classList.remove('border-b-2', 'border-gold', 'font-bold', 'text-white');
                 cryptoTab.classList.add('border-transparent', 'text-gray-400');
             });
@@ -2073,24 +2082,7 @@
             });
         }
 
-        const converterConvertBtn = document.getElementById('converterConvertBtn');
-        if (converterConvertBtn) {
-            converterConvertBtn.addEventListener('click', () => {
-                const amount = parseFloat(document.getElementById('converterFromAmount')?.value) || 0;
-                const fromCurrency = document.getElementById('converterFromCurrency')?.value;
-                const toCurrency = document.getElementById('converterToCurrency')?.value;
-                if (cryptoManager) {
-                    let converted = amount;
-                    if (fromCurrency !== toCurrency) {
-                        // Simple conversion using rates
-                        const fromRate = cryptoManager.paymentRates[fromCurrency] || 1;
-                        const toRate = cryptoManager.paymentRates[toCurrency] || 1;
-                        converted = (amount * fromRate) / toRate;
-                    }
-                    document.getElementById('converterToAmount').value = converted.toFixed(6);
-                }
-            });
-        }
+
 
         const kycBtn = document.getElementById('kycBtn');
         if (kycBtn) {
@@ -2155,7 +2147,31 @@
         if (kycSkipBtn) {
             kycSkipBtn.addEventListener('click', () => {
                 // Submit the original form without KYC
-                document.getElementById('contactForm').submit();
+                document.getElementById('signupForm').submit();
+            });
+        }
+
+        // ===== Header Currency Converter =====
+        const headerConverterConvertBtn = document.getElementById('headerConverterConvertBtn');
+        if (headerConverterConvertBtn) {
+            headerConverterConvertBtn.addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('headerConverterFromAmount')?.value) || 0;
+                const fromCurrency = document.getElementById('headerConverterFromCurrency')?.value;
+                const toCurrency = document.getElementById('headerConverterToCurrency')?.value;
+
+                if (!amount || amount <= 0) {
+                    alert('Please enter a valid amount');
+                    return;
+                }
+
+                let converted = amount;
+                if (cryptoManager && cryptoManager.paymentRates) {
+                    // Simple conversion using rates
+                    const fromRate = cryptoManager.paymentRates[fromCurrency] || 1;
+                    const toRate = cryptoManager.paymentRates[toCurrency] || 1;
+                    converted = (amount * fromRate) / toRate;
+                }
+                document.getElementById('headerConverterToAmount').value = converted.toFixed(4);
             });
         }
     </script>
