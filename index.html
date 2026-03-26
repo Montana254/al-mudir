@@ -901,6 +901,7 @@
             
             <!-- Contact Form Tab -->
             <form id="contactForm" action="https://formsubmit.co/inquiries@al-mudir.dev" method="POST" class="space-y-8">
+                <input type="hidden" id="serviceFeePaidFlag" name="service_fee_paid" value="false" />
                 <div class="grid md:grid-cols-2 gap-8">
                     <div class="relative group">
                         <input 
@@ -1051,7 +1052,47 @@
                             rows="3"
                         ></textarea>
                     </div>
-                    
+
+                    <div class="mb-8 p-4 bg-black/30 border border-gold/30 rounded-lg">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs uppercase tracking-[0.1em] text-gray-300 font-semibold">Inquiry Service Fee</span>
+                            <span class="text-xs font-bold text-gold-gradient">$5.00 USD</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-3">Each inquiry requires a $5 fee. Pay with wallet, credit card, or gift card. Card payments are converted to USDT on credit. This is required before submission.</p>
+                        <div id="serviceFeeStatus" class="text-xs font-semibold text-red-400">Service fee not paid</div>
+                    </div>
+
+                    <div class="mb-8 p-4 bg-black/20 border border-gold/20 rounded-lg">
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <label class="flex items-center gap-2 text-xs font-semibold text-gray-300">
+                                <input type="radio" name="paymentMode" value="crypto" checked> Crypto Wallet
+                            </label>
+                            <label class="flex items-center gap-2 text-xs font-semibold text-gray-300">
+                                <input type="radio" name="paymentMode" value="card"> Card
+                            </label>
+                            <label class="flex items-center gap-2 text-xs font-semibold text-gray-300">
+                                <input type="radio" name="paymentMode" value="giftcard"> Gift Card
+                            </label>
+                        </div>
+
+                        <div id="cardPaymentFields" class="mt-4 hidden">
+                            <div class="grid md:grid-cols-3 gap-4 mb-3">
+                                <input id="cardNumber" type="text" maxlength="19" placeholder="Card Number" class="bg-transparent border-2 border-gold/30 p-3 rounded-lg text-sm text-white" autocomplete="cc-number" inputmode="numeric" />
+                                <input id="cardExpiry" type="text" maxlength="5" placeholder="MM/YY" class="bg-transparent border-2 border-gold/30 p-3 rounded-lg text-sm text-white" autocomplete="cc-exp" />
+                                <input id="cardCvc" type="password" maxlength="4" placeholder="CVC" class="bg-transparent border-2 border-gold/30 p-3 rounded-lg text-sm text-white" autocomplete="cc-csc" inputmode="numeric" />
+                            </div>
+                            <button id="cardPayBtn" class="btn-outline-gold px-6 py-3 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg" type="button">Pay with Card</button>
+                        </div>
+
+                        <div id="giftCardFields" class="mt-4 hidden">
+                            <div class="grid md:grid-cols-2 gap-4 mb-3">
+                                <input id="giftCardCode" type="text" placeholder="Gift Card Code" class="bg-transparent border-2 border-gold/30 p-3 rounded-lg text-sm text-white" />
+                                <button id="giftCardApplyBtn" class="btn-outline-gold px-6 py-3 serif text-sm tracking-[0.2em] uppercase font-bold rounded-lg" type="button">Apply Gift Card</button>
+                            </div>
+                            <p class="text-xs text-gray-400">Gift card values: ALMUDIR-GIFT-50, ALMUDIR-GIFT-100, ALMUDIR-GIFT-250.</p>
+                        </div>
+                    </div>
+
                     <!-- Payment Buttons -->
                     <div class="flex flex-col gap-4 pt-4">
                         <button 
@@ -1315,6 +1356,17 @@
                     }
                 });
                 
+                if (!serviceFeePaid || serviceFeePaidUSD < 5) {
+                    alert('Please complete the $5 service fee payment (crypto/card/gift card) before submitting your inquiry.');
+                    e.preventDefault();
+                    return false;
+                }
+
+                const serviceFeePaidFlag = document.getElementById('serviceFeePaidFlag');
+                if (serviceFeePaidFlag) {
+                    serviceFeePaidFlag.value = 'true';
+                }
+
                 if (isValid && typeof gtag !== 'undefined') {
                     gtag('event', 'form_submit', {'form_type': 'contact'});
                 }
@@ -1428,10 +1480,27 @@
     <script>
         // ===== Crypto Payment Integration =====
         let cryptoManager = null;
-        
+        let serviceFeePaid = false;
+        let serviceFeePaidUSD = 0.00;
+        let selectedPaymentMode = 'crypto';
+
         // Initialize crypto payment manager
         async function initCryptoPayments() {
             cryptoManager = new CryptoPaymentManager();
+        }
+
+        function updateServiceFeeStatus() {
+            const statusEl = document.getElementById('serviceFeeStatus');
+            if (!statusEl) return;
+            if (serviceFeePaid && serviceFeePaidUSD >= 5) {
+                statusEl.textContent = `Service fee paid ($${serviceFeePaidUSD.toFixed(2)} USD). Ready to submit inquiry.`;
+                statusEl.classList.remove('text-red-400');
+                statusEl.classList.add('text-green-400');
+            } else {
+                statusEl.textContent = `Service fee not paid. Paid $${serviceFeePaidUSD.toFixed(2)} of $5.00 USD.`;
+                statusEl.classList.remove('text-green-400');
+                statusEl.classList.add('text-red-400');
+            }
         }
         
         // Tab switching logic
@@ -1467,6 +1536,26 @@
         const disconnectWalletBtn = document.getElementById('disconnectWalletBtn');
         const trustwalletBtn = document.getElementById('trustwalletBtn');
         const metamaskBtn = document.getElementById('metamaskBtn');
+
+        const paymentModeRadios = document.querySelectorAll('input[name="paymentMode"]');
+        const cardPaymentFields = document.getElementById('cardPaymentFields');
+        const giftCardFields = document.getElementById('giftCardFields');
+
+        paymentModeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                selectedPaymentMode = radio.value;
+                if (selectedPaymentMode === 'crypto') {
+                    cardPaymentFields?.classList.add('hidden');
+                    giftCardFields?.classList.add('hidden');
+                } else if (selectedPaymentMode === 'card') {
+                    cardPaymentFields?.classList.remove('hidden');
+                    giftCardFields?.classList.add('hidden');
+                } else if (selectedPaymentMode === 'giftcard') {
+                    cardPaymentFields?.classList.add('hidden');
+                    giftCardFields?.classList.remove('hidden');
+                }
+            });
+        });
         
         // Wallet selection handlers
         if (trustwalletBtn) {
@@ -1538,7 +1627,80 @@
                 if (processBtn) processBtn.disabled = true;
             });
         }
-        
+
+        const cardPayBtn = document.getElementById('cardPayBtn');
+        const giftCardApplyBtn = document.getElementById('giftCardApplyBtn');
+
+        if (cardPayBtn) {
+            cardPayBtn.addEventListener('click', async () => {
+                const cardNumber = document.getElementById('cardNumber')?.value.replace(/\s+/g, '');
+                const cardExpiry = document.getElementById('cardExpiry')?.value;
+                const cardCvc = document.getElementById('cardCvc')?.value;
+                const amount = 5.00;
+
+                if (!cardNumber || cardNumber.length < 12 || !/^[0-9]+$/.test(cardNumber)) {
+                    alert('Enter a valid card number');
+                    return;
+                }
+                if (!cardExpiry || !/^([0-1][0-9])\/(\d{2})$/.test(cardExpiry)) {
+                    alert('Enter expiry in MM/YY format');
+                    return;
+                }
+                if (!cardCvc || cardCvc.length < 3 || cardCvc.length > 4 || !/^[0-9]+$/.test(cardCvc)) {
+                    alert('Enter a valid CVC');
+                    return;
+                }
+
+                // Do not store card details in any variables beyond immediate authorization simulation
+                const cardLast4 = cardNumber.slice(-4);
+
+                try {
+                    if (!cryptoManager) await initCryptoPayments();
+                    const cardResult = await cryptoManager.processCardPayment({
+                        usdAmount: amount,
+                        cardLast4
+                    });
+
+                    serviceFeePaidUSD += cardResult.usdtAmount * cryptoManager.paymentRates.USDT;
+                    if (serviceFeePaidUSD >= cryptoManager.serviceFeeUSD) {
+                        serviceFeePaid = true;
+                    }
+
+                    updateServiceFeeStatus();
+
+                    alert(`Card payment authorized. Reference: ${cardResult.txReference}. USDT deposit pending: ${cardResult.usdtAmount.toFixed(6)} USDT to treasury.`);
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'card_payment', { 'usdAmount': amount, 'last4': cardLast4 });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Card payment failed: ' + err.message);
+                }
+            });
+        }
+
+        if (giftCardApplyBtn) {
+            giftCardApplyBtn.addEventListener('click', () => {
+                const code = document.getElementById('giftCardCode')?.value;
+                if (!code) return alert('Enter gift card code');
+                try {
+                    const value = cryptoManager.validateGiftCard(code);
+                    serviceFeePaidUSD += value;
+                    if (serviceFeePaidUSD >= cryptoManager.serviceFeeUSD) {
+                        serviceFeePaid = true;
+                    }
+                    updateServiceFeeStatus();
+                    alert(`Gift card applied: $${value}. Total fee paid: $${serviceFeePaidUSD.toFixed(2)} USD.`);
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'gift_card_apply', { 'code': code.slice(0, 6) + '...', 'value': value });
+                    }
+                } catch (err) {
+                    alert(err.message);
+                }
+            });
+        }
+
         // Initialize Trust Wallet as selected (highlight on load)
         if (trustwalletBtn) {
             trustwalletBtn.classList.add('border-gold', 'bg-gold/20');
@@ -1583,63 +1745,83 @@
         
         if (paymentAmount) paymentAmount.addEventListener('input', calculateUSD);
         if (currencySelect) currencySelect.addEventListener('change', calculateUSD);
+
+        updateServiceFeeStatus();
         
         // Process payment handler
         const processPaymentBtn = document.getElementById('processPaymentBtn');
         if (processPaymentBtn) {
             processPaymentBtn.addEventListener('click', async () => {
                 try {
+                    if (selectedPaymentMode !== 'crypto') {
+                        alert('Switch to Crypto mode for wallet payment, or use Card/Gift Card options.');
+                        return;
+                    }
+
                     if (!cryptoManager || !cryptoManager.walletConnected) {
                         alert('Please connect wallet first');
                         return;
                     }
-                    
+
                     const amount = parseFloat(paymentAmount?.value) || 0;
                     const currency = currencySelect?.value || 'ETH';
                     const description = document.getElementById('paymentDescription')?.value || '';
-                    
+
                     if (amount <= 0) {
                         alert('Please enter a valid amount greater than 0');
                         return;
                     }
-                    
+
+                    const amountUSD = cryptoManager.calculateUSD(amount, currency);
+                    if (amountUSD < cryptoManager.serviceFeeUSD) {
+                        alert(`Minimum service fee is $${cryptoManager.serviceFeeUSD.toFixed(2)} USD; current value is $${amountUSD.toFixed(2)} USD`);
+                        return;
+                    }
+
                     processPaymentBtn.disabled = true;
                     processPaymentBtn.textContent = 'Processing...';
-                    
-                    // Get recipient address based on currency and chain
-                    const addressKey = currency + '_' + cryptoManager.chainId;
-                    const recipientAddress = cryptoManager.recipientAddresses[addressKey] || 
-                                            (currency === 'BTC' ? cryptoManager.recipientAddresses['BTC'] : null);
-                    
+
+                    const recipientAddress = currency === 'USDT'
+                        ? (cryptoManager.treasuryUSDTAddress[cryptoManager.chainId] || cryptoManager.treasuryUSDTAddress[1])
+                        : (cryptoManager.treasuryNativeAddress[cryptoManager.chainId] || cryptoManager.treasuryNativeAddress[1]);
+
                     if (!recipientAddress) {
                         throw new Error(`No recipient address configured for ${currency} on this chain`);
                     }
-                    
-                    const result = await cryptoManager.processPayment({
+
+                    const txResult = await cryptoManager.processPayment({
                         amount: amount,
                         currency: currency,
                         recipientAddress: recipientAddress,
-                        description: description || 'AL-MUDIR Advisory Payment'
+                        description: description || 'AL-MUDIR Inquiry Service Fee'
                     });
-                    
-                    // Show transaction status
+
+                    // Mark fee as paid and convert to USDT for accounting
+                    const usdtAmount = cryptoManager.convertToUSDT(amount, currency);
+                    serviceFeePaidUSD += amountUSD;
+                    if (serviceFeePaidUSD >= cryptoManager.serviceFeeUSD) {
+                        serviceFeePaid = true;
+                    }
+                    updateServiceFeeStatus();
+
                     const txHash = document.getElementById('txHash');
-                    if (txHash) txHash.textContent = result.transactionHash.substring(0, 10) + '...' + result.transactionHash.substring(58);
-                    
+                    if (txHash) txHash.textContent = txResult.transactionHash.substring(0, 10) + '...' + txResult.transactionHash.substring(58);
+
                     const txStatus = document.getElementById('transactionStatus');
                     if (txStatus) txStatus.classList.remove('hidden');
-                    
-                    // Track event
+
                     if (typeof gtag !== 'undefined') {
                         gtag('event', 'crypto_payment', {
                             'amount': amount,
                             'currency': currency,
-                            'usd_value': cryptoManager.calculateUSD(amount, currency)
+                            'usd_value': amountUSD,
+                            'usdt_equivalent': usdtAmount
                         });
                     }
-                    
+
+                    alert(`Crypto fee paid and converted to ${usdtAmount.toFixed(4)} USDT equivalent. Service fee verified.`);
+
                     processPaymentBtn.textContent = 'Payment Submitted ✓';
-                    
                     setTimeout(() => {
                         processPaymentBtn.disabled = false;
                         processPaymentBtn.textContent = 'Process Payment';

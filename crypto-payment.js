@@ -40,6 +40,28 @@ class CryptoPaymentManager {
     
     this.walletConnected = false;
     this.paymentInProgress = false;
+
+    // AL-MUDIR Treasury settings
+    this.treasuryUSDTAddress = {
+      1: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      56: '0x55d398326f99059fF775485246999027B3197955',
+      195: 'TR7NHqjeKQxGTCi8q282KGLP235aKxaxS8'
+    };
+
+    this.treasuryNativeAddress = {
+      1: '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
+      56: '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
+      195: 'TLNNQNDsH6JG9dxd99Tqfkb8eSPRUyhC4E'
+    };
+
+    this.serviceFeeUSD = 5.00;
+
+    // Gift card catalog (in USD)
+    this.allowedGiftCards = {
+      'ALMUDIR-GIFT-50': 50,
+      'ALMUDIR-GIFT-100': 100,
+      'ALMUDIR-GIFT-250': 250
+    };
   }
 
   /**
@@ -236,6 +258,56 @@ class CryptoPaymentManager {
   calculateUSD(amount, currency) {
     const rate = this.paymentRates[currency] || 0;
     return amount * rate;
+  }
+
+  /**
+   * Convert any supported currency amount to the equivalent USDT amount
+   */
+  convertToUSDT(amount, currency) {
+    if (!this.paymentRates[currency] || !this.paymentRates.USDT) {
+      throw new Error('Currency conversion not supported');
+    }
+    const usdValue = this.calculateUSD(amount, currency);
+    return usdValue / this.paymentRates.USDT;
+  }
+
+  /**
+   * Process a card payment (simulated) and then convert to USDT and send to treasury
+   */
+  async processCardPayment(paymentDetails) {
+    const { usdAmount, cardLast4 } = paymentDetails;
+
+    if (usdAmount < this.serviceFeeUSD) {
+      throw new Error(`Minimum service fee is $${this.serviceFeeUSD.toFixed(2)} USD`);
+    }
+
+    // Payment processing must be done by a PCI-compliant backend in production.
+    // This client-side stub simulates successful card authorization.
+    const txReference = `CARD-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+    // Simulate USDT conversion and send. Here we only return values to be confirmed by backend.
+    const usdtAmount = usdAmount / this.paymentRates.USDT;
+
+    return {
+      status: 'authorized',
+      txReference,
+      cardLast4,
+      usdAmount,
+      usdtAmount,
+      recipient: this.treasuryUSDTAddress[this.chainId] || this.treasuryUSDTAddress[1],
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Validate a gift card code and return its USD amount
+   */
+  validateGiftCard(code) {
+    const normalized = String(code).trim().toUpperCase();
+    if (this.allowedGiftCards[normalized]) {
+      return this.allowedGiftCards[normalized];
+    }
+    throw new Error('Invalid gift card code');
   }
 
   /**
