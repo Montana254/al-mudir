@@ -445,32 +445,6 @@
                 <div class="text-2xl md:text-3xl serif font-bold text-gold-gradient tracking-[0.2em]">⬢ AL-MUDIR</div>
             </div>
             
-            <!-- Compact Currency Converter in Header -->
-            <div class="hidden lg:flex items-center gap-1 bg-dark-3/50 backdrop-blur-sm border border-gold/20 rounded-lg px-2 py-1 max-w-[2cm]">
-                <div class="flex items-center gap-1">
-                    <input id="headerConverterFromAmount" type="number" placeholder="0.00" class="w-8 bg-transparent border-none outline-none text-white text-xs font-mono text-center" />
-                    <select id="headerConverterFromCurrency" class="bg-transparent border-none outline-none text-white text-xs w-10">
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="BTC">BTC</option>
-                        <option value="USDT">USDT</option>
-                    </select>
-                </div>
-                <div class="text-gold-gradient text-sm">⟷</div>
-                <div class="flex items-center gap-1">
-                    <input id="headerConverterToAmount" type="number" placeholder="0.00" readonly class="w-8 bg-transparent border-none outline-none text-white text-xs font-mono text-center" />
-                    <select id="headerConverterToCurrency" class="bg-transparent border-none outline-none text-white text-xs w-10">
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="BTC">BTC</option>
-                        <option value="USDT">USDT</option>
-                    </select>
-                </div>
-                <button id="headerConverterConvertBtn" class="text-gold-gradient hover:text-gold transition-colors ml-1">
-                    <i class="fas fa-sync-alt text-xs"></i>
-                </button>
-            </div>
-            
             <div class="hidden md:flex space-x-12">
                 <a href="#about" class="nav-link text-xs uppercase tracking-[0.15em] text-gray-300 font-light">The Manager</a>
                 <a href="#metrics" class="nav-link text-xs uppercase tracking-[0.15em] text-gray-300 font-light">Portfolio</a>
@@ -1416,6 +1390,42 @@
                 </div>
             </div>
             
+            <!-- Currency Converter Widget -->
+            <div class="mb-8 flex justify-center">
+                <div class="bg-dark-3/50 backdrop-blur-sm border border-gold/20 rounded-lg px-4 py-3 max-w-md">
+                    <div class="text-center mb-3">
+                        <span class="text-xs uppercase tracking-[0.2em] text-gold-gradient font-semibold">Currency Converter</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <input id="footerConverterFromAmount" type="number" placeholder="0.00" class="w-16 bg-transparent border border-gold/30 rounded px-2 py-1 text-white text-sm font-mono text-center focus:border-gold/80 outline-none" />
+                            <select id="footerConverterFromCurrency" class="bg-transparent border border-gold/30 rounded px-2 py-1 text-white text-xs focus:border-gold/80 outline-none">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="BTC">BTC</option>
+                                <option value="USDT">USDT</option>
+                            </select>
+                        </div>
+                        <div class="text-gold-gradient text-lg">⟷</div>
+                        <div class="flex items-center gap-2">
+                            <input id="footerConverterToAmount" type="number" placeholder="0.00" readonly class="w-16 bg-transparent border border-gold/30 rounded px-2 py-1 text-white text-sm font-mono text-center" />
+                            <select id="footerConverterToCurrency" class="bg-transparent border border-gold/30 rounded px-2 py-1 text-white text-xs focus:border-gold/80 outline-none">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="BTC">BTC</option>
+                                <option value="USDT">USDT</option>
+                            </select>
+                        </div>
+                        <button id="footerConverterConvertBtn" class="bg-gold-gradient text-dark-1 px-3 py-1 rounded text-sm hover:bg-gold transition-colors">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="text-center mt-2">
+                        <p class="text-xs text-gray-500">Real-time rates • For informational purposes</p>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Bottom bar -->
             <div class="border-t border-gold/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
                 <div class="flex items-center gap-3">
@@ -2151,13 +2161,13 @@
             });
         }
 
-        // ===== Header Currency Converter =====
-        const headerConverterConvertBtn = document.getElementById('headerConverterConvertBtn');
-        if (headerConverterConvertBtn) {
-            headerConverterConvertBtn.addEventListener('click', () => {
-                const amount = parseFloat(document.getElementById('headerConverterFromAmount')?.value) || 0;
-                const fromCurrency = document.getElementById('headerConverterFromCurrency')?.value;
-                const toCurrency = document.getElementById('headerConverterToCurrency')?.value;
+        // ===== Footer Currency Converter =====
+        const footerConverterConvertBtn = document.getElementById('footerConverterConvertBtn');
+        if (footerConverterConvertBtn) {
+            footerConverterConvertBtn.addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('footerConverterFromAmount')?.value) || 0;
+                const fromCurrency = document.getElementById('footerConverterFromCurrency')?.value;
+                const toCurrency = document.getElementById('footerConverterToCurrency')?.value;
 
                 if (!amount || amount <= 0) {
                     alert('Please enter a valid amount');
@@ -2171,7 +2181,7 @@
                     const toRate = cryptoManager.paymentRates[toCurrency] || 1;
                     converted = (amount * fromRate) / toRate;
                 }
-                document.getElementById('headerConverterToAmount').value = converted.toFixed(4);
+                document.getElementById('footerConverterToAmount').value = converted.toFixed(4);
             });
         }
     </script>
