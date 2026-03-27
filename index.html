@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AL-MUDIR — Private wealth management and fintech ventures. Institutional-grade portfolio management.">
-    <meta name="theme-color" content="#04120f">
-    <title>AL-MUDIR | Private Wealth &amp; Fintech Ventures</title>
-    <link rel="manifest" href="/manifest.json">
+    <title>AL-MUDIR | Private Wealth & Fintech Ventures</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;500;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
@@ -33,14 +30,10 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
         nav { background: rgba(6, 29, 24, 0.95); backdrop-filter: blur(12px); }
-        input::placeholder, textarea::placeholder { color: rgba(232, 224, 208, 0.35); font-size: 0.75rem; letter-spacing: 0.15em; }
-        input, textarea { color: #e8e0d0; }
-        input:focus, textarea:focus { outline: none; border-color: rgba(212, 175, 55, 0.7); }
     </style>
 </head>
 <body>
 
-    <!-- Navigation -->
     <nav class="fixed top-0 w-full z-50 border-b border-gold">
         <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
             <div class="text-2xl serif font-bold text-gold-gradient tracking-[0.2em]">&#x2B22; AL-MUDIR</div>
@@ -53,7 +46,6 @@
         </div>
     </nav>
 
-    <!-- Hero -->
     <section class="min-h-screen flex flex-col justify-center items-center text-center px-6 pt-20">
         <div class="max-w-4xl animate-fade-in-up">
             <h2 class="text-xs uppercase tracking-[0.4em] mb-6 text-gray-400">Sovereign Wealth &bull; Fintech Innovation</h2>
@@ -66,7 +58,6 @@
         </div>
     </section>
 
-    <!-- Metrics -->
     <section id="metrics" class="py-32 px-6 bg-[#061d18]">
         <div class="max-w-6xl mx-auto grid md:grid-cols-4 gap-6">
             <div class="border-gold glass-effect p-8 rounded-lg text-center">
@@ -88,140 +79,29 @@
         </div>
     </section>
 
-    <!-- About -->
-    <section id="about" class="py-32 px-6">
-        <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-            <div>
-                <p class="text-xs uppercase tracking-[0.4em] text-gray-500 mb-4">The Manager</p>
-                <h2 class="text-4xl serif text-gold-gradient mb-6">Stewardship of<br>Generational Wealth</h2>
-                <p class="text-gray-400 leading-relaxed mb-6">AL-MUDIR operates at the intersection of sovereign capital preservation and cutting-edge fintech execution. Our mandate: absolute returns with institutional-grade risk controls.</p>
-                <p class="text-gray-500 leading-relaxed text-sm">Deploying Smart Money Concepts across FX, commodities, and digital assets — always asymmetric, always disciplined.</p>
-            </div>
-            <div class="space-y-4">
-                <div class="border-gold glass-effect p-6 rounded-lg">
-                    <div class="text-xs uppercase text-gray-500 mb-1">Strategy</div>
-                    <div class="text-white font-light">Smart Money Concepts &middot; ICT</div>
-                </div>
-                <div class="border-gold glass-effect p-6 rounded-lg">
-                    <div class="text-xs uppercase text-gray-500 mb-1">Markets</div>
-                    <div class="text-white font-light">FX &middot; Commodities &middot; Digital Assets</div>
-                </div>
-                <div class="border-gold glass-effect p-6 rounded-lg">
-                    <div class="text-xs uppercase text-gray-500 mb-1">Domicile</div>
-                    <div class="text-white font-light">Dubai &middot; London &middot; New York</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Charts / Terminal -->
-    <section id="charts" class="py-32 px-6 bg-[#061d18]">
+    <section id="charts" class="py-32 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-12">
                 <h2 class="text-4xl serif text-gold-gradient mb-4">Execution Terminal</h2>
-                <p class="text-gray-400 mono text-xs uppercase tracking-widest">Latency: 0.04ms &nbsp;|&nbsp; Institutional Feed</p>
+                <p class="text-gray-400 mono text-xs uppercase tracking-widest">Latency: 0.04ms | Institutional Feed</p>
             </div>
-            <div class="border-gold glass-effect p-2 rounded-xl" style="height:600px;">
-                <div id="tradingview_pro" style="height:100%;width:100%;"></div>
+            <div class="border-gold glass-effect p-2 rounded-xl h-[600px]">
+                <div id="tradingview_pro" style="height:100%; width:100%;"></div>
             </div>
         </div>
     </section>
 
-    <!-- Contact / Signup -->
-    <section id="contact" class="py-32 px-6 border-t border-white/5">
+    <section id="contact" class="py-32 px-6 bg-[#04120f] border-t border-gold">
         <div class="max-w-3xl mx-auto text-center">
-            <h3 class="serif text-3xl text-gold-gradient mb-4">Private Inquiry</h3>
-            <p class="text-gray-500 text-sm mb-12">Submit your details and a relationship manager will contact you within 24 hours.</p>
-            <form id="regForm" class="space-y-8 text-left">
+            <h3 class="serif text-3xl text-gold-gradient mb-12">Private Inquiry</h3>
+            <form action="https://formsubmit.co/your-email@email.com" method="POST" class="space-y-8">
                 <div class="grid md:grid-cols-2 gap-8">
-                    <input id="userName" type="text" name="name" placeholder="LEGAL NAME" required maxlength="100" autocomplete="name"
-                        class="bg-transparent border-b border-gold/40 py-4 w-full transition">
-                    <input id="userEmail" type="email" name="email" placeholder="OFFICIAL EMAIL" required maxlength="200" autocomplete="email"
-                        class="bg-transparent border-b border-gold/40 py-4 w-full transition">
+                    <input type="text" name="name" placeholder="LEGAL NAME" class="bg-transparent border-b border-gold/40 py-4 w-full outline-none focus:border-gold transition">
+                    <input type="email" name="email" placeholder="OFFICIAL EMAIL" class="bg-transparent border-b border-gold/40 py-4 w-full outline-none focus:border-gold transition">
                 </div>
-                <textarea id="userMessage" name="message" rows="4" placeholder="INQUIRY DETAILS" maxlength="500"
-                    class="bg-transparent border-b border-gold/40 py-4 w-full transition resize-none"></textarea>
-                <button type="submit" class="btn-gold px-12 py-4 w-full rounded text-sm">Submit Request</button>
-                <p id="formStatus" class="text-center text-xs mt-2 hidden"></p>
+                <textarea name="message" placeholder="INQUIRY DETAILS" class="bg-transparent border-b border-gold/40 py-4 w-full outline-none focus:border-gold transition"></textarea>
+                <button type="submit" class="btn-gold px-12 py-4 w-full rounded">Submit Request</button>
             </form>
-        </div>
-    </section>
-
-    <!-- User Dashboard -->
-    <section id="dashboard" class="hidden py-24 px-6 border-t border-white/5 bg-[#061d18]">
-        <div class="max-w-6xl mx-auto space-y-10">
-            <div class="text-center">
-                <p class="text-xs uppercase tracking-[0.3em] text-gray-400">Client Area</p>
-                <h3 class="serif text-3xl text-gold-gradient mt-3">User Dashboard</h3>
-                <p id="dashboardGreeting" class="text-gray-400 mt-4">Welcome. Complete verification to unlock all features.</p>
-            </div>
-
-            <div class="grid lg:grid-cols-2 gap-8">
-                <div class="border-gold glass-effect p-6 rounded-lg">
-                    <h4 class="serif text-xl text-white mb-2">Step 1: Verification (KYC)</h4>
-                    <p class="text-xs uppercase tracking-widest text-gray-500 mb-6">Required before full access</p>
-                    <form id="kycForm" class="space-y-4">
-                        <input id="kycDob" type="date" required class="bg-transparent border-b border-gold/40 py-3 w-full transition">
-                        <input id="kycCountry" type="text" maxlength="80" placeholder="COUNTRY OF RESIDENCE" required class="bg-transparent border-b border-gold/40 py-3 w-full transition">
-                        <div class="grid sm:grid-cols-2 gap-4">
-                            <select id="kycIdType" required class="bg-transparent border-b border-gold/40 py-3 w-full">
-                                <option value="" class="text-black">ID TYPE</option>
-                                <option value="Passport" class="text-black">Passport</option>
-                                <option value="National ID" class="text-black">National ID</option>
-                                <option value="Driver License" class="text-black">Driver License</option>
-                            </select>
-                            <input id="kycIdNumber" type="text" maxlength="80" placeholder="ID NUMBER" required class="bg-transparent border-b border-gold/40 py-3 w-full transition">
-                        </div>
-                        <textarea id="kycAddress" rows="2" maxlength="200" placeholder="RESIDENTIAL ADDRESS" required class="bg-transparent border-b border-gold/40 py-3 w-full transition resize-none"></textarea>
-                        <textarea id="kycFunds" rows="2" maxlength="200" placeholder="SOURCE OF FUNDS" required class="bg-transparent border-b border-gold/40 py-3 w-full transition resize-none"></textarea>
-                        <input id="kycWallet" type="text" maxlength="200" placeholder="OPTIONAL WALLET ADDRESS" class="bg-transparent border-b border-gold/40 py-3 w-full transition">
-                        <label class="text-xs text-gray-400 flex items-center gap-2">
-                            <input id="kycTerms" type="checkbox" required>
-                            I confirm the KYC information is accurate.
-                        </label>
-                        <button type="submit" class="btn-gold w-full rounded py-3 text-xs">Submit Verification</button>
-                        <p id="kycStatus" class="text-xs text-center hidden"></p>
-                    </form>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="border-gold glass-effect p-6 rounded-lg">
-                        <h4 class="serif text-xl text-white mb-2">Step 2: Free Access</h4>
-                        <p class="text-sm text-gray-400 mb-4">Request complimentary access after completing verification.</p>
-                        <button id="freeAccessBtn" class="btn-outline-gold w-full rounded py-3 text-xs uppercase tracking-widest">Request Free Access</button>
-                        <p id="freeAccessStatus" class="text-xs text-center mt-3 hidden"></p>
-                    </div>
-
-                    <div class="border-gold glass-effect p-6 rounded-lg">
-                        <h4 class="serif text-xl text-white mb-2">Step 3: Crypto Payment</h4>
-                        <p class="text-sm text-gray-400 mb-4">Convert and initiate crypto payment from your dashboard.</p>
-                        <div class="grid grid-cols-3 gap-3 mb-4">
-                            <input id="payAmount" type="number" min="1" step="0.01" placeholder="Amount" class="col-span-1 bg-transparent border-b border-gold/40 py-3 w-full transition">
-                            <select id="payFrom" class="col-span-1 bg-transparent border-b border-gold/40 py-3 w-full">
-                                <option value="USD" class="text-black">USD</option>
-                                <option value="EUR" class="text-black">EUR</option>
-                                <option value="GBP" class="text-black">GBP</option>
-                                <option value="BTC" class="text-black">BTC</option>
-                                <option value="ETH" class="text-black">ETH</option>
-                                <option value="USDT" class="text-black">USDT</option>
-                            </select>
-                            <select id="payTo" class="col-span-1 bg-transparent border-b border-gold/40 py-3 w-full">
-                                <option value="USDT" class="text-black">USDT</option>
-                                <option value="BTC" class="text-black">BTC</option>
-                                <option value="ETH" class="text-black">ETH</option>
-                                <option value="BNB" class="text-black">BNB</option>
-                            </select>
-                        </div>
-                        <button id="convertBtn" class="btn-outline-gold w-full rounded py-3 text-xs uppercase tracking-widest mb-3">Convert Rate</button>
-                        <p id="convertStatus" class="text-xs text-center text-gray-400 mb-4">Enter amount to calculate conversion.</p>
-                        <div class="grid sm:grid-cols-2 gap-3">
-                            <button id="walletBtn" class="btn-outline-gold rounded py-3 text-xs uppercase tracking-widest">Connect Wallet</button>
-                            <button id="payBtn" class="btn-gold rounded py-3 text-xs uppercase tracking-widest">Pay Now</button>
-                        </div>
-                        <p id="payStatus" class="text-xs text-center mt-3 hidden"></p>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -229,12 +109,8 @@
         &copy; 2026 AL-MUDIR WEALTH &amp; FINTECH VENTURES. ALL RIGHTS RESERVED.
     </footer>
 
-    <!-- Scripts -->
     <script src="https://s3.tradingview.com/tv.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="/crypto-payment.js"></script>
     <script>
-        // TradingView
         if (typeof TradingView !== 'undefined') {
             new TradingView.widget({
                 autosize: true,
@@ -245,278 +121,6 @@
                 locale: 'en',
                 container_id: 'tradingview_pro'
             });
-        }
-
-        // Supabase client
-        const SB_URL = 'https://fdwezkdtmvlcpfnbrjzp.supabase.co';
-        const SB_KEY = 'sb_publishable_99F6itx3-n0deIfoY4TKNg_njhtpSwC';
-        let sbClient = null;
-        if (window.supabase) {
-            sbClient = window.supabase.createClient(SB_URL, SB_KEY);
-        }
-
-        // Form submission + dashboard flow
-        const regForm = document.getElementById('regForm');
-        const formStatus = document.getElementById('formStatus');
-        const dashboard = document.getElementById('dashboard');
-        const dashboardGreeting = document.getElementById('dashboardGreeting');
-
-        const kycForm = document.getElementById('kycForm');
-        const kycStatus = document.getElementById('kycStatus');
-        const freeAccessBtn = document.getElementById('freeAccessBtn');
-        const freeAccessStatus = document.getElementById('freeAccessStatus');
-        const convertBtn = document.getElementById('convertBtn');
-        const convertStatus = document.getElementById('convertStatus');
-        const walletBtn = document.getElementById('walletBtn');
-        const payBtn = document.getElementById('payBtn');
-        const payStatus = document.getElementById('payStatus');
-
-        let currentUser = null;
-        let kycVerified = localStorage.getItem('alm_kyc_verified') === 'true';
-        let paymentManager = null;
-        let lastConversion = null;
-
-        function setStatus(el, text, tone) {
-            if (!el) return;
-            el.className = 'text-xs text-center mt-3';
-            if (tone === 'success') el.classList.add('text-green-400');
-            else if (tone === 'error') el.classList.add('text-red-400');
-            else el.classList.add('text-gray-400');
-            el.textContent = text;
-            el.classList.remove('hidden');
-        }
-
-        async function notifyEvent(type, payload) {
-            const response = await fetch('/api/telegram-alert', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type, payload })
-            });
-            if (!response.ok) {
-                throw new Error('notification_failed');
-            }
-            return response.json();
-        }
-
-        function showDashboard() {
-            dashboard.classList.remove('hidden');
-            dashboardGreeting.textContent = currentUser
-                ? 'Welcome, ' + currentUser.name + '. Complete verification to unlock all features.'
-                : 'Welcome. Complete verification to unlock all features.';
-            dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function ensurePaymentManager() {
-            if (!paymentManager && typeof window.CryptoPaymentManager !== 'undefined') {
-                paymentManager = new window.CryptoPaymentManager();
-            }
-            return paymentManager;
-        }
-
-        regForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const payload = {
-                name: document.getElementById('userName').value.trim(),
-                email: document.getElementById('userEmail').value.trim(),
-                message: document.getElementById('userMessage').value.trim()
-            };
-
-            formStatus.className = 'text-center text-xs mt-2 text-gray-400';
-            formStatus.textContent = 'Submitting\u2026';
-
-            let dbSaved = false;
-            if (sbClient) {
-                const { error } = await sbClient.from('users').insert([payload]);
-                if (!error) dbSaved = true;
-                else console.warn('Supabase:', error.message);
-            }
-
-            let alertSent = false;
-            try {
-                await notifyEvent('user.created', payload);
-                alertSent = true;
-            } catch (err) {
-                console.warn('Alert:', err.message);
-            }
-
-            if (!dbSaved && !alertSent) {
-                formStatus.classList.add('text-red-400');
-                formStatus.textContent = 'Submission failed. Please try again.';
-                return;
-            }
-
-            formStatus.classList.add('text-green-400');
-            formStatus.textContent = dbSaved
-                ? 'Registration completed. Next step: verification.'
-                : 'Registration received. Next step: verification.';
-
-            currentUser = { name: payload.name, email: payload.email };
-            localStorage.setItem('alm_user_profile', JSON.stringify(currentUser));
-            regForm.reset();
-            showDashboard();
-        });
-
-        kycForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            if (!currentUser) {
-                setStatus(kycStatus, 'Please complete registration first.', 'error');
-                return;
-            }
-
-            const kycPayload = {
-                full_name: currentUser.name,
-                email: currentUser.email,
-                date_of_birth: document.getElementById('kycDob').value,
-                country: document.getElementById('kycCountry').value.trim(),
-                id_type: document.getElementById('kycIdType').value,
-                id_number: document.getElementById('kycIdNumber').value.trim(),
-                residential_address: document.getElementById('kycAddress').value.trim(),
-                source_of_funds: document.getElementById('kycFunds').value.trim(),
-                wallet_address: document.getElementById('kycWallet').value.trim(),
-                terms_accepted: document.getElementById('kycTerms').checked
-            };
-
-            setStatus(kycStatus, 'Submitting verification...', 'neutral');
-
-            try {
-                await notifyEvent('kyc.submitted', kycPayload);
-                kycVerified = true;
-                localStorage.setItem('alm_kyc_verified', 'true');
-                setStatus(kycStatus, 'Verification submitted. KYC data stored in Telegram.', 'success');
-            } catch (error) {
-                setStatus(kycStatus, 'Verification failed. Please retry.', 'error');
-            }
-        });
-
-        freeAccessBtn.addEventListener('click', async () => {
-            if (!currentUser) {
-                setStatus(freeAccessStatus, 'Register first to use free access.', 'error');
-                return;
-            }
-            if (!kycVerified) {
-                setStatus(freeAccessStatus, 'Complete verification first.', 'error');
-                return;
-            }
-
-            setStatus(freeAccessStatus, 'Submitting free access request...', 'neutral');
-            try {
-                await notifyEvent('free.access.requested', {
-                    name: currentUser.name,
-                    email: currentUser.email,
-                    plan: 'free-access'
-                });
-                setStatus(freeAccessStatus, 'Free access request submitted.', 'success');
-            } catch (error) {
-                setStatus(freeAccessStatus, 'Could not submit free access request.', 'error');
-            }
-        });
-
-        convertBtn.addEventListener('click', async () => {
-            const amount = parseFloat(document.getElementById('payAmount').value);
-            const from = document.getElementById('payFrom').value;
-            const to = document.getElementById('payTo').value;
-
-            if (!amount || amount <= 0) {
-                convertStatus.textContent = 'Enter a valid amount.';
-                convertStatus.className = 'text-xs text-center text-red-400 mb-4';
-                return;
-            }
-
-            const manager = ensurePaymentManager();
-            if (!manager) {
-                convertStatus.textContent = 'Crypto module unavailable.';
-                convertStatus.className = 'text-xs text-center text-red-400 mb-4';
-                return;
-            }
-
-            convertStatus.textContent = 'Calculating live conversion...';
-            convertStatus.className = 'text-xs text-center text-gray-400 mb-4';
-
-            try {
-                const converted = await manager.convertCurrency(amount, from, to);
-                lastConversion = { amount, from, to, converted };
-                convertStatus.textContent = amount.toFixed(2) + ' ' + from + ' = ' + converted.toFixed(6) + ' ' + to;
-                convertStatus.className = 'text-xs text-center text-green-400 mb-4';
-            } catch (error) {
-                convertStatus.textContent = 'Conversion failed.';
-                convertStatus.className = 'text-xs text-center text-red-400 mb-4';
-            }
-        });
-
-        walletBtn.addEventListener('click', async () => {
-            if (!kycVerified) {
-                setStatus(payStatus, 'Complete verification before wallet actions.', 'error');
-                return;
-            }
-
-            const manager = ensurePaymentManager();
-            if (!manager) {
-                setStatus(payStatus, 'Crypto module unavailable.', 'error');
-                return;
-            }
-
-            setStatus(payStatus, 'Connecting wallet...', 'neutral');
-            try {
-                const wallet = await manager.connectWallet('trustwallet');
-                setStatus(payStatus, 'Wallet connected: ' + wallet.account, 'success');
-            } catch (error) {
-                setStatus(payStatus, 'Wallet connection failed.', 'error');
-            }
-        });
-
-        payBtn.addEventListener('click', async () => {
-            if (!currentUser) {
-                setStatus(payStatus, 'Register first.', 'error');
-                return;
-            }
-            if (!kycVerified) {
-                setStatus(payStatus, 'Complete verification before paying.', 'error');
-                return;
-            }
-            if (!lastConversion) {
-                setStatus(payStatus, 'Run conversion first.', 'error');
-                return;
-            }
-
-            const manager = ensurePaymentManager();
-            if (!manager) {
-                setStatus(payStatus, 'Crypto module unavailable.', 'error');
-                return;
-            }
-
-            setStatus(payStatus, 'Creating payment transaction...', 'neutral');
-            try {
-                const result = await manager.processPayment({
-                    amount: lastConversion.converted,
-                    currency: lastConversion.to,
-                    description: 'AL-MUDIR Dashboard Payment'
-                });
-
-                await notifyEvent('crypto.payment.intent', {
-                    name: currentUser.name,
-                    email: currentUser.email,
-                    amount: String(lastConversion.converted),
-                    currency: lastConversion.to,
-                    transaction_hash: result.transactionHash
-                });
-
-                setStatus(payStatus, 'Payment submitted. Hash: ' + result.transactionHash, 'success');
-            } catch (error) {
-                setStatus(payStatus, 'Payment failed. Check wallet and retry.', 'error');
-            }
-        });
-
-        // Resume dashboard state for returning users.
-        try {
-            const cachedUser = JSON.parse(localStorage.getItem('alm_user_profile') || 'null');
-            if (cachedUser && cachedUser.name && cachedUser.email) {
-                currentUser = cachedUser;
-                showDashboard();
-            }
-        } catch (error) {
-            console.warn('Could not restore user session.');
         }
     </script>
 </body>
