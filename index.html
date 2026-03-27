@@ -340,8 +340,8 @@
 
   absorbRuntimeConfig();
 
-  const SB_URL = RUNTIME.SB_URL || localStorage.getItem('alm_sb_url') || 'https://YOUR_PROJECT_ID.supabase.co';
-  const SB_KEY = RUNTIME.SB_KEY || localStorage.getItem('alm_sb_key') || 'YOUR_ANON_PUBLIC_KEY';
+  const SB_URL = RUNTIME.SB_URL || localStorage.getItem('alm_sb_url') || 'https://fdwezkdtmvlcpfnbrjzp.supabase.co';
+  const SB_KEY = RUNTIME.SB_KEY || localStorage.getItem('alm_sb_key') || 'sb_publishable_99F6itx3-n0deIfoY4TKNg_njhtpSwC';
 
   function goSignup() {
     document.getElementById('signup').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -382,11 +382,33 @@
     supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
     formStatus.classList.remove('hidden');
     formStatus.classList.add('text-green-400');
-    formStatus.textContent = 'Live mode connected to Supabase.';
+    formStatus.textContent = 'Live mode connected to Supabase and server-side alerts.';
   } else {
     formStatus.classList.remove('hidden');
     formStatus.classList.add('text-gray-500');
     formStatus.textContent = 'Offline mode. Add Supabase keys via window.ALMUDIR_CONFIG or ?sb_url=...&sb_key=...';
+  }
+
+  async function notifySignup(payload) {
+    try {
+      const response = await fetch('/api/telegram-alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'user.created',
+          payload: payload
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('alert request failed');
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('Server-side alert failed:', error.message);
+      return false;
+    }
   }
 
   regForm.addEventListener('submit', async (event) => {
@@ -406,18 +428,27 @@
     formStatus.textContent = 'Submitting...';
 
     try {
+      let dbSaved = false;
       if (supabaseClient) {
         const { error } = await supabaseClient.from('users').insert([payload]);
         if (error) {
-          throw error;
+          console.warn('Supabase insert warning:', error.message || error);
+        } else {
+          dbSaved = true;
         }
       } else {
         await new Promise((resolve) => setTimeout(resolve, 600));
       }
 
+      const alertSent = await notifySignup(payload);
+
+      if (!dbSaved && !alertSent) {
+        throw new Error('submission_failed');
+      }
+
       formStatus.classList.remove('text-gray-400', 'text-red-400');
       formStatus.classList.add('text-green-400');
-      formStatus.textContent = 'Application submitted successfully.';
+      formStatus.textContent = dbSaved ? 'Application submitted successfully.' : 'Application submitted. Telegram alert delivered; database sync pending.';
       regForm.reset();
     } catch (error) {
       formStatus.classList.remove('text-gray-400', 'text-green-400');
