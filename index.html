@@ -25,8 +25,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;500;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Sumsub KYC Widget -->
-    <script src="https://api.sumsub.com/js/1.0.0/sumsub.js"></script>
     
     <!-- JSON-LD Schema Markup -->
     <script type="application/ld+json">
@@ -1024,7 +1022,7 @@
                 <div id="kycFormDisplay" class="bg-dark-3 border-gold glass-effect p-8 rounded-lg">
                     <div class="text-center mb-8">
                         <h3 class="text-xl serif font-bold text-white mb-2">Identity Verification Required</h3>
-                        <p class="text-gray-400 text-sm">To proceed with your inquiry, please complete KYC via our secure provider (Sumsub). This typically takes 3-5 minutes.</p>
+                        <p class="text-gray-400 text-sm">To proceed with your inquiry, please complete KYC verification (3-5 minutes)</p>
                     </div>
                     
                     <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -2145,7 +2143,7 @@
 
         const kycSubmitBtn = document.getElementById('kycSubmitBtn');
         if (kycSubmitBtn) {
-            kycSubmitBtn.addEventListener('click', async () => {
+            kycSubmitBtn.addEventListener('click', () => {
                 const name = document.getElementById('kycName')?.value;
                 const dob = document.getElementById('kycDob')?.value;
                 const docFile = document.getElementById('kycDocument')?.files[0];
@@ -2161,60 +2159,37 @@
                     return;
                 }
 
-                // Attempt Sumsub KYC flow first
-                const kycProviderToken = 'REPLACE_WITH_SERVER_GENERATED_SUMSUB_TOKEN'; // Add server-side token
-                try {
-                    if (typeof window.sumsub !== 'undefined' && kycProviderToken && !kycProviderToken.includes('REPLACE_WITH')) {
-                        const sdk = window.sumsub.createNativeSdk(kycProviderToken, 'en', {
-                            onMessage: (type, payload) => {
-                                if (type === 'onApplicantStatus') {
-                                    if (payload.reviewStatus === 'success' || payload.reviewStatus === 'done') {
-                                        finishKycSuccess();
-                                    }
-                                }
-                            },
-                            onError: (error) => {
-                                console.error('Sumsub error', error);
-                                alert('KYC provider error, falling back to local verification.');
-                                fallbackKycSuccess();
-                            }
-                        });
-                        sdk.start();
-                        return;
+                // Hide KYC form and show processing status
+                document.getElementById('kycFormDisplay').classList.add('hidden');
+                document.getElementById('kycStatusDisplay').classList.remove('hidden');
+                
+                // Simulate KYC verification processing (3-5 minutes = 180-300 seconds)
+                // For demo, use 10 seconds
+                const verificationTime = 10000; // 10 seconds for demo
+                const startTime = Date.now();
+                
+                const timerInterval = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    const remaining = Math.max(0, verificationTime - elapsed);
+                    const seconds = Math.ceil(remaining / 1000);
+                    
+                    if (seconds > 0) {
+                        document.getElementById('verificationTimer').textContent = `Processing: ${seconds} seconds remaining`;
+                    } else {
+                        clearInterval(timerInterval);
+                        
+                        // Hide processing status and show success
+                        document.getElementById('kycStatusDisplay').classList.add('hidden');
+                        document.getElementById('kycFormDisplay').classList.add('hidden');
+                        document.getElementById('kycSuccessSection').classList.remove('hidden');
+                        
+                        // Show VIP link in Free Access section
+                        document.getElementById('vipGroupSection').classList.remove('hidden');
                     }
-
-                    // If provider token not set, fallback to local timed KYC demo
-                    fallbackKycSuccess();
-                } catch (error) {
-                    console.error('KYC provider script failed:', error);
-                    fallbackKycSuccess();
-                }
-
-                async function fallbackKycSuccess() {
-                    document.getElementById('kycFormDisplay').classList.add('hidden');
-                    document.getElementById('kycStatusDisplay').classList.remove('hidden');
-                    const verificationTime = 10000;
-                    const startTime = Date.now();
-                    const timerInterval = setInterval(() => {
-                        const elapsed = Date.now() - startTime;
-                        const remaining = Math.max(0, verificationTime - elapsed);
-                        const seconds = Math.ceil(remaining / 1000);
-                        if (seconds > 0) {
-                            document.getElementById('verificationTimer').textContent = `Processing: ${seconds} seconds remaining`;
-                        } else {
-                            clearInterval(timerInterval);
-                            finishKycSuccess();
-                        }
-                    }, 100);
-                }
-
-                function finishKycSuccess() {
-                    document.getElementById('kycStatusDisplay').classList.add('hidden');
-                    document.getElementById('kycFormDisplay').classList.add('hidden');
-                    document.getElementById('kycSuccessSection').classList.remove('hidden');
-                    document.getElementById('vipGroupSection').classList.remove('hidden');
-                    console.log('KYC success for', { name, dob, consent, docFile });
-                }
+                }, 100);
+                
+                // In production, submit to KYC provider
+                console.log('KYC verification submitted with data:', { name, dob, consent });
             });
         }
 
