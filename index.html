@@ -293,15 +293,55 @@
   </div>
 </section>
 
+<section id="converter" class="py-16 px-6 bg-[var(--d1)] border-t border-[rgba(212,175,55,0.2)]">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-8">
+      <p class="tg text-[10px] uppercase tracking-[.35em] font-bold mb-3">Tools</p>
+      <h3 class="text-3xl serif text-white mb-2">Live Currency Converter</h3>
+      <p class="text-xs text-gray-500">Powered by real-time market rates with static fallback.</p>
+    </div>
+    <div class="glass panel rounded-2xl p-6">
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <input id="cvAmount" type="number" min="0" step="any" placeholder="0.00" class="w-28 py-2 px-2 text-center rounded-lg border border-[rgba(212,175,55,0.3)]">
+        <select id="cvFrom" class="py-2 px-3 rounded-lg border border-[rgba(212,175,55,0.3)] bg-[var(--d2)]">
+          <option>USD</option><option>EUR</option><option>GBP</option><option>AED</option><option>BTC</option><option>ETH</option><option>BNB</option><option>USDT</option>
+        </select>
+        <span class="tg text-xl">→</span>
+        <input id="cvResult" type="number" readonly placeholder="0.00" class="w-28 py-2 px-2 text-center rounded-lg border border-[rgba(212,175,55,0.3)]">
+        <select id="cvTo" class="py-2 px-3 rounded-lg border border-[rgba(212,175,55,0.3)] bg-[var(--d2)]">
+          <option>USD</option><option>EUR</option><option>GBP</option><option>AED</option><option>BTC</option><option>ETH</option><option>BNB</option><option>USDT</option>
+        </select>
+        <button id="cvRun" class="btn-g px-4 py-2 rounded-lg serif text-[11px] font-bold uppercase">Convert</button>
+      </div>
+      <p id="cvMsg" class="text-center text-xs text-gray-500 mt-4">Ready.</p>
+    </div>
+  </div>
+</section>
+
 <footer class="py-10 text-center border-t border-white/5 opacity-40 text-[10px] tracking-widest">
   &copy; 2026 AL-MUDIR | DUBAI • LONDON • NY
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/crypto-payment.js"></script>
 <script src="https://s3.tradingview.com/tv.js"></script>
 <script>
-  const SB_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-  const SB_KEY = 'YOUR_ANON_PUBLIC_KEY';
+  const RUNTIME = window.ALMUDIR_CONFIG || {};
+
+  function absorbRuntimeConfig() {
+    const params = new URLSearchParams(window.location.search);
+    const pUrl = params.get('sb_url');
+    const pKey = params.get('sb_key');
+    if (pUrl && pKey) {
+      localStorage.setItem('alm_sb_url', pUrl);
+      localStorage.setItem('alm_sb_key', pKey);
+    }
+  }
+
+  absorbRuntimeConfig();
+
+  const SB_URL = RUNTIME.SB_URL || localStorage.getItem('alm_sb_url') || 'https://YOUR_PROJECT_ID.supabase.co';
+  const SB_KEY = RUNTIME.SB_KEY || localStorage.getItem('alm_sb_key') || 'YOUR_ANON_PUBLIC_KEY';
 
   function goSignup() {
     document.getElementById('signup').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -336,9 +376,17 @@
   const regForm = document.getElementById('regForm');
   const formStatus = document.getElementById('formStatus');
   let supabaseClient = null;
+  let converterManager = null;
 
   if (window.supabase && !SB_URL.includes('YOUR_PROJECT_ID') && !SB_KEY.includes('YOUR_ANON_PUBLIC_KEY')) {
     supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+    formStatus.classList.remove('hidden');
+    formStatus.classList.add('text-green-400');
+    formStatus.textContent = 'Live mode connected to Supabase.';
+  } else {
+    formStatus.classList.remove('hidden');
+    formStatus.classList.add('text-gray-500');
+    formStatus.textContent = 'Offline mode. Add Supabase keys via window.ALMUDIR_CONFIG or ?sb_url=...&sb_key=...';
   }
 
   regForm.addEventListener('submit', async (event) => {
@@ -378,6 +426,42 @@
       console.error('Registration error:', error);
     }
   });
+
+  async function runConverter() {
+    const amount = parseFloat(document.getElementById('cvAmount').value) || 0;
+    const from = document.getElementById('cvFrom').value;
+    const to = document.getElementById('cvTo').value;
+    const out = document.getElementById('cvResult');
+    const msg = document.getElementById('cvMsg');
+    const btn = document.getElementById('cvRun');
+
+    if (amount <= 0) {
+      msg.textContent = 'Enter an amount greater than zero.';
+      msg.className = 'text-center text-xs text-red-400 mt-4';
+      return;
+    }
+
+    if (!converterManager) {
+      converterManager = new CryptoPaymentManager();
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Converting...';
+    try {
+      const result = await converterManager.convertCurrency(amount, from, to);
+      out.value = Number(result).toFixed(6);
+      msg.textContent = 'Converted at ' + new Date().toLocaleTimeString();
+      msg.className = 'text-center text-xs text-green-400 mt-4';
+    } catch (error) {
+      msg.textContent = 'Conversion failed. Please try again.';
+      msg.className = 'text-center text-xs text-red-400 mt-4';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Convert';
+    }
+  }
+
+  document.getElementById('cvRun').addEventListener('click', runConverter);
 </script>
 </body>
 </html>
