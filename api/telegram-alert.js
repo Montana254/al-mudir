@@ -1,7 +1,35 @@
+// Simple in-memory rate limit: 5 requests per IP per 10 minutes
+const rateLimitMap = new Map();
+const RATE_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT = 5;
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip) || { count: 0, reset: now + RATE_WINDOW_MS };
+  if (now > entry.reset) {
+    entry.count = 0;
+    entry.reset = now + RATE_WINDOW_MS;
+  }
+  entry.count++;
+  rateLimitMap.set(ip, entry);
+  return entry.count <= RATE_LIMIT;
+}
+
+function sanitize(value, maxLen) {
+  if (typeof value !== 'string') return 'N/A';
+  // Strip control characters and limit length
+  return value.replace(/[\x00-\x1F\x7F]/g, ' ').slice(0, maxLen).trim() || 'N/A';
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ ok: false, error: 'method_not_allowed' });
+  }
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+  if (!checkRateLimit(ip)) {
+    return res.status(429).json({ ok: false, error: 'rate_limit_exceeded' });
   }
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -21,13 +49,13 @@ module.exports = async function handler(req, res) {
     }
 
     const lines = [
-      'NEW AL-MUDIR SIGNUP',
-      '--------------------',
-      'Name: ' + [payload.first_name, payload.last_name].filter(Boolean).join(' '),
-      'Email: ' + (payload.email || 'N/A'),
-      'Phone: ' + (payload.phone || 'N/A'),
-      'Experience: ' + (payload.experience || 'N/A'),
-      'Objective: ' + (payload.objectives || 'N/A')
+      '\u{1F4CB} NEW AL-MUDIR INQUIRY',
+      '\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014',
+      'Name:    ' + sanitize(payload.name, 100),
+      'Email:   ' + sanitize(payload.email, 200),
+      'Message: ' + sanitize(payload.message, 500),
+      '\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014',
+      'IP: ' + ip
     ];
 
     const telegramResponse = await fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {

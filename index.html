@@ -134,12 +134,12 @@
             <p class="text-gray-500 text-sm mb-12">Submit your details and a relationship manager will contact you within 24 hours.</p>
             <form id="regForm" class="space-y-8 text-left">
                 <div class="grid md:grid-cols-2 gap-8">
-                    <input id="userName" type="text" name="name" placeholder="LEGAL NAME" required
+                    <input id="userName" type="text" name="name" placeholder="LEGAL NAME" required maxlength="100" autocomplete="name"
                         class="bg-transparent border-b border-gold/40 py-4 w-full transition">
-                    <input id="userEmail" type="email" name="email" placeholder="OFFICIAL EMAIL" required
+                    <input id="userEmail" type="email" name="email" placeholder="OFFICIAL EMAIL" required maxlength="200" autocomplete="email"
                         class="bg-transparent border-b border-gold/40 py-4 w-full transition">
                 </div>
-                <textarea id="userMessage" name="message" rows="4" placeholder="INQUIRY DETAILS"
+                <textarea id="userMessage" name="message" rows="4" placeholder="INQUIRY DETAILS" maxlength="500"
                     class="bg-transparent border-b border-gold/40 py-4 w-full transition resize-none"></textarea>
                 <button type="submit" class="btn-gold px-12 py-4 w-full rounded text-sm">Submit Request</button>
                 <p id="formStatus" class="text-center text-xs mt-2 hidden"></p>
@@ -189,7 +189,7 @@
                 message: document.getElementById('userMessage').value.trim()
             };
 
-            formStatus.className = 'text-center text-xs mt-2';
+            formStatus.className = 'text-center text-xs mt-2 text-gray-400';
             formStatus.textContent = 'Submitting\u2026';
 
             let dbSaved = false;
