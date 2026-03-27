@@ -1,0 +1,115 @@
+name: Telegram Monitoring and Reports
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 */6 * * *'
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor-and-report:
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: https://al-mudir.org
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Telegram secrets
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID"
+            exit 1
+          fi
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install screenshot dependencies
+        if: github.event_name == 'push'
+        run: |
+          npm install playwright@1.52.0 --no-save
+          npx playwright install --with-deps chromium
+
+      - name: Capture signup and dashboard screenshots
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p screenshots
+          cat > capture.js << 'EOF'
+          const { chromium } = require('playwright');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({ viewport: { width: 3840, height: 2160 }, deviceScaleFactor: 1 });
+            const page = await context.newPage();
+
+            await page.goto(process.env.SITE_URL + '/#portal', { waitUntil: 'networkidle', timeout: 120000 });
+            await page.waitForSelector('#signupForm', { timeout: 60000 });
+            await page.screenshot({ path: 'screenshots/01-signup-portal-4k.png' });
+
+            const stamp = Date.now();
+            const email = `gh_${stamp}@almudir-preview.test`;
+            await page.fill('#signupName', 'GH Preview User');
+            await page.fill('#signupEmail', email);
+            await page.fill('#signupPassword', 'SecurePass123!');
+            await page.fill('#signupConfirm', 'SecurePass123!');
+            await page.click('#signupForm button[type="submit"]');
+
+            await page.waitForSelector('#dashboard:not(.hidden)', { timeout: 60000 });
+            await page.waitForTimeout(1200);
+            await page.screenshot({ path: 'screenshots/02-dashboard-after-signup-4k.png' });
+
+            await browser.close();
+          })();
+          EOF
+          node capture.js
+
+      - name: Build health report payload
+        run: |
+          HTTP_CODE=$(curl -s -o /tmp/live.html -w "%{http_code}" "$SITE_URL")
+          HAS_PORTAL=$(grep -c "Client Access Portal" /tmp/live.html || true)
+          HAS_DASH=$(grep -c "OKX-style Quick Actions" /tmp/live.html || true)
+          CSP=$(curl -sI "$SITE_URL" | grep -i "content-security-policy" | head -1 | cut -c1-180)
+          HSTS=$(curl -sI "$SITE_URL" | grep -i "strict-transport-security" | head -1)
+
+          echo "HTTP_CODE=$HTTP_CODE" >> $GITHUB_ENV
+          echo "HAS_PORTAL=$HAS_PORTAL" >> $GITHUB_ENV
+          echo "HAS_DASH=$HAS_DASH" >> $GITHUB_ENV
+          echo "CSP_LINE=$CSP" >> $GITHUB_ENV
+          echo "HSTS_LINE=$HSTS" >> $GITHUB_ENV
+
+      - name: Send screenshots on push
+        if: github.event_name == 'push'
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            -F chat_id="$TELEGRAM_CHAT_ID" \
+            -F document=@screenshots/01-signup-portal-4k.png \
+            -F caption="AL-MUDIR Auto Update 1/2: Signup portal 4K"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            -F chat_id="$TELEGRAM_CHAT_ID" \
+            -F document=@screenshots/02-dashboard-after-signup-4k.png \
+            -F caption="AL-MUDIR Auto Update 2/2: Dashboard after signup 4K"
+
+      - name: Send periodic report to Telegram
+        run: |
+          EVENT="${{ github.event_name }}"
+          SCHEDULE="${{ github.event.schedule }}"
+          MODE="6-hour"
+          if [ "$SCHEDULE" = "0 18 * * *" ]; then
+            MODE="daily"
+          fi
+
+          TEXT="AL-MUDIR Monitoring Report (${MODE})%0AEvent: ${EVENT}%0ACommit: ${{ github.sha }}%0AHTTP: ${HTTP_CODE}%0APortal Marker: ${HAS_PORTAL}%0ADashboard Marker: ${HAS_DASH}%0A${HSTS_LINE}%0A${CSP_LINE}%0ATime: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="$TELEGRAM_CHAT_ID" \
+            -d text="$TEXT"
