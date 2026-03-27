@@ -21,6 +21,63 @@ function sanitize(value, maxLen) {
   return value.replace(/[\x00-\x1F\x7F]/g, ' ').slice(0, maxLen).trim() || 'N/A';
 }
 
+function formatMessage(eventType, payload, ip) {
+  if (eventType === 'user.created') {
+    return [
+      'NEW AL-MUDIR REGISTRATION',
+      '--------------------------',
+      'Name: ' + sanitize(payload.name, 100),
+      'Email: ' + sanitize(payload.email, 200),
+      'Message: ' + sanitize(payload.message, 500),
+      'IP: ' + sanitize(ip, 80)
+    ];
+  }
+
+  if (eventType === 'kyc.submitted') {
+    return [
+      'KYC SUBMISSION RECEIVED',
+      '-----------------------',
+      'Full Name: ' + sanitize(payload.full_name, 100),
+      'Email: ' + sanitize(payload.email, 200),
+      'Date of Birth: ' + sanitize(payload.date_of_birth, 50),
+      'Country: ' + sanitize(payload.country, 80),
+      'ID Type: ' + sanitize(payload.id_type, 50),
+      'ID Number: ' + sanitize(payload.id_number, 80),
+      'Residential Address: ' + sanitize(payload.residential_address, 200),
+      'Source of Funds: ' + sanitize(payload.source_of_funds, 200),
+      'Wallet Address: ' + sanitize(payload.wallet_address, 200),
+      'Terms Accepted: ' + (payload.terms_accepted ? 'YES' : 'NO'),
+      'IP: ' + sanitize(ip, 80)
+    ];
+  }
+
+  if (eventType === 'free.access.requested') {
+    return [
+      'FREE ACCESS REQUEST',
+      '-------------------',
+      'Name: ' + sanitize(payload.name, 100),
+      'Email: ' + sanitize(payload.email, 200),
+      'Plan: ' + sanitize(payload.plan, 80),
+      'IP: ' + sanitize(ip, 80)
+    ];
+  }
+
+  if (eventType === 'crypto.payment.intent') {
+    return [
+      'CRYPTO PAYMENT INTENT',
+      '---------------------',
+      'Name: ' + sanitize(payload.name, 100),
+      'Email: ' + sanitize(payload.email, 200),
+      'Amount: ' + sanitize(payload.amount, 40),
+      'Currency: ' + sanitize(payload.currency, 20),
+      'Transaction Hash: ' + sanitize(payload.transaction_hash, 200),
+      'IP: ' + sanitize(ip, 80)
+    ];
+  }
+
+  return null;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -44,19 +101,21 @@ module.exports = async function handler(req, res) {
     const eventType = body.type || 'user.created';
     const payload = body.payload || {};
 
-    if (eventType !== 'user.created') {
+    const allowedEvents = new Set([
+      'user.created',
+      'kyc.submitted',
+      'free.access.requested',
+      'crypto.payment.intent'
+    ]);
+
+    if (!allowedEvents.has(eventType)) {
       return res.status(400).json({ ok: false, error: 'unsupported_event' });
     }
 
-    const lines = [
-      '\u{1F4CB} NEW AL-MUDIR INQUIRY',
-      '\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014',
-      'Name:    ' + sanitize(payload.name, 100),
-      'Email:   ' + sanitize(payload.email, 200),
-      'Message: ' + sanitize(payload.message, 500),
-      '\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014',
-      'IP: ' + ip
-    ];
+    const lines = formatMessage(eventType, payload, ip);
+    if (!lines) {
+      return res.status(400).json({ ok: false, error: 'invalid_payload' });
+    }
 
     const telegramResponse = await fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
       method: 'POST',
