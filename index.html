@@ -1,127 +1,583 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AL-MUDIR | Private Wealth & Fintech Ventures</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="description" content="AL-MUDIR private wealth and fintech portal.">
+  <meta name="theme-color" content="#04120f">
+  <title>AL-MUDIR | Private Wealth & Fintech Ventures</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;500;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;500;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <style>
-        * { scroll-behavior: smooth; box-sizing: border-box; }
-        body { font-family: 'Lato', sans-serif; background-color: #04120f; color: #e8e0d0; overflow-x: hidden; }
-        .serif { font-family: 'Cinzel', serif; font-weight: 600; }
-        .mono { font-family: 'Courier Prime', monospace; }
-        .text-gold-gradient {
-            background: linear-gradient(135deg, #d4af37 0%, #f2d06b 50%, #996515 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .border-gold { border: 1px solid rgba(212, 175, 55, 0.3); transition: all 0.3s ease; }
-        .border-gold:hover { border-color: rgba(212, 175, 55, 0.6); box-shadow: 0 0 20px rgba(212, 175, 55, 0.15); }
-        .glass-effect { background: rgba(10, 38, 34, 0.4); backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.1); }
-        .btn-gold { background-color: #d4af37; color: #04120f; font-weight: 700; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-transform: uppercase; letter-spacing: 0.15em; }
-        .btn-gold:hover { background-color: #f2d06b; transform: translateY(-2px); box-shadow: 0 12px 24px rgba(212, 175, 55, 0.4); }
-        .btn-outline-gold { border: 1.5px solid #d4af37; color: #d4af37; background: transparent; transition: all 0.3s ease; }
-        .btn-outline-gold:hover { background-color: rgba(212, 175, 55, 0.1); }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
-        nav { background: rgba(6, 29, 24, 0.95); backdrop-filter: blur(12px); }
-    </style>
+  <style>
+    :root {
+      --bg: #04120f;
+      --bg-soft: #061d18;
+      --text: #e8e0d0;
+      --gold: #d4af37;
+      --gold-soft: #f2d06b;
+      --okx-black: #090909;
+      --okx-card: #141414;
+      --okx-border: #2b2b2b;
+      --okx-orange: #ff7a00;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Lato', sans-serif;
+      background: radial-gradient(circle at top right, #0b2a24 0%, var(--bg) 45%, #030b09 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .serif { font-family: 'Cinzel', serif; font-weight: 600; }
+    .mono { font-family: 'Courier Prime', monospace; }
+
+    .text-gold-gradient {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-soft) 50%, #996515 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .glass {
+      background: rgba(10, 38, 34, 0.45);
+      border: 1px solid rgba(212, 175, 55, 0.18);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #04120f;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+
+    .btn-gold:hover {
+      background: var(--gold-soft);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      transition: all 0.2s ease;
+    }
+
+    .btn-outline:hover {
+      background: rgba(212, 175, 55, 0.1);
+    }
+
+    .okx-shell {
+      background: linear-gradient(180deg, #0d0d0d 0%, #080808 100%);
+      border: 1px solid var(--okx-border);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .okx-card {
+      background: var(--okx-card);
+      border: 1px solid var(--okx-border);
+    }
+
+    .okx-pill {
+      border: 1px solid #3c3c3c;
+      color: #d6d6d6;
+      background: #111;
+    }
+
+    .okx-accent {
+      color: var(--okx-orange);
+    }
+
+    .hidden { display: none; }
+    input::placeholder, textarea::placeholder { color: #77837d; font-size: 0.8rem; letter-spacing: 0.1em; }
+    input, textarea, select { color: var(--text); }
+  </style>
 </head>
 <body>
+  <nav class="fixed top-0 z-50 w-full border-b border-white/10 bg-black/55 backdrop-blur-sm">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <div class="serif text-xl tracking-[0.18em] text-gold-gradient">AL-MUDIR</div>
+      <div class="hidden gap-8 md:flex text-xs uppercase tracking-[0.22em] text-gray-300">
+        <a href="#about" class="hover:text-white">About</a>
+        <a href="#metrics" class="hover:text-white">Metrics</a>
+        <a href="#terminal" class="hover:text-white">Terminal</a>
+      </div>
+      <a href="#portal" class="btn-outline rounded px-5 py-2 text-[11px] uppercase tracking-[0.18em]">Private Portal</a>
+    </div>
+  </nav>
 
-    <nav class="fixed top-0 w-full z-50 border-b border-gold">
-        <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
-            <div class="text-2xl serif font-bold text-gold-gradient tracking-[0.2em]">&#x2B22; AL-MUDIR</div>
-            <div class="hidden md:flex space-x-8">
-                <a href="#about" class="text-xs uppercase tracking-widest text-gray-300 hover:text-white transition">The Manager</a>
-                <a href="#metrics" class="text-xs uppercase tracking-widest text-gray-300 hover:text-white transition">Portfolio</a>
-                <a href="#charts" class="text-xs uppercase tracking-widest text-gray-300 hover:text-white transition">Terminal</a>
-            </div>
-            <a href="#contact" class="btn-outline-gold px-6 py-2 text-xs uppercase tracking-widest rounded">Private Portal</a>
+  <section class="min-h-screen px-6 pt-28 pb-16 text-center flex items-center justify-center">
+    <div class="max-w-4xl">
+      <p class="text-xs uppercase tracking-[0.35em] text-gray-400">Sovereign Wealth and Fintech Innovation</p>
+      <h1 class="serif mt-6 text-5xl leading-tight md:text-8xl text-gold-gradient">Preserving Capital.<br><span class="text-white">Architecting Alpha.</span></h1>
+      <p class="mx-auto mt-8 max-w-2xl text-gray-300">Institutional-grade management with seven-figure AUM and precision execution across macro and digital markets.</p>
+      <div class="mt-10 flex flex-col justify-center gap-4 md:flex-row">
+        <a href="#portal" class="btn-gold rounded px-10 py-4 text-sm">Create Account</a>
+        <a href="#terminal" class="btn-outline rounded px-10 py-4 text-sm">View Terminal</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="metrics" class="bg-[#061d18] px-6 py-20">
+    <div class="mx-auto grid max-w-6xl gap-6 md:grid-cols-4">
+      <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Total AUM</p><p class="serif mt-2 text-3xl text-white">$7.8M+</p></div>
+      <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Sharpe Ratio</p><p class="serif mt-2 text-3xl text-white">2.84</p></div>
+      <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Max Drawdown</p><p class="serif mt-2 text-3xl text-white">-3.2%</p></div>
+      <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Status</p><p class="serif mt-2 text-3xl text-green-400">ACTIVE</p></div>
+    </div>
+  </section>
+
+  <section id="about" class="px-6 py-20">
+    <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-2">
+      <div>
+        <p class="text-xs uppercase tracking-[0.28em] text-gray-500">The Manager</p>
+        <h2 class="serif mt-4 text-4xl text-gold-gradient">Stewardship of Generational Wealth</h2>
+        <p class="mt-6 text-gray-300">AL-MUDIR operates at the intersection of capital preservation and fintech execution, with disciplined risk controls and asymmetric strategies.</p>
+      </div>
+      <div class="space-y-4">
+        <div class="glass rounded-lg p-5"><p class="text-xs uppercase text-gray-500">Strategy</p><p class="mt-1">Smart Money Concepts and ICT</p></div>
+        <div class="glass rounded-lg p-5"><p class="text-xs uppercase text-gray-500">Markets</p><p class="mt-1">FX, Commodities, Digital Assets</p></div>
+        <div class="glass rounded-lg p-5"><p class="text-xs uppercase text-gray-500">Domicile</p><p class="mt-1">Dubai, London, New York</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="terminal" class="bg-[#061d18] px-6 py-20">
+    <div class="mx-auto max-w-7xl">
+      <div class="mb-8 text-center">
+        <h2 class="serif text-4xl text-gold-gradient">Execution Terminal</h2>
+        <p class="mono mt-3 text-xs uppercase tracking-[0.22em] text-gray-400">Latency 0.04ms | Institutional Feed</p>
+      </div>
+      <div class="glass rounded-xl p-2" style="height:580px;">
+        <div id="tradingview_pro" style="height:100%;width:100%;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="portal" class="px-6 py-20 border-t border-white/10">
+    <div class="mx-auto max-w-6xl space-y-8">
+      <div class="text-center">
+        <h3 class="serif text-3xl text-gold-gradient">Client Access Portal</h3>
+        <p class="mt-3 text-sm text-gray-400">Create your account and access your dashboard instantly.</p>
+      </div>
+
+      <div id="authArea" class="grid gap-6 md:grid-cols-2">
+        <div class="glass rounded-xl p-6">
+          <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Sign Up</p>
+          <form id="signupForm" class="mt-5 space-y-4">
+            <input id="signupName" required maxlength="80" autocomplete="name" type="text" placeholder="FULL NAME" class="w-full border-b border-gold/40 bg-transparent py-3">
+            <input id="signupEmail" required maxlength="120" autocomplete="email" type="email" placeholder="EMAIL ADDRESS" class="w-full border-b border-gold/40 bg-transparent py-3">
+            <input id="signupPassword" required minlength="8" maxlength="72" autocomplete="new-password" type="password" placeholder="PASSWORD (MIN 8 CHARACTERS)" class="w-full border-b border-gold/40 bg-transparent py-3">
+            <input id="signupConfirm" required minlength="8" maxlength="72" autocomplete="new-password" type="password" placeholder="CONFIRM PASSWORD" class="w-full border-b border-gold/40 bg-transparent py-3">
+            <button class="btn-gold w-full rounded py-3 text-xs" type="submit">Create Account</button>
+            <p id="signupStatus" class="hidden text-center text-xs"></p>
+          </form>
         </div>
-    </nav>
 
-    <section class="min-h-screen flex flex-col justify-center items-center text-center px-6 pt-20">
-        <div class="max-w-4xl animate-fade-in-up">
-            <h2 class="text-xs uppercase tracking-[0.4em] mb-6 text-gray-400">Sovereign Wealth &bull; Fintech Innovation</h2>
-            <h1 class="text-5xl md:text-8xl serif mb-8 text-gold-gradient leading-tight">Preserving Capital.<br><span class="text-white">Architecting Alpha.</span></h1>
-            <p class="max-w-2xl mx-auto text-gray-300 font-light mb-12">Institutional-grade management with <span class="text-gold-gradient font-semibold">+7 Figure AUM</span>. Executing proprietary Smart Money Concepts with ultra-low latency.</p>
-            <div class="flex flex-col md:flex-row gap-6 justify-center">
-                <a href="#contact" class="btn-gold px-10 py-4 rounded text-sm">Schedule Briefing</a>
-                <a href="#charts" class="btn-outline-gold px-10 py-4 rounded text-sm">View Terminal</a>
-            </div>
+        <div class="glass rounded-xl p-6">
+          <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Login</p>
+          <form id="loginForm" class="mt-5 space-y-4">
+            <input id="loginEmail" required maxlength="120" autocomplete="email" type="email" placeholder="EMAIL ADDRESS" class="w-full border-b border-gold/40 bg-transparent py-3">
+            <input id="loginPassword" required maxlength="72" autocomplete="current-password" type="password" placeholder="PASSWORD" class="w-full border-b border-gold/40 bg-transparent py-3">
+            <button class="btn-outline w-full rounded py-3 text-xs uppercase tracking-[0.15em]" type="submit">Access Dashboard</button>
+            <p id="loginStatus" class="hidden text-center text-xs"></p>
+          </form>
         </div>
-    </section>
+      </div>
 
-    <section id="metrics" class="py-32 px-6 bg-[#061d18]">
-        <div class="max-w-6xl mx-auto grid md:grid-cols-4 gap-6">
-            <div class="border-gold glass-effect p-8 rounded-lg text-center">
-                <div class="text-xs uppercase text-gray-400 mb-2">Total AUM</div>
-                <div class="text-3xl serif text-white">$7.8M+</div>
+      <section id="dashboard" class="okx-shell hidden rounded-2xl p-5 md:p-7">
+        <div class="grid gap-6 lg:grid-cols-[240px_1fr]">
+          <aside class="okx-card rounded-xl p-5">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Account</p>
+            <h4 id="dashName" class="mt-3 text-lg font-semibold text-white">Client</h4>
+            <p id="dashEmail" class="mt-1 text-xs text-gray-400">-</p>
+            <div class="mt-5 space-y-2">
+              <div class="okx-pill rounded px-3 py-2 text-xs">Overview</div>
+              <div class="okx-pill rounded px-3 py-2 text-xs">Free Access</div>
+              <div class="okx-pill rounded px-3 py-2 text-xs">Crypto Payment</div>
             </div>
-            <div class="border-gold glass-effect p-8 rounded-lg text-center">
-                <div class="text-xs uppercase text-gray-400 mb-2">Sharpe Ratio</div>
-                <div class="text-3xl serif text-white">2.84</div>
-            </div>
-            <div class="border-gold glass-effect p-8 rounded-lg text-center">
-                <div class="text-xs uppercase text-gray-400 mb-2">Max Drawdown</div>
-                <div class="text-3xl serif text-white">-3.2%</div>
-            </div>
-            <div class="border-gold glass-effect p-8 rounded-lg text-center">
-                <div class="text-xs uppercase text-gray-400 mb-2">Status</div>
-                <div class="text-3xl serif text-green-400">ACTIVE</div>
-            </div>
-        </div>
-    </section>
+            <button id="logoutBtn" class="mt-6 w-full rounded border border-red-500/50 px-3 py-2 text-xs text-red-300 hover:bg-red-500/10">Log out</button>
+          </aside>
 
-    <section id="charts" class="py-32 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl serif text-gold-gradient mb-4">Execution Terminal</h2>
-                <p class="text-gray-400 mono text-xs uppercase tracking-widest">Latency: 0.04ms | Institutional Feed</p>
+          <main class="space-y-6">
+            <div class="okx-card rounded-xl p-5">
+              <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">OKX-style Quick Actions</p>
+              <h5 class="mt-2 text-xl text-white">Your Dashboard</h5>
+              <p class="mt-2 text-sm text-gray-400">Free Access and Crypto Payment are available only inside your account dashboard.</p>
             </div>
-            <div class="border-gold glass-effect p-2 rounded-xl h-[600px]">
-                <div id="tradingview_pro" style="height:100%; width:100%;"></div>
-            </div>
-        </div>
-    </section>
 
-    <section id="contact" class="py-32 px-6 bg-[#04120f] border-t border-gold">
-        <div class="max-w-3xl mx-auto text-center">
-            <h3 class="serif text-3xl text-gold-gradient mb-12">Private Inquiry</h3>
-            <form action="https://formsubmit.co/your-email@email.com" method="POST" class="space-y-8">
-                <div class="grid md:grid-cols-2 gap-8">
-                    <input type="text" name="name" placeholder="LEGAL NAME" class="bg-transparent border-b border-gold/40 py-4 w-full outline-none focus:border-gold transition">
-                    <input type="email" name="email" placeholder="OFFICIAL EMAIL" class="bg-transparent border-b border-gold/40 py-4 w-full outline-none focus:border-gold transition">
+            <div class="grid gap-6 md:grid-cols-2">
+              <div class="okx-card rounded-xl p-5">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Free Access</p>
+                <h6 class="mt-2 text-lg text-white">Activate Starter Access</h6>
+                <p class="mt-2 text-sm text-gray-400">Unlock market snapshots and educational briefings.</p>
+                <button id="freeAccessBtn" class="mt-4 w-full rounded bg-[#1f1f1f] py-3 text-xs uppercase tracking-[0.16em] text-white border border-[#3a3a3a] hover:border-[var(--okx-orange)] hover:text-[var(--okx-orange)]">Request Free Access</button>
+                <p id="freeStatus" class="hidden mt-3 text-center text-xs"></p>
+              </div>
+
+              <div class="okx-card rounded-xl p-5">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Crypto Payment</p>
+                <h6 class="mt-2 text-lg text-white">Funding Desk</h6>
+                <div class="mt-4 grid grid-cols-3 gap-2">
+                  <input id="payAmount" type="number" min="1" step="0.01" placeholder="Amount" class="col-span-1 border-b border-gray-600 bg-transparent py-2 text-sm">
+                  <select id="payFrom" class="col-span-1 border-b border-gray-600 bg-transparent py-2 text-sm">
+                    <option value="USD" class="text-black">USD</option>
+                    <option value="EUR" class="text-black">EUR</option>
+                    <option value="GBP" class="text-black">GBP</option>
+                    <option value="BTC" class="text-black">BTC</option>
+                    <option value="ETH" class="text-black">ETH</option>
+                    <option value="USDT" class="text-black">USDT</option>
+                  </select>
+                  <select id="payTo" class="col-span-1 border-b border-gray-600 bg-transparent py-2 text-sm">
+                    <option value="USDT" class="text-black">USDT</option>
+                    <option value="BTC" class="text-black">BTC</option>
+                    <option value="ETH" class="text-black">ETH</option>
+                    <option value="BNB" class="text-black">BNB</option>
+                  </select>
                 </div>
-                <textarea name="message" placeholder="INQUIRY DETAILS" class="bg-transparent border-b border-gold/40 py-4 w-full outline-none focus:border-gold transition"></textarea>
-                <button type="submit" class="btn-gold px-12 py-4 w-full rounded">Submit Request</button>
-            </form>
+                <button id="convertBtn" class="mt-4 w-full rounded border border-[#3a3a3a] py-2 text-xs uppercase tracking-[0.14em] hover:border-[var(--okx-orange)]">Convert</button>
+                <p id="convertStatus" class="mt-3 text-center text-xs text-gray-400">Ready.</p>
+                <div class="mt-3 grid grid-cols-2 gap-2">
+                  <button id="connectWalletBtn" class="rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em]">Connect Wallet</button>
+                  <button id="payNowBtn" class="rounded bg-[var(--okx-orange)] py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">Pay Now</button>
+                </div>
+                <p id="paymentStatus" class="hidden mt-3 text-center text-xs"></p>
+              </div>
+            </div>
+          </main>
         </div>
-    </section>
+      </section>
+    </div>
+  </section>
 
-    <footer class="py-12 text-center text-[10px] uppercase tracking-widest opacity-40">
-        &copy; 2026 AL-MUDIR WEALTH &amp; FINTECH VENTURES. ALL RIGHTS RESERVED.
-    </footer>
+  <footer class="py-12 text-center text-[10px] uppercase tracking-[0.2em] opacity-50">
+    Copyright 2026 AL-MUDIR Wealth and Fintech Ventures
+  </footer>
 
-    <script src="https://s3.tradingview.com/tv.js"></script>
-    <script>
-        if (typeof TradingView !== 'undefined') {
-            new TradingView.widget({
-                autosize: true,
-                symbol: 'XAUUSD',
-                interval: '15',
-                theme: 'dark',
-                style: '1',
-                locale: 'en',
-                container_id: 'tradingview_pro'
-            });
-        }
-    </script>
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script src="/crypto-payment.js"></script>
+  <script>
+    const USERS_KEY = 'alm_users_v1';
+    const SESSION_KEY = 'alm_session_v1';
+
+    const signupForm = document.getElementById('signupForm');
+    const loginForm = document.getElementById('loginForm');
+    const dashboard = document.getElementById('dashboard');
+    const authArea = document.getElementById('authArea');
+
+    const signupStatus = document.getElementById('signupStatus');
+    const loginStatus = document.getElementById('loginStatus');
+    const freeStatus = document.getElementById('freeStatus');
+    const paymentStatus = document.getElementById('paymentStatus');
+
+    const dashName = document.getElementById('dashName');
+    const dashEmail = document.getElementById('dashEmail');
+
+    const freeAccessBtn = document.getElementById('freeAccessBtn');
+    const convertBtn = document.getElementById('convertBtn');
+    const connectWalletBtn = document.getElementById('connectWalletBtn');
+    const payNowBtn = document.getElementById('payNowBtn');
+    const convertStatus = document.getElementById('convertStatus');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    let currentUser = null;
+    let paymentManager = null;
+    let lastQuote = null;
+
+    function showStatus(el, message, tone) {
+      el.className = 'mt-3 text-center text-xs';
+      if (tone === 'success') el.classList.add('text-green-400');
+      else if (tone === 'error') el.classList.add('text-red-400');
+      else el.classList.add('text-gray-400');
+      el.textContent = message;
+      el.classList.remove('hidden');
+    }
+
+    function normalize(value, max) {
+      return String(value || '').replace(/[\x00-\x1F\x7F]/g, ' ').trim().slice(0, max);
+    }
+
+    function loadUsers() {
+      try {
+        return JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+
+    function setSession(email) {
+      localStorage.setItem(SESSION_KEY, email);
+    }
+
+    function clearSession() {
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    async function hashPassword(password) {
+      const data = new TextEncoder().encode(password);
+      const digest = await crypto.subtle.digest('SHA-256', data);
+      const bytes = Array.from(new Uint8Array(digest));
+      return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function notifyEvent(type, payload) {
+      try {
+        await fetch('/api/telegram-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: type, payload: payload })
+        });
+      } catch (_) {
+        // Non-blocking notification path
+      }
+    }
+
+    function showDashboard(user) {
+      currentUser = user;
+      dashName.textContent = user.name;
+      dashEmail.textContent = user.email;
+      authArea.classList.add('hidden');
+      dashboard.classList.remove('hidden');
+      dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function initializePaymentManager() {
+      if (!paymentManager && typeof window.CryptoPaymentManager !== 'undefined') {
+        paymentManager = new window.CryptoPaymentManager();
+      }
+      return paymentManager;
+    }
+
+    signupForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const name = normalize(document.getElementById('signupName').value, 80);
+      const email = normalize(document.getElementById('signupEmail').value, 120).toLowerCase();
+      const password = document.getElementById('signupPassword').value;
+      const confirm = document.getElementById('signupConfirm').value;
+
+      if (!name || !email || !password) {
+        showStatus(signupStatus, 'All fields are required.', 'error');
+        return;
+      }
+
+      if (password.length < 8) {
+        showStatus(signupStatus, 'Password must be at least 8 characters.', 'error');
+        return;
+      }
+
+      if (password !== confirm) {
+        showStatus(signupStatus, 'Password confirmation does not match.', 'error');
+        return;
+      }
+
+      const users = loadUsers();
+      if (users[email]) {
+        showStatus(signupStatus, 'Account already exists. Please log in.', 'error');
+        return;
+      }
+
+      const passwordHash = await hashPassword(password);
+      users[email] = {
+        name: name,
+        email: email,
+        passwordHash: passwordHash,
+        freeAccess: false,
+        createdAt: new Date().toISOString()
+      };
+
+      saveUsers(users);
+      setSession(email);
+      await notifyEvent('user.created', { name: name, email: email, message: 'Client account created' });
+
+      showStatus(signupStatus, 'Account created. Redirecting to dashboard...', 'success');
+      showDashboard(users[email]);
+    });
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const email = normalize(document.getElementById('loginEmail').value, 120).toLowerCase();
+      const password = document.getElementById('loginPassword').value;
+
+      const users = loadUsers();
+      const account = users[email];
+
+      if (!account) {
+        showStatus(loginStatus, 'No account found for that email.', 'error');
+        return;
+      }
+
+      const passwordHash = await hashPassword(password);
+      if (passwordHash !== account.passwordHash) {
+        showStatus(loginStatus, 'Invalid credentials.', 'error');
+        return;
+      }
+
+      setSession(email);
+      await notifyEvent('user.login', { name: account.name, email: account.email });
+      showStatus(loginStatus, 'Access granted.', 'success');
+      showDashboard(account);
+    });
+
+    freeAccessBtn.addEventListener('click', async () => {
+      if (!currentUser) {
+        showStatus(freeStatus, 'Please sign in first.', 'error');
+        return;
+      }
+
+      const users = loadUsers();
+      const account = users[currentUser.email];
+      if (!account) {
+        showStatus(freeStatus, 'Account not found.', 'error');
+        return;
+      }
+
+      if (account.freeAccess) {
+        showStatus(freeStatus, 'Free access already active.', 'success');
+        return;
+      }
+
+      account.freeAccess = true;
+      saveUsers(users);
+      currentUser = account;
+
+      await notifyEvent('free.access.requested', {
+        name: account.name,
+        email: account.email,
+        plan: 'starter'
+      });
+
+      showStatus(freeStatus, 'Free access activated on your dashboard.', 'success');
+    });
+
+    convertBtn.addEventListener('click', async () => {
+      const amount = parseFloat(document.getElementById('payAmount').value);
+      const from = document.getElementById('payFrom').value;
+      const to = document.getElementById('payTo').value;
+
+      if (!amount || amount <= 0) {
+        convertStatus.textContent = 'Enter a valid amount.';
+        convertStatus.className = 'mt-3 text-center text-xs text-red-400';
+        return;
+      }
+
+      const manager = initializePaymentManager();
+      if (!manager) {
+        convertStatus.textContent = 'Payment module unavailable.';
+        convertStatus.className = 'mt-3 text-center text-xs text-red-400';
+        return;
+      }
+
+      convertStatus.textContent = 'Calculating...';
+      convertStatus.className = 'mt-3 text-center text-xs text-gray-400';
+
+      try {
+        const converted = await manager.convertCurrency(amount, from, to);
+        lastQuote = { amount: amount, from: from, to: to, converted: converted };
+        convertStatus.textContent = amount.toFixed(2) + ' ' + from + ' = ' + converted.toFixed(6) + ' ' + to;
+        convertStatus.className = 'mt-3 text-center text-xs text-green-400';
+      } catch (_) {
+        convertStatus.textContent = 'Conversion failed.';
+        convertStatus.className = 'mt-3 text-center text-xs text-red-400';
+      }
+    });
+
+    connectWalletBtn.addEventListener('click', async () => {
+      const manager = initializePaymentManager();
+      if (!manager) {
+        showStatus(paymentStatus, 'Wallet module unavailable.', 'error');
+        return;
+      }
+
+      showStatus(paymentStatus, 'Connecting wallet...', 'neutral');
+      try {
+        const wallet = await manager.connectWallet('trustwallet');
+        showStatus(paymentStatus, 'Wallet connected: ' + wallet.account, 'success');
+      } catch (_) {
+        showStatus(paymentStatus, 'Wallet connection failed.', 'error');
+      }
+    });
+
+    payNowBtn.addEventListener('click', async () => {
+      if (!currentUser) {
+        showStatus(paymentStatus, 'Please sign in first.', 'error');
+        return;
+      }
+
+      if (!lastQuote) {
+        showStatus(paymentStatus, 'Convert an amount first.', 'error');
+        return;
+      }
+
+      const manager = initializePaymentManager();
+      if (!manager) {
+        showStatus(paymentStatus, 'Payment module unavailable.', 'error');
+        return;
+      }
+
+      showStatus(paymentStatus, 'Submitting transaction...', 'neutral');
+
+      try {
+        const recipient = manager.treasuryNativeAddress?.[manager.chainId] || manager.treasuryNativeAddress?.[1];
+        const payment = await manager.processPayment({
+          amount: lastQuote.converted,
+          currency: lastQuote.to,
+          recipientAddress: recipient,
+          description: 'ALMUDIR DASHBOARD PAYMENT'
+        });
+
+        await notifyEvent('crypto.payment.intent', {
+          name: currentUser.name,
+          email: currentUser.email,
+          amount: String(lastQuote.converted),
+          currency: lastQuote.to,
+          transaction_hash: payment.transactionHash
+        });
+
+        showStatus(paymentStatus, 'Transaction submitted: ' + payment.transactionHash, 'success');
+      } catch (_) {
+        showStatus(paymentStatus, 'Payment failed. Verify wallet and retry.', 'error');
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      clearSession();
+      currentUser = null;
+      dashboard.classList.add('hidden');
+      authArea.classList.remove('hidden');
+    });
+
+    if (typeof TradingView !== 'undefined') {
+      new TradingView.widget({
+        autosize: true,
+        symbol: 'XAUUSD',
+        interval: '15',
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        container_id: 'tradingview_pro'
+      });
+    }
+
+    (function restoreSession() {
+      const email = localStorage.getItem(SESSION_KEY);
+      if (!email) return;
+
+      const users = loadUsers();
+      if (users[email]) {
+        showDashboard(users[email]);
+      }
+    })();
+  </script>
 </body>
 </html>
