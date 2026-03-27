@@ -235,7 +235,6 @@
                   </select>
                   <select id="payTo" class="col-span-1 border-b border-gray-600 bg-transparent py-2 text-sm">
                     <option value="USDT" class="text-black">USDT</option>
-                    <option value="BTC" class="text-black">BTC</option>
                     <option value="ETH" class="text-black">ETH</option>
                     <option value="BNB" class="text-black">BNB</option>
                   </select>
@@ -516,6 +515,11 @@
 
       if (!lastQuote) {
         showStatus(paymentStatus, 'Convert an amount first.', 'error');
+        return;
+      }
+
+      if (!['USDT', 'ETH', 'BNB'].includes(lastQuote.to)) {
+        showStatus(paymentStatus, 'Selected payout asset is not supported for wallet transfer.', 'error');
         return;
       }
 
