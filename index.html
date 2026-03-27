@@ -107,7 +107,7 @@
         <a href="#metrics" class="hover:text-white">Metrics</a>
         <a href="#terminal" class="hover:text-white">Terminal</a>
       </div>
-      <a href="#portal" class="btn-outline rounded px-5 py-2 text-[11px] uppercase tracking-[0.18em]">Private Portal</a>
+      <a href="#portalAuth" class="btn-outline rounded px-5 py-2 text-[11px] uppercase tracking-[0.18em]">Access Portal</a>
     </div>
   </nav>
 
@@ -117,7 +117,7 @@
       <h1 class="serif mt-6 text-5xl leading-tight md:text-8xl text-gold-gradient">Preserving Capital.<br><span class="text-white">Architecting Alpha.</span></h1>
       <p class="mx-auto mt-8 max-w-2xl text-gray-300">Institutional-grade management with seven-figure AUM and precision execution across macro and digital markets.</p>
       <div class="mt-10 flex flex-col justify-center gap-4 md:flex-row">
-        <a href="#portal" class="btn-gold rounded px-10 py-4 text-sm">Create Account</a>
+        <a href="#portalAuth" class="btn-gold rounded px-10 py-4 text-sm">Join Now</a>
         <a href="#terminal" class="btn-outline rounded px-10 py-4 text-sm">View Terminal</a>
       </div>
     </div>
@@ -163,7 +163,11 @@
     <div class="mx-auto max-w-6xl space-y-8">
       <div class="text-center">
         <h3 class="serif text-3xl text-gold-gradient">Client Access Portal</h3>
-        <p class="mt-3 text-sm text-gray-400">Create your account and access your dashboard instantly.</p>
+        <p class="mt-3 text-sm text-gray-400">Sign up or log in first. Dashboard features unlock only after authentication.</p>
+      </div>
+
+      <div id="portalAuth" class="rounded-xl border border-white/10 bg-black/20 px-5 py-4 text-center text-xs uppercase tracking-[0.18em] text-gray-300">
+        Choose one option below to enter your account.
       </div>
 
       <div id="authArea" class="grid gap-6 md:grid-cols-2">
@@ -573,15 +577,6 @@
       });
     }
 
-    (function restoreSession() {
-      const email = localStorage.getItem(SESSION_KEY);
-      if (!email) return;
-
-      const users = loadUsers();
-      if (users[email]) {
-        showDashboard(users[email]);
-      }
-    })();
   </script>
 </body>
 </html>
