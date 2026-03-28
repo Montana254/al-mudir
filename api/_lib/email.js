@@ -6,9 +6,33 @@ function esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// Fallback: send OTP as a Telegram notification to the admin
+async function sendOtpViaTelegram(to, otp, name) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!botToken || !chatId) throw new Error('email_not_configured: no RESEND_API_KEY and Telegram fallback unavailable');
+
+  const text = '\uD83D\uDD10 OTP Verification Request\n\n'
+    + 'Name: ' + esc(name) + '\n'
+    + 'Email: ' + esc(to) + '\n'
+    + 'OTP Code: ' + otp + '\n\n'
+    + 'This code expires in 10 minutes.\n'
+    + 'Share this code with the user to complete their account verification.';
+
+  const r = await fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text: text })
+  });
+  if (!r.ok) throw new Error('telegram_otp_send_failed');
+  return r.json();
+}
+
 async function sendOtpEmail(to, otp, name) {
   const key = process.env.RESEND_API_KEY;
-  if (!key) throw new Error('email_not_configured: RESEND_API_KEY is not set');
+
+  // If no email API key, fall back to Telegram notification
+  if (!key) return sendOtpViaTelegram(to, otp, name);
 
   const html = `<!DOCTYPE html>
 <html><body style="margin:0;padding:32px;background:#04120f;font-family:Arial,sans-serif;">
