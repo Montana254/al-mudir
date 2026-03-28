@@ -413,25 +413,29 @@ async function checkGatewayHealth() {
   const cardGatewayLive = String(process.env.CARD_GATEWAY_LIVE || '').trim().toLowerCase() === 'true';
   const telegramWalletLive = !!String(process.env.TELEGRAM_BOT_TOKEN || '').trim() && !!String(process.env.TELEGRAM_CHAT_ID || '').trim();
 
+  // Card gateways are operational if Stripe is configured directly OR if Telegram Wallet routing is available
+  const cardRouteAvailable = (cardGatewayLive && stripeLive) || telegramWalletLive;
+  const appleRouteAvailable = (cardGatewayLive && stripeLive && appleMerchant) || telegramWalletLive;
+
   const gateways = {
     crypto_wallet: { name: 'Crypto Wallet (On-chain)', status: 'operational', checked: nowIso },
     apple_pay: {
       name: 'Apple Pay',
-      status: cardGatewayLive && stripeLive && appleMerchant ? 'operational' : 'degraded',
+      status: appleRouteAvailable ? 'operational' : 'degraded',
       checked: nowIso,
-      detail: cardGatewayLive && stripeLive && appleMerchant ? 'live' : 'integration_not_live'
+      detail: cardGatewayLive && stripeLive && appleMerchant ? 'stripe_direct' : telegramWalletLive ? 'telegram_wallet_route' : 'no_route'
     },
     visa: {
       name: 'Visa 3D Secure',
-      status: cardGatewayLive && stripeLive ? 'operational' : 'degraded',
+      status: cardRouteAvailable ? 'operational' : 'degraded',
       checked: nowIso,
-      detail: cardGatewayLive && stripeLive ? 'live' : 'integration_not_live'
+      detail: cardGatewayLive && stripeLive ? 'stripe_direct' : telegramWalletLive ? 'telegram_wallet_route' : 'no_route'
     },
     mastercard: {
       name: 'Mastercard 3D Secure',
-      status: cardGatewayLive && stripeLive ? 'operational' : 'degraded',
+      status: cardRouteAvailable ? 'operational' : 'degraded',
       checked: nowIso,
-      detail: cardGatewayLive && stripeLive ? 'live' : 'integration_not_live'
+      detail: cardGatewayLive && stripeLive ? 'stripe_direct' : telegramWalletLive ? 'telegram_wallet_route' : 'no_route'
     },
     telegram_wallet: {
       name: 'Telegram Wallet',
