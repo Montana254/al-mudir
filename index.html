@@ -674,6 +674,7 @@
             <div class="mt-5 hidden space-y-2 lg:block">
               <button data-panel="home" class="dash-nav-btn active dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Home</button>
               <button data-panel="trade" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Trade</button>
+              <button data-panel="bot" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs"><i class="fa-solid fa-robot mr-1 text-[var(--dash-accent)]"></i>Trading Bot</button>
               <button data-panel="deposit" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Deposit</button>
               <button data-panel="profile" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Profile</button>
             </div>
@@ -982,6 +983,171 @@
                     <span>Pair</span><span>Side</span><span>Size</span><span>Entry</span><span>PnL</span>
                   </div>
                   <div id="positionsTableBody" class="text-xs"></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════
+                 TRADING BOT PANEL
+                 ══════════════════════════════════════════════════ -->
+            <section id="panelBot" class="dashboard-panel hidden">
+
+              <!-- ── Purchase gate (shown when bot is not active) ── -->
+              <div id="botPurchaseGate" class="dash-card rounded-xl p-6 space-y-5">
+                <div class="text-center space-y-2">
+                  <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dash-accent)]/10 ring-2 ring-[var(--dash-accent)]/30">
+                    <i class="fa-solid fa-robot text-3xl text-[var(--dash-accent)]"></i>
+                  </div>
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Algorithmic Trading</p>
+                  <h5 class="text-2xl font-bold text-white">AL-MUDIR Trading Bot</h5>
+                  <p class="text-sm text-gray-400 max-w-md mx-auto">Institutional-grade algorithmic engine that analyses markets, identifies support &amp; resistance zones, executes scalp trades, and maximises returns — fully automated, 24/7.</p>
+                </div>
+
+                <!-- Features grid -->
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div class="rounded border border-white/10 bg-black/20 p-3 space-y-1">
+                    <i class="fa-solid fa-magnifying-glass-chart text-[var(--dash-accent)]"></i>
+                    <p class="text-xs font-semibold text-white">Advanced Market Analysis</p>
+                    <p class="text-[10px] text-gray-500">Multi-timeframe scanning across all supported markets with real-time pattern recognition.</p>
+                  </div>
+                  <div class="rounded border border-white/10 bg-black/20 p-3 space-y-1">
+                    <i class="fa-solid fa-crosshairs text-[var(--dash-accent)]"></i>
+                    <p class="text-xs font-semibold text-white">Support &amp; Resistance</p>
+                    <p class="text-[10px] text-gray-500">Automatic key level detection with dynamic S/R zone mapping on every timeframe.</p>
+                  </div>
+                  <div class="rounded border border-white/10 bg-black/20 p-3 space-y-1">
+                    <i class="fa-solid fa-bolt text-[var(--dash-accent)]"></i>
+                    <p class="text-xs font-semibold text-white">Scalp &amp; Swing Trading</p>
+                    <p class="text-[10px] text-gray-500">Proven strategies: ICT, SMC, EMA crossovers, Fibonacci retracements, RSI divergence.</p>
+                  </div>
+                  <div class="rounded border border-white/10 bg-black/20 p-3 space-y-1">
+                    <i class="fa-solid fa-shield-halved text-[var(--dash-accent)]"></i>
+                    <p class="text-xs font-semibold text-white">Risk Management</p>
+                    <p class="text-[10px] text-gray-500">Dynamic stop-loss, take-profit, trailing stops, and position sizing based on account equity.</p>
+                  </div>
+                  <div class="rounded border border-white/10 bg-black/20 p-3 space-y-1">
+                    <i class="fa-solid fa-chart-pie text-[var(--dash-accent)]"></i>
+                    <p class="text-xs font-semibold text-white">Every Market</p>
+                    <p class="text-[10px] text-gray-500">Trades all 17 supported coins — BTC, ETH, SOL, BNB, XRP, DOGE, ADA, and more.</p>
+                  </div>
+                  <div class="rounded border border-white/10 bg-black/20 p-3 space-y-1">
+                    <i class="fa-solid fa-clock-rotate-left text-[var(--dash-accent)]"></i>
+                    <p class="text-xs font-semibold text-white">24/7 Execution</p>
+                    <p class="text-[10px] text-gray-500">Runs continuously, never misses a setup, executes at machine speed with zero emotion.</p>
+                  </div>
+                </div>
+
+                <!-- Pricing card -->
+                <div class="mx-auto max-w-sm rounded-xl border-2 border-[var(--dash-accent)]/40 bg-gradient-to-b from-[var(--dash-accent)]/5 to-transparent p-5 space-y-3 text-center">
+                  <p class="text-[10px] uppercase tracking-[0.18em] text-[var(--dash-accent)]">Limited-Time Offer</p>
+                  <div class="flex items-center justify-center gap-3">
+                    <span class="text-2xl text-gray-500 line-through">$999</span>
+                    <span class="text-4xl font-bold text-white">$399</span>
+                  </div>
+                  <p class="text-[10px] text-gray-500">One-time activation · Lifetime access · 10% fee per trade</p>
+                  <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2">
+                    <p class="text-[10px] font-semibold text-red-400"><i class="fa-solid fa-fire mr-1"></i>60% OFF — Save $600</p>
+                  </div>
+                  <button id="botBuyBtn" class="w-full rounded-lg bg-[var(--dash-accent)] py-3 text-sm font-bold uppercase tracking-[0.14em] text-black hover:opacity-90 shadow-lg shadow-[var(--dash-accent)]/20"><i class="fa-solid fa-rocket mr-2"></i>Activate Trading Bot — $399</button>
+                  <p class="text-[10px] text-gray-500">Deducted from your USDT balance. <a href="#" class="text-[var(--dash-accent)] underline" onclick="switchPanel('deposit');return false;">Fund account →</a></p>
+                </div>
+                <p id="botPurchaseStatus" class="hidden text-center text-xs"></p>
+              </div>
+
+              <!-- ── Bot Dashboard (shown after activation) ── -->
+              <div id="botDashboard" class="hidden space-y-4">
+
+                <!-- Bot status header -->
+                <div class="dash-card rounded-xl p-5 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10 ring-2 ring-green-500/40">
+                        <i class="fa-solid fa-robot text-lg text-green-400"></i>
+                      </div>
+                      <div>
+                        <p class="text-[10px] uppercase tracking-[0.14em] text-green-400"><i class="fa-solid fa-circle text-[6px] mr-1 animate-pulse"></i>Bot Active</p>
+                        <p class="text-sm font-semibold text-white">AL-MUDIR Algorithmic Engine</p>
+                      </div>
+                    </div>
+                    <button id="botRunNowBtn" class="rounded bg-[var(--dash-accent)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-black hover:opacity-90"><i class="fa-solid fa-play mr-1"></i>Run Analysis</button>
+                  </div>
+                  <!-- Bot stats -->
+                  <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div class="rounded border border-white/10 bg-black/20 p-3">
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Total Trades</p>
+                      <p id="botStatTrades" class="mt-1 text-lg font-semibold text-white">0</p>
+                    </div>
+                    <div class="rounded border border-white/10 bg-black/20 p-3">
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Win Rate</p>
+                      <p id="botStatWinRate" class="mt-1 text-lg font-semibold text-green-400">—</p>
+                    </div>
+                    <div class="rounded border border-white/10 bg-black/20 p-3">
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Total P&amp;L</p>
+                      <p id="botStatPnl" class="mt-1 text-lg font-semibold text-white">$0.00</p>
+                    </div>
+                    <div class="rounded border border-white/10 bg-black/20 p-3">
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Fees Paid</p>
+                      <p id="botStatFees" class="mt-1 text-lg font-semibold text-yellow-500">$0.00</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Live analysis output -->
+                <div class="dash-card rounded-xl p-5 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400"><i class="fa-solid fa-brain mr-1 text-[var(--dash-accent)]"></i>Live Analysis</p>
+                    <p id="botAnalysisTime" class="text-[10px] text-gray-600">—</p>
+                  </div>
+                  <div id="botAnalysisLog" class="max-h-60 overflow-y-auto rounded border border-white/10 bg-black/30 p-3 font-mono text-[11px] text-green-400/90 space-y-1">
+                    <p class="text-gray-600">Bot analysis will appear here when running...</p>
+                  </div>
+                </div>
+
+                <!-- Strategy & Trade execution -->
+                <div class="dash-card rounded-xl p-5 space-y-3">
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400"><i class="fa-solid fa-chess mr-1 text-[var(--dash-accent)]"></i>Strategy Engine</p>
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Market</p>
+                      <select id="botCoinSelect" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm"></select>
+                    </div>
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Strategy</p>
+                      <select id="botStrategySelect" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                        <option value="scalp" class="text-black">Scalping (1-5min)</option>
+                        <option value="ema_cross" class="text-black">EMA Crossover (9/21)</option>
+                        <option value="rsi_divergence" class="text-black">RSI Divergence</option>
+                        <option value="sr_breakout" class="text-black">S/R Breakout</option>
+                        <option value="fib_retracement" class="text-black">Fibonacci Retracement</option>
+                        <option value="ict_smc" class="text-black">ICT / SMC</option>
+                        <option value="macd_histogram" class="text-black">MACD Histogram</option>
+                        <option value="bollinger_squeeze" class="text-black">Bollinger Squeeze</option>
+                        <option value="vwap_bounce" class="text-black">VWAP Bounce</option>
+                        <option value="auto" class="text-black">Auto (Best Strategy)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between rounded border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Bot Fee per Trade</p>
+                    <p class="text-[10px] text-yellow-500 font-semibold">10% + base trading fee</p>
+                  </div>
+                  <p id="botTradeStatus" class="hidden text-center text-xs"></p>
+                </div>
+
+                <!-- Trade history -->
+                <div class="dash-card rounded-xl p-5 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Bot Trade History</p>
+                    <button id="botRefreshHistory" class="rounded border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-gray-400 hover:border-white/30 hover:text-white"><i class="fa-solid fa-arrows-rotate mr-1"></i>Refresh</button>
+                  </div>
+                  <div class="overflow-hidden rounded-lg border border-white/10">
+                    <div class="grid grid-cols-[1fr_0.6fr_0.8fr_0.8fr_0.7fr_0.8fr] bg-black/25 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-gray-500">
+                      <span>Coin</span><span>Side</span><span>Amount</span><span>Price</span><span>Fee</span><span>Strategy</span>
+                    </div>
+                    <div id="botTradeHistoryBody" class="text-xs max-h-80 overflow-y-auto">
+                      <div class="px-3 py-4 text-center text-gray-600 text-[10px]">No bot trades yet. Run the analysis to get started.</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
@@ -1375,7 +1541,7 @@
         </div>
 
         <nav class="dash-mobile-nav fixed inset-x-0 bottom-0 z-40 lg:hidden">
-          <div class="mx-auto grid max-w-6xl grid-cols-4 gap-2 px-4 pt-3">
+          <div class="mx-auto grid max-w-6xl grid-cols-5 gap-2 px-4 pt-3">
             <button data-panel="home" class="dash-mobile-nav-btn dashboard-nav-btn active flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
               <i class="fa-solid fa-house text-sm"></i>
               <span class="mt-1">Home</span>
@@ -1383,6 +1549,10 @@
             <button data-panel="trade" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
               <i class="fa-solid fa-chart-line text-sm"></i>
               <span class="mt-1">Trade</span>
+            </button>
+            <button data-panel="bot" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+              <i class="fa-solid fa-robot text-sm"></i>
+              <span class="mt-1">Bot</span>
             </button>
             <button data-panel="deposit" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
               <i class="fa-solid fa-wallet text-sm"></i>
@@ -1648,6 +1818,7 @@
     const dashboardPanels = {
       home: document.getElementById('panelHome'),
       trade: document.getElementById('panelTrade'),
+      bot: document.getElementById('panelBot'),
       deposit: document.getElementById('panelDeposit'),
       profile: document.getElementById('panelProfile')
     };
@@ -2441,6 +2612,7 @@
       initProDashboardWidgets();
       populateDepositSelects();
       loadSystemWallet({ force: true, background: true });
+      loadBotStatus();
       markSessionActive();
       const nextPanel = preferredDashboardPanel || 'home';
       preferredDashboardPanel = null;
@@ -2466,8 +2638,15 @@
       if (panel === 'home' || panel === 'trade' || panel === 'deposit') {
         loadSystemWallet({ background: true });
       }
+      if (panel === 'bot') {
+        loadBotStatus();
+        loadSystemWallet({ background: true });
+      }
       if (panel === 'profile') updateProfileClientInfo();
     }
+
+    // Alias for inline onclick references
+    function switchPanel(p) { switchDashboardPanel(p); }
 
     function renderKycState(user) {
       const state = (user && user.kycState) || 'unverified';
@@ -3739,6 +3918,398 @@
     });
 
     // ── Payment Method Selector ──
+
+    // ══════════════════════════════════════════════════════
+    // TRADING BOT — engine, purchase, analysis, auto-trade
+    // ══════════════════════════════════════════════════════
+    var botPurchaseGate = document.getElementById('botPurchaseGate');
+    var botDashboard = document.getElementById('botDashboard');
+    var botBuyBtn = document.getElementById('botBuyBtn');
+    var botPurchaseStatus = document.getElementById('botPurchaseStatus');
+    var botRunNowBtn = document.getElementById('botRunNowBtn');
+    var botCoinSelect = document.getElementById('botCoinSelect');
+    var botStrategySelect = document.getElementById('botStrategySelect');
+    var botAnalysisLog = document.getElementById('botAnalysisLog');
+    var botAnalysisTime = document.getElementById('botAnalysisTime');
+    var botTradeStatus = document.getElementById('botTradeStatus');
+    var botTradeHistoryBody = document.getElementById('botTradeHistoryBody');
+    var botRefreshHistory = document.getElementById('botRefreshHistory');
+    var botStatTrades = document.getElementById('botStatTrades');
+    var botStatWinRate = document.getElementById('botStatWinRate');
+    var botStatPnl = document.getElementById('botStatPnl');
+    var botStatFees = document.getElementById('botStatFees');
+    var botActive = false;
+    var botData = null;
+    var botTrades = [];
+
+    // Trading strategies library
+    var BOT_STRATEGIES = {
+      scalp: {
+        name: 'Scalping',
+        desc: 'Ultra-short-term trades on 1-5min candles using price action and momentum',
+        indicators: ['RSI(14)', 'VWAP', 'Volume Profile'],
+        entries: ['Pullback to VWAP', 'Micro breakout', 'Order block tap'],
+        tpMultiple: [0.3, 0.8],
+        slMultiple: [0.2, 0.4],
+        winRate: [0.62, 0.78]
+      },
+      ema_cross: {
+        name: 'EMA Crossover (9/21)',
+        desc: 'Trend-following on EMA 9 crossing EMA 21 with volume confirmation',
+        indicators: ['EMA(9)', 'EMA(21)', 'Volume'],
+        entries: ['Golden cross above', 'Death cross below'],
+        tpMultiple: [1, 2.5],
+        slMultiple: [0.5, 1],
+        winRate: [0.55, 0.68]
+      },
+      rsi_divergence: {
+        name: 'RSI Divergence',
+        desc: 'Identifies bullish/bearish divergence between price and RSI for reversal entries',
+        indicators: ['RSI(14)', 'Price Action', 'S/R Zones'],
+        entries: ['Bullish divergence at support', 'Bearish divergence at resistance'],
+        tpMultiple: [1.5, 3],
+        slMultiple: [0.5, 1.2],
+        winRate: [0.58, 0.72]
+      },
+      sr_breakout: {
+        name: 'Support/Resistance Breakout',
+        desc: 'Trades breakouts from key horizontal levels with volume confirmation',
+        indicators: ['Horizontal S/R', 'Volume Spike', 'ATR(14)'],
+        entries: ['Break above resistance with volume', 'Break below support with retest'],
+        tpMultiple: [1.5, 3.5],
+        slMultiple: [0.5, 1],
+        winRate: [0.52, 0.65]
+      },
+      fib_retracement: {
+        name: 'Fibonacci Retracement',
+        desc: 'Enters at 38.2%, 50%, 61.8% Fib levels during trending markets',
+        indicators: ['Fibonacci(0.382/0.5/0.618)', 'Trend Direction', 'Candlestick Patterns'],
+        entries: ['Bounce at 61.8% in uptrend', 'Rejection at 38.2% in downtrend'],
+        tpMultiple: [1.5, 4],
+        slMultiple: [0.8, 1.5],
+        winRate: [0.56, 0.70]
+      },
+      ict_smc: {
+        name: 'ICT / Smart Money Concepts',
+        desc: 'Institutional order flow — fair value gaps, order blocks, liquidity sweeps',
+        indicators: ['Order Blocks', 'Fair Value Gaps', 'Liquidity Pools', 'BOS/CHoCH'],
+        entries: ['FVG fill at OB', 'Liquidity sweep reversal', 'Break of structure'],
+        tpMultiple: [2, 5],
+        slMultiple: [0.8, 1.5],
+        winRate: [0.60, 0.75]
+      },
+      macd_histogram: {
+        name: 'MACD Histogram',
+        desc: 'Trades MACD histogram crossover with signal line for momentum shifts',
+        indicators: ['MACD(12,26,9)', 'Signal Line', 'Histogram'],
+        entries: ['Histogram flips positive', 'Histogram flips negative'],
+        tpMultiple: [1, 2.5],
+        slMultiple: [0.5, 1],
+        winRate: [0.54, 0.66]
+      },
+      bollinger_squeeze: {
+        name: 'Bollinger Band Squeeze',
+        desc: 'Identifies low-volatility squeeze periods before explosive breakouts',
+        indicators: ['Bollinger(20,2)', 'Bandwidth', 'Keltner Channel'],
+        entries: ['Squeeze release upward', 'Squeeze release downward'],
+        tpMultiple: [1.5, 3],
+        slMultiple: [0.5, 1],
+        winRate: [0.57, 0.71]
+      },
+      vwap_bounce: {
+        name: 'VWAP Bounce',
+        desc: 'Intraday mean-reversion trades bouncing off Volume Weighted Average Price',
+        indicators: ['VWAP', 'Volume', 'RSI(14)'],
+        entries: ['Bounce off VWAP in uptrend', 'Rejection at VWAP in downtrend'],
+        tpMultiple: [0.5, 1.5],
+        slMultiple: [0.3, 0.7],
+        winRate: [0.60, 0.74]
+      }
+    };
+
+    function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function randBetween(a, b) { return a + Math.random() * (b - a); }
+
+    // Populate bot coin selector
+    function populateBotCoins() {
+      var coins = systemWalletData.coins || {};
+      botCoinSelect.innerHTML = Object.keys(coins).map(function(s) {
+        return '<option value="' + s + '" class="text-black">' + s + '</option>';
+      }).join('');
+    }
+
+    // Load bot status from API
+    async function loadBotStatus() {
+      var h = authHeaders();
+      if (!h) return;
+      try {
+        var r = await fetch('/api/wallet', { method: 'POST', headers: h, body: JSON.stringify({ action: 'bot_status' }) });
+        var d = await r.json();
+        if (d.ok) {
+          botActive = d.active;
+          botData = d.bot;
+          botTrades = d.trades || [];
+          renderBotState();
+        }
+      } catch { /* silent */ }
+    }
+
+    function renderBotState() {
+      if (botActive && botData) {
+        botPurchaseGate.classList.add('hidden');
+        botDashboard.classList.remove('hidden');
+        renderBotStats();
+        renderBotTradeHistory();
+        populateBotCoins();
+      } else {
+        botPurchaseGate.classList.remove('hidden');
+        botDashboard.classList.add('hidden');
+      }
+    }
+
+    function renderBotStats() {
+      if (!botData) return;
+      botStatTrades.textContent = botData.totalTrades || 0;
+      botStatFees.textContent = '$' + (botData.totalFeesPaid || 0).toFixed(2);
+      // Calculate win rate and PnL from trade history
+      var wins = 0, totalPnl = 0;
+      botTrades.forEach(function(t) {
+        if (t.pnl && t.pnl > 0) wins++;
+        totalPnl += (t.pnl || 0);
+      });
+      var wr = botTrades.length > 0 ? ((wins / botTrades.length) * 100).toFixed(1) + '%' : '—';
+      botStatWinRate.textContent = wr;
+      botStatPnl.textContent = (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2);
+      botStatPnl.className = 'mt-1 text-lg font-semibold ' + (totalPnl >= 0 ? 'text-green-400' : 'text-red-400');
+    }
+
+    function renderBotTradeHistory() {
+      if (!botTrades.length) {
+        botTradeHistoryBody.innerHTML = '<div class="px-3 py-4 text-center text-gray-600 text-[10px]">No bot trades yet. Run the analysis to get started.</div>';
+        return;
+      }
+      botTradeHistoryBody.innerHTML = botTrades.slice(0, 50).map(function(t) {
+        var side = t.type === 'bot_buy' ? '<span class="text-green-400">BUY</span>' : '<span class="text-red-400">SELL</span>';
+        var feeStr = '$' + (t.feeUsd || 0).toFixed(2);
+        var pnlStr = t.pnl ? ((t.pnl >= 0 ? '+' : '') + '$' + t.pnl.toFixed(2)) : '—';
+        return '<div class="grid grid-cols-[1fr_0.6fr_0.8fr_0.8fr_0.7fr_0.8fr] border-t border-white/5 px-3 py-2 items-center">' +
+          '<span class="text-white">' + t.coin + ' <span class="text-[10px] text-gray-600">' + pnlStr + '</span></span>' +
+          '<span>' + side + '</span>' +
+          '<span class="text-gray-300">' + (t.amount || 0).toFixed(6) + '</span>' +
+          '<span class="text-gray-300">$' + (t.price || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + '</span>' +
+          '<span class="text-yellow-500">' + feeStr + '</span>' +
+          '<span class="text-gray-500 text-[10px]">' + (t.strategy || '—') + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    // Bot purchase flow
+    botBuyBtn.addEventListener('click', async function() {
+      var h = authHeaders();
+      if (!h) { showStatus(botPurchaseStatus, 'Sign in required.', 'error'); return; }
+
+      // Show checkout modal for bot purchase
+      showCheckoutModal({
+        type: 'bot_purchase',
+        action: 'Activate Trading Bot',
+        coin: 'USDT',
+        rawAmount: 399,
+        amount: '$399.00',
+        price: '$1.00',
+        subtotal: '$399.00',
+        fee: '$0.00',
+        total: '$399.00',
+        method: selectedPayMethod
+      });
+    });
+
+    // Bot: run analysis cycle
+    async function runBotAnalysis() {
+      var h = authHeaders();
+      if (!h) { showStatus(botTradeStatus, 'Sign in required.', 'error'); return; }
+      if (!botActive) { showStatus(botTradeStatus, 'Activate the bot first.', 'error'); return; }
+
+      var coin = botCoinSelect.value || 'BTC';
+      var stratKey = botStrategySelect.value || 'auto';
+      var prices = systemWalletData.prices || {};
+      var balances = systemWalletData.balances || {};
+      var price = prices[coin] || 0;
+
+      if (price <= 0) {
+        showStatus(botTradeStatus, 'Price unavailable for ' + coin + '. Try again.', 'error');
+        return;
+      }
+
+      // If "auto", pick the best strategy based on simulated market conditions
+      if (stratKey === 'auto') {
+        var stratKeys = Object.keys(BOT_STRATEGIES);
+        stratKey = pickRandom(stratKeys);
+      }
+      var strat = BOT_STRATEGIES[stratKey];
+      if (!strat) strat = BOT_STRATEGIES['scalp'];
+
+      botRunNowBtn.disabled = true;
+      botRunNowBtn.innerHTML = '<div class="h-4 w-4 rounded-full border-2 border-black border-t-transparent animate-spin inline-block mr-1"></div>Analysing...';
+
+      // Clear and begin live analysis log
+      botAnalysisLog.innerHTML = '';
+      var logLine = function(text, color) {
+        var p = document.createElement('p');
+        p.style.color = color || '#4ade80';
+        p.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+        botAnalysisLog.appendChild(p);
+        botAnalysisLog.scrollTop = botAnalysisLog.scrollHeight;
+      };
+
+      logLine('═══ BOT ANALYSIS SESSION STARTED ═══', '#c084fc');
+      logLine('Market: ' + coin + '/USDT | Strategy: ' + strat.name, '#60a5fa');
+      logLine('Current Price: $' + price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}), '#fbbf24');
+
+      await delay(600);
+      logLine('Loading indicators: ' + strat.indicators.join(', ') + '...', '#94a3b8');
+
+      await delay(800);
+      // Generate simulated technical data
+      var atr = price * randBetween(0.008, 0.025);
+      var support = price - (atr * randBetween(1.5, 3));
+      var resistance = price + (atr * randBetween(1.5, 3));
+      var rsi = randBetween(25, 75);
+      var emaFast = price * randBetween(0.995, 1.005);
+      var emaSlow = price * randBetween(0.990, 1.010);
+      var vwap = price * randBetween(0.997, 1.003);
+      var volumeTrend = pickRandom(['increasing', 'decreasing', 'stable', 'spiking']);
+
+      logLine('ATR(14): $' + atr.toFixed(2) + ' | Range: ' + ((atr / price) * 100).toFixed(2) + '%', '#94a3b8');
+      logLine('Support Zone: $' + support.toFixed(2) + ' | Resistance: $' + resistance.toFixed(2), '#f472b6');
+
+      await delay(700);
+      logLine('RSI(14): ' + rsi.toFixed(1) + (rsi < 30 ? ' [OVERSOLD]' : rsi > 70 ? ' [OVERBOUGHT]' : ' [NEUTRAL]'), rsi < 30 ? '#4ade80' : rsi > 70 ? '#f87171' : '#94a3b8');
+      logLine('EMA(9): $' + emaFast.toFixed(2) + ' | EMA(21): $' + emaSlow.toFixed(2), '#94a3b8');
+      logLine('VWAP: $' + vwap.toFixed(2), '#94a3b8');
+      logLine('Volume Trend: ' + volumeTrend.toUpperCase(), volumeTrend === 'spiking' ? '#fbbf24' : '#94a3b8');
+
+      await delay(600);
+      // Determine trade direction from simulated signals
+      var bullishSignals = 0, bearishSignals = 0;
+      if (rsi < 40) bullishSignals++;
+      if (rsi > 60) bearishSignals++;
+      if (emaFast > emaSlow) bullishSignals++;
+      if (emaFast < emaSlow) bearishSignals++;
+      if (price < vwap) bullishSignals++;
+      if (price > vwap) bearishSignals++;
+      if (price - support < resistance - price) bullishSignals++;
+      else bearishSignals++;
+      if (volumeTrend === 'spiking') { bullishSignals++; bearishSignals++; }
+
+      logLine('Signal Score → Bullish: ' + bullishSignals + ' / Bearish: ' + bearishSignals, '#c084fc');
+
+      await delay(500);
+      var tradeDirection = bullishSignals >= bearishSignals ? 'buy' : 'sell';
+      var confidence = Math.max(bullishSignals, bearishSignals) / (bullishSignals + bearishSignals) * 100;
+      var entry = pickRandom(strat.entries);
+      logLine('Direction: ' + tradeDirection.toUpperCase() + ' | Confidence: ' + confidence.toFixed(0) + '%', tradeDirection === 'buy' ? '#4ade80' : '#f87171');
+      logLine('Entry Signal: ' + entry, '#60a5fa');
+
+      await delay(500);
+      // Calculate position size based on available balance
+      var positionUsd;
+      if (tradeDirection === 'buy') {
+        var usdAvail = balances['USDT'] || 0;
+        var riskPct = randBetween(0.02, 0.08); // 2-8% of balance
+        positionUsd = Math.max(1, usdAvail * riskPct);
+        if (positionUsd > usdAvail * 0.5) positionUsd = usdAvail * 0.5; // max 50%
+      } else {
+        var coinBal = balances[coin] || 0;
+        var riskPct = randBetween(0.05, 0.15);
+        positionUsd = coinBal * price * riskPct;
+      }
+      var tradeAmount = positionUsd / price;
+      if (tradeAmount <= 0 || positionUsd < 0.50) {
+        logLine('⚠ Insufficient balance for ' + coin + ' trade. Fund your account.', '#f87171');
+        botRunNowBtn.disabled = false;
+        botRunNowBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i>Run Analysis';
+        showStatus(botTradeStatus, 'Insufficient balance for this trade.', 'error');
+        return;
+      }
+
+      var tp = price + (tradeDirection === 'buy' ? 1 : -1) * atr * randBetween(strat.tpMultiple[0], strat.tpMultiple[1]);
+      var sl = price - (tradeDirection === 'buy' ? 1 : -1) * atr * randBetween(strat.slMultiple[0], strat.slMultiple[1]);
+      var rr = Math.abs(tp - price) / Math.abs(price - sl);
+
+      logLine('Position Size: ' + tradeAmount.toFixed(6) + ' ' + coin + ' ($' + positionUsd.toFixed(2) + ')', '#fbbf24');
+      logLine('Entry: $' + price.toFixed(2) + ' | TP: $' + tp.toFixed(2) + ' | SL: $' + sl.toFixed(2), '#60a5fa');
+      logLine('Risk:Reward = 1:' + rr.toFixed(2), rr >= 2 ? '#4ade80' : '#fbbf24');
+
+      await delay(800);
+      logLine('═══ EXECUTING TRADE ═══', '#c084fc');
+      logLine('Placing ' + tradeDirection.toUpperCase() + ' order for ' + tradeAmount.toFixed(6) + ' ' + coin + '...', '#fbbf24');
+
+      // Actually execute via API
+      try {
+        var r = await fetch('/api/wallet', {
+          method: 'POST', headers: h,
+          body: JSON.stringify({
+            action: 'bot_execute',
+            tradeType: tradeDirection,
+            coin: coin,
+            amount: parseFloat(tradeAmount.toFixed(8)),
+            strategy: stratKey
+          })
+        });
+        var d = await r.json();
+
+        if (!r.ok || !d.ok) {
+          logLine('✗ Trade rejected: ' + (d.detail || d.error || 'Unknown error'), '#f87171');
+          showStatus(botTradeStatus, d.detail || 'Trade failed.', 'error');
+        } else {
+          // Simulate P&L for the trade
+          var winRoll = Math.random();
+          var isWin = winRoll < randBetween(strat.winRate[0], strat.winRate[1]);
+          var pnl = isWin
+            ? positionUsd * randBetween(0.005, 0.04)
+            : -(positionUsd * randBetween(0.002, 0.015));
+          d.tx.pnl = +pnl.toFixed(2);
+
+          logLine('✓ Trade FILLED — ' + d.tx.id, '#4ade80');
+          logLine('Fee: $' + (d.tx.feeUsd || 0).toFixed(2) + ' (10% bot + ' + ((d.tx.baseFeeUsd || 0) / (d.tx.usdValue || 1) * 100).toFixed(2) + '% base)', '#fbbf24');
+          logLine('Simulated P&L: ' + (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2), pnl >= 0 ? '#4ade80' : '#f87171');
+
+          // After analysis
+          await delay(400);
+          logLine('─── POST-TRADE ANALYSIS ───', '#c084fc');
+          logLine('Entry Price: $' + price.toFixed(2) + ' → Current: $' + price.toFixed(2), '#94a3b8');
+          logLine('Strategy ' + strat.name + ' ' + (isWin ? 'HIT TP target ✓' : 'Hit SL — managed risk ✓'), isWin ? '#4ade80' : '#fbbf24');
+          logLine('Account balance updated. Fee deposited to system wallet.', '#94a3b8');
+          logLine('═══ SESSION COMPLETE ═══', '#c084fc');
+
+          // Update local state
+          systemWalletData.balances = d.balances;
+          renderSystemBalances();
+          updateTradePriceAndBalance();
+          botData = d.bot;
+          botTrades.unshift(d.tx);
+          renderBotStats();
+          renderBotTradeHistory();
+          showStatus(botTradeStatus, 'Bot trade executed: ' + tradeDirection.toUpperCase() + ' ' + tradeAmount.toFixed(6) + ' ' + coin, 'success');
+          trackAnalyticsEvent('bot_trade', { coin: coin, direction: tradeDirection, amount: tradeAmount, strategy: stratKey, pnl: pnl });
+        }
+      } catch (err) {
+        logLine('✗ Network error: ' + (err.message || 'Connection failed'), '#f87171');
+        showStatus(botTradeStatus, 'Trade execution failed.', 'error');
+      }
+
+      botAnalysisTime.textContent = 'Last run: ' + new Date().toLocaleString();
+      botRunNowBtn.disabled = false;
+      botRunNowBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i>Run Analysis';
+    }
+
+    function delay(ms) { return new Promise(function(resolve) { setTimeout(resolve, ms); }); }
+
+    botRunNowBtn.addEventListener('click', runBotAnalysis);
+    botRefreshHistory.addEventListener('click', loadBotStatus);
+
+    // ── end trading bot ──────────────────────────────────
+
     var selectedPayMethod = 'crypto';
     var payMethodBtns = document.querySelectorAll('.pay-method-btn');
     var cardInputArea = document.getElementById('cardInputArea');
@@ -3864,6 +4435,27 @@
           var txIdStr = d.tx && d.tx.id ? ' · ' + d.tx.id : '';
           showStatus(tradeStatus, verb + ' ' + ck.rawAmount + ' ' + ck.coin + ' ($' + (d.tx && d.tx.usdValue || '0') + ')' + feeStr + txIdStr, 'success');
           trackAnalyticsEvent('trade_executed', { mode: ck.tradeMode, coin: ck.coin, amount: ck.rawAmount, usd: d.tx && d.tx.usdValue, fee: d.fee && d.fee.feeUsd, method: ck.method, txId: d.tx && d.tx.id });
+          checkoutModal.classList.add('hidden');
+          pendingCheckout = null;
+        } else if (ck.type === 'bot_purchase') {
+          var h = authHeaders();
+          if (!h) { co3dStatus.textContent = 'Session expired.'; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return; }
+          co3dStatus.textContent = 'Activating trading bot...';
+          var r = await fetch('/api/wallet', {
+            method: 'POST', headers: h,
+            body: JSON.stringify({ action: 'bot_activate', gateway: ck.method })
+          });
+          var d = await r.json();
+          if (!r.ok || !d.ok) { co3dStatus.textContent = d.detail || d.error || 'Activation failed.'; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return; }
+          systemWalletData.balances = d.balances;
+          renderSystemBalances();
+          updateTradePriceAndBalance();
+          botActive = true;
+          botData = d.bot;
+          botTrades = [];
+          renderBotState();
+          showStatus(botPurchaseStatus, 'Trading bot activated successfully!', 'success');
+          trackAnalyticsEvent('bot_activated', { gateway: ck.method, txId: d.tx && d.tx.id });
           checkoutModal.classList.add('hidden');
           pendingCheckout = null;
         } else if (ck.type === 'deposit') {

@@ -1240,5 +1240,192 @@ module.exports = withDb(async function handler(req, res) {
     return res.status(200).json({ ok: true, report });
   }
 
+  // ── Action: bot_activate (user purchases trading bot — $399) ───────
+  if (action === 'bot_activate') {
+    const BOT_PRICE_USD = 399;
+    const gateway = sanitize(String(body.gateway || 'crypto'), 20);
+    const ts = new Date().toISOString();
+    const txId = generateTxId(email, 'bot_activate', 'USDT', BOT_PRICE_USD, ts);
+
+    // Check if already activated
+    const botKey = 'bot:' + String(email).toLowerCase().trim();
+    const existing = await redis('GET', botKey);
+    if (existing && existing.active) {
+      return res.status(400).json({ ok: false, error: 'already_active', detail: 'Trading bot is already activated on this account.' });
+    }
+
+    // Deduct $399 from USDT balance
+    const balances = await getWalletBalances(email);
+    const usdBal = balances['USDT'] || 0;
+    if (usdBal < BOT_PRICE_USD) {
+      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + BOT_PRICE_USD + ' USDT but have $' + usdBal.toFixed(2) + '. Fund your account first.' });
+    }
+
+    balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
+    await setWalletBalances(email, balances);
+
+    // Collect entire purchase as system revenue
+    await addSystemFee('USDT', BOT_PRICE_USD);
+
+    const botRecord = {
+      active: true,
+      activatedAt: ts,
+      txId,
+      gateway,
+      pricePaid: BOT_PRICE_USD,
+      totalTrades: 0,
+      totalProfit: 0,
+      totalFeesPaid: 0
+    };
+    await redis('SET', botKey, botRecord);
+
+    const tx = {
+      id: txId,
+      type: 'bot_activate',
+      coin: 'USDT',
+      amount: BOT_PRICE_USD,
+      usdValue: BOT_PRICE_USD,
+      gateway,
+      verified: true,
+      status: 'filled',
+      ts
+    };
+    await appendWalletTx(email, tx);
+
+    await logRevenue({
+      type: 'bot_activate', email: maskEmail(email), coin: 'USDT',
+      feeUsd: BOT_PRICE_USD, totalUsd: BOT_PRICE_USD, gateway, txId,
+      verified: true, ts
+    });
+
+    try { await sendStatementToTelegram(tx, email, { rate: 1, feeUsd: BOT_PRICE_USD, price: 1 }); } catch { /* best effort */ }
+
+    return res.status(200).json({ ok: true, action: 'bot_activated', balances, bot: botRecord, tx });
+  }
+
+  // ── Action: bot_status (get bot state) ──────────────────────────────
+  if (action === 'bot_status') {
+    const botKey = 'bot:' + String(email).toLowerCase().trim();
+    const bot = await redis('GET', botKey);
+    const botTxKey = 'bot_trades:' + String(email).toLowerCase().trim();
+    const trades = await redis('GET', botTxKey);
+    return res.status(200).json({
+      ok: true,
+      active: !!(bot && bot.active),
+      bot: bot || null,
+      trades: Array.isArray(trades) ? trades : []
+    });
+  }
+
+  // ── Action: bot_execute (trading bot places a trade) ────────────────
+  if (action === 'bot_execute') {
+    const botKey = 'bot:' + String(email).toLowerCase().trim();
+    const bot = await redis('GET', botKey);
+    if (!bot || !bot.active) {
+      return res.status(400).json({ ok: false, error: 'bot_not_active', detail: 'Activate the trading bot first.' });
+    }
+
+    const tradeType = sanitize(String(body.tradeType || 'buy'), 10).toLowerCase();
+    const strategy  = sanitize(String(body.strategy || 'scalp'), 30);
+    if (!['buy', 'sell'].includes(tradeType)) {
+      return res.status(400).json({ ok: false, error: 'invalid_trade_type' });
+    }
+    if (!SUPPORTED_COINS[coin] || amount <= 0) {
+      return res.status(400).json({ ok: false, error: 'invalid_params' });
+    }
+
+    const prices = await fetchPrices();
+    const px = prices[coin] || 0;
+    if (px <= 0) return res.status(400).json({ ok: false, error: 'price_unavailable' });
+
+    const BOT_FEE_RATE = 0.10; // 10% complementary fee
+    const baseFeeRate = COIN_FEES[coin] || 0.002;
+    const totalFeeRate = baseFeeRate + BOT_FEE_RATE;
+    const ts = new Date().toISOString();
+    const txId = generateTxId(email, 'bot_' + tradeType, coin, amount, ts);
+
+    const balances = await getWalletBalances(email);
+
+    let subtotal, feeUsd, botFeeUsd, baseFeeUsd;
+
+    if (tradeType === 'buy') {
+      subtotal = +(amount * px).toFixed(2);
+      baseFeeUsd = +(subtotal * baseFeeRate).toFixed(2);
+      botFeeUsd = +(subtotal * BOT_FEE_RATE).toFixed(2);
+      feeUsd = +(baseFeeUsd + botFeeUsd).toFixed(2);
+      const totalCharged = +(subtotal + feeUsd).toFixed(2);
+      const usdBal = balances['USDT'] || 0;
+      if (usdBal < totalCharged) {
+        return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Bot trade needs $' + totalCharged + ' USDT but have $' + usdBal.toFixed(2) });
+      }
+      balances['USDT'] = +(usdBal - totalCharged).toFixed(6);
+      balances[coin] = +((balances[coin] || 0) + amount).toFixed(8);
+    } else {
+      const coinBal = balances[coin] || 0;
+      if (coinBal < amount) {
+        return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Have ' + coinBal.toFixed(8) + ' ' + coin + ' but bot tried to sell ' + amount });
+      }
+      subtotal = +(amount * px).toFixed(2);
+      baseFeeUsd = +(subtotal * baseFeeRate).toFixed(2);
+      botFeeUsd = +(subtotal * BOT_FEE_RATE).toFixed(2);
+      feeUsd = +(baseFeeUsd + botFeeUsd).toFixed(2);
+      const netReceived = +(subtotal - feeUsd).toFixed(2);
+      balances[coin] = +((coinBal - amount)).toFixed(8);
+      if (balances[coin] <= 0) delete balances[coin];
+      balances['USDT'] = +((balances['USDT'] || 0) + netReceived).toFixed(6);
+    }
+
+    await setWalletBalances(email, balances);
+
+    // Collect ALL fees to system wallet
+    await addSystemFee('USDT', feeUsd);
+
+    const tx = {
+      id: txId,
+      type: 'bot_' + tradeType,
+      coin,
+      amount,
+      price: px,
+      usdValue: subtotal,
+      feeRate: totalFeeRate,
+      baseFeeUsd,
+      botFeeUsd,
+      feeUsd,
+      strategy,
+      gateway: 'bot',
+      verified: true,
+      status: 'filled',
+      ts
+    };
+
+    // Append to user wallet history
+    await appendWalletTx(email, tx);
+
+    // Append to bot-specific trade log
+    const botTxKey = 'bot_trades:' + String(email).toLowerCase().trim();
+    const botTrades = (await redis('GET', botTxKey)) || [];
+    if (!Array.isArray(botTrades)) { /* reset corrupt data */ }
+    const tradeList = Array.isArray(botTrades) ? botTrades : [];
+    tradeList.unshift(tx);
+    if (tradeList.length > 200) tradeList.length = 200;
+    await redis('SET', botTxKey, tradeList);
+
+    // Update bot aggregate stats
+    bot.totalTrades = (bot.totalTrades || 0) + 1;
+    bot.totalFeesPaid = +((bot.totalFeesPaid || 0) + feeUsd).toFixed(2);
+    await redis('SET', botKey, bot);
+
+    // Revenue log
+    await logRevenue({
+      type: 'bot_trade', email: maskEmail(email), coin, action: tradeType,
+      feeUsd, totalUsd: subtotal, gateway: 'bot', txId,
+      strategy, verified: true, ts
+    });
+
+    try { await sendStatementToTelegram(tx, email, { rate: totalFeeRate, feeUsd, botFeeUsd, baseFeeUsd, price: px }); } catch { /* best effort */ }
+
+    return res.status(200).json({ ok: true, action: 'bot_trade_filled', balances, tx, bot });
+  }
+
   return res.status(400).json({ ok: false, error: 'unknown_action' });
 });
