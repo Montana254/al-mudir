@@ -248,6 +248,16 @@ module.exports = withDb(async function handler(req, res) {
     // Cache last report
     await redis('SET', 'system:last_report', report);
 
+    // ── Growth Engine: Run marketing agents alongside system report ──
+    try {
+      const { runAllAgents, formatAgentReport, sendTelegram } = require('./_lib/growth-engine');
+      const agentReport = await runAllAgents();
+      await sendTelegram(formatAgentReport(agentReport));
+      report.growthEngine = { ran: true, allOperational: agentReport.allOperational };
+    } catch (geErr) {
+      report.growthEngine = { ran: false, error: String(geErr.message || geErr) };
+    }
+
     return res.status(200).json({ ok: true, report });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'report_generation_failed', detail: String(err.message || err) });

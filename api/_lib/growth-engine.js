@@ -276,42 +276,5 @@ Next Run: ${report.nextRun}
 <i>${CONTEXT.riskDisclaimer}</i>`;
 }
 
-// ── Vercel Serverless Handler ──────────────────────────
-module.exports = async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-
-  if (req.method !== 'GET' && req.method !== 'POST') {
-    return res.status(405).json({ ok: false, error: 'method_not_allowed' });
-  }
-
-  // Auth: Vercel cron sends CRON_SECRET, also accept admin token
-  const auth = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
-  const cronSecret = (process.env.CRON_SECRET || '').trim();
-  const adminToken = (process.env.ADMIN_HEALTH_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '').trim();
-
-  let authorized = false;
-  if (cronSecret && auth === cronSecret) authorized = true;
-  if (adminToken && auth === adminToken) authorized = true;
-  // Vercel cron jobs don't send auth on Hobby plan — allow if from Vercel
-  const isVercelCron = req.headers['x-vercel-cron'] === '1' || req.headers['user-agent']?.includes('vercel-cron');
-  if (isVercelCron) authorized = true;
-
-  if (!authorized) {
-    return res.status(401).json({ ok: false, error: 'unauthorized' });
-  }
-
-  try {
-    const report = await runAllAgents();
-
-    // Send to Telegram
-    const telegramResult = await sendTelegram(formatAgentReport(report));
-
-    return res.status(200).json({
-      ok: true,
-      report,
-      telegramSent: telegramResult.ok || false
-    });
-  } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
-  }
-};
+// ── Module Exports (called from cron-report.js) ──────
+module.exports = { runAllAgents, formatAgentReport, sendTelegram };
