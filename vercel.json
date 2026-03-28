@@ -1,6 +1,10 @@
 {
   "version": 2,
   "public": true,
+  "crons": [
+    { "path": "/api/cron-agents", "schedule": "0 4 * * *" },
+    { "path": "/api/cron-report", "schedule": "0 * * * *" }
+  ],
   "rewrites": [
     { "source": "/", "destination": "/index.html" }
   ],
