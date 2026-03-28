@@ -1,173 +1,269 @@
-// AL-MUDIR Crypto Wallet Payment Integration Module
-// Optimized for Trust Wallet + MetaMask
-// Supports: USDT, BTC, TRON, ETH, BNB
+// AL-MUDIR Crypto wallet and conversion helper
+// Supports injected EVM wallets: MetaMask, Trust Wallet, Coinbase Wallet, Binance Wallet, and auto-detect.
 
 class CryptoPaymentManager {
   constructor() {
     this.web3Instance = null;
     this.userAccount = null;
     this.chainId = null;
-    
-    // Simplified: Focus on main chains for Trust Wallet
-    this.supportedChains = {
-      1: { name: 'Ethereum', symbol: 'ETH', rpc: 'https://eth.llamarpc.com', nativeToken: 'ETH' },
-      56: { name: 'BSC', symbol: 'BNB', rpc: 'https://bsc-dataseed.binance.org', nativeToken: 'BNB' },
-      195: { name: 'TRON', symbol: 'TRX', rpc: 'https://api.trongrid.io', nativeToken: 'TRX' }
-    };
-    
-    // Payment rates (in USD, update from price feed)
-    this.paymentRates = {
-      // Fiat Currencies
-      USD: 1.00,
-      EUR: 0.92,
-      GBP: 0.79,
-      JPY: 150.50,
-      CHF: 0.91,
-      CAD: 1.35,
-      AUD: 1.52,
-      CNY: 7.25,
-      INR: 83.50,
-      BRL: 5.20,
-      ZAR: 18.75,
-      AED: 3.67,
-      // Cryptocurrencies
-      BTC: 72000,
-      ETH: 3500,
-      BNB: 650,
-      USDT: 1.00,
-      USDC: 1.00,
-      ADA: 0.45,
-      SOL: 180,
-      DOT: 6.80,
-      LINK: 18.50,
-      UNI: 8.90,
-      TRON: 0.35
-    };
-
-    // Real-time conversion cache
-    this.rateCache = {};
-    this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
-
-    // API endpoints for real-time rates
-    this.fiatApiUrl = 'https://api.exchangerate-api.com/v4/latest/USD';
-    this.cryptoApiUrl = 'https://api.coingecko.com/api/v3/simple/price';
-    
-    // Supported currencies for real-time conversion
-    this.fiatCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'CNY', 'INR', 'BRL', 'ZAR', 'AED'];
-    this.cryptoCurrencies = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOT', 'LINK', 'UNI'];
-    
-    // Supported tokens by network
-    this.tokensByNetwork = {
-      1: ['ETH', 'USDT'],      // Ethereum: ETH, USDT
-      56: ['BNB', 'USDT'],     // BSC: BNB, USDT
-      195: ['TRON', 'USDT']    // TRON: TRX, USDT
-    };
-    
-    // USDT contract addresses by chain
-    this.usdtAddresses = {
-      1: '0xdAC17F958D2ee523a2206206994597C13D831ec7',   // Ethereum USDT
-      56: '0x55d398326f99059fF775485246999027B3197955',  // BSC USDT
-      195: 'TR7NHqjeKQxGTCi8q282KGLP235aKxaxS8'           // TRON USDT
-    };
-    
     this.walletConnected = false;
     this.paymentInProgress = false;
 
-    // AL-MUDIR Treasury settings
-    this.treasuryUSDTAddress = {
-      1: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      56: '0x55d398326f99059fF775485246999027B3197955',
-      195: 'TR7NHqjeKQxGTCi8q282KGLP235aKxaxS8'
+    this.supportedChains = {
+      1: { name: 'Ethereum', symbol: 'ETH', rpc: 'https://eth.llamarpc.com' },
+      56: { name: 'BNB Smart Chain', symbol: 'BNB', rpc: 'https://bsc-dataseed.binance.org' }
     };
+
+    this.paymentRates = {
+      USD: 1,
+      EUR: 0.92,
+      GBP: 0.79,
+      JPY: 149,
+      CHF: 0.88,
+      CAD: 1.35,
+      AUD: 1.52,
+      NZD: 1.65,
+      SEK: 10.4,
+      NOK: 10.6,
+      DKK: 6.9,
+      SGD: 1.34,
+      HKD: 7.8,
+      CNY: 7.2,
+      INR: 83.1,
+      AED: 3.67,
+      ZAR: 18.4,
+      TRY: 31.2,
+      MXN: 16.8,
+      BRL: 5.1,
+      PLN: 3.9,
+      CZK: 22.7,
+      HUF: 360,
+      RUB: 91,
+      BTC: 72000,
+      ETH: 3500,
+      BNB: 650,
+      USDT: 1,
+      USDC: 1,
+      XRP: 0.6,
+      LTC: 86,
+      BCH: 420,
+      DOGE: 0.14,
+      TRX: 0.12,
+      TON: 6.5,
+      XLM: 0.12,
+      AVAX: 36,
+      MATIC: 0.9,
+      APT: 11,
+      ADA: 0.45,
+      SOL: 180,
+      DOT: 6.8,
+      LINK: 18.5,
+      UNI: 8.9
+    };
+
+    this.fiatApiUrl = 'https://api.exchangerate-api.com/v4/latest/USD';
+    this.cryptoApiUrl = 'https://api.coingecko.com/api/v3/simple/price';
+    this.cacheExpiry = 5 * 60 * 1000;
+    this.rateCache = {};
+
+    this.fiatCurrencies = [
+      'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD', 'SEK', 'NOK', 'DKK',
+      'SGD', 'HKD', 'CNY', 'INR', 'AED', 'ZAR', 'TRY', 'MXN', 'BRL', 'PLN', 'CZK',
+      'HUF', 'RUB'
+    ];
+    this.cryptoCurrencies = [
+      'BTC', 'ETH', 'BNB', 'USDT', 'USDC', 'XRP', 'LTC', 'BCH', 'DOGE', 'TRX',
+      'TON', 'XLM', 'AVAX', 'MATIC', 'APT', 'ADA', 'SOL', 'DOT', 'LINK', 'UNI'
+    ];
 
     this.treasuryNativeAddress = {
       1: '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
-      56: '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
-      195: 'TLNNQNDsH6JG9dxd99Tqfkb8eSPRUyhC4E'
+      56: '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20'
     };
 
-    // Treasury addresses for deposits
     this.treasuryAddresses = {
       BTC: 'bc1qfe8kjaau2n2ggknmx6a8gclzwc9xz3zpj0lcsp',
       USDT_ERC20: '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
       USDT_TRC20: 'TLNNQNDsH6JG9dxd99Tqfkb8eSPRUyhC4E'
     };
+  }
 
-    this.serviceFeeUSD = 5.00;
+  getInjectedProviders() {
+    const providers = [];
 
-    // Gift card catalog (in USD)
-    this.allowedGiftCards = {
-      'ALMUDIR-GIFT-50': 50,
-      'ALMUDIR-GIFT-100': 100,
-      'ALMUDIR-GIFT-250': 250
+    if (window.ethereum?.providers && Array.isArray(window.ethereum.providers)) {
+      providers.push(...window.ethereum.providers);
+    }
+
+    if (window.ethereum && !providers.includes(window.ethereum)) {
+      providers.push(window.ethereum);
+    }
+
+    if (window.BinanceChain && !providers.includes(window.BinanceChain)) {
+      providers.push(window.BinanceChain);
+    }
+
+    return providers;
+  }
+
+  getSupportedCurrencySymbols() {
+    return Array.from(new Set([...this.fiatCurrencies, ...this.cryptoCurrencies]));
+  }
+
+  getPayoutCurrencySymbols() {
+    return this.getSupportedCurrencySymbols();
+  }
+
+  hasInjectedWallets() {
+    return this.getInjectedProviders().length > 0;
+  }
+
+  isMobileBrowser(userAgent) {
+    const ua = String(
+      userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : '')
+    ).toLowerCase();
+    return /android|iphone|ipad|ipod|mobile/.test(ua);
+  }
+
+  getWalletAppLink(walletType = 'auto', targetUrl) {
+    const type = String(walletType || 'auto').toLowerCase();
+    const dappUrl = String(
+      targetUrl ||
+        (typeof window !== 'undefined'
+          ? window.location.origin + window.location.pathname + '#portalAuth'
+          : '')
+    ).trim();
+    const strippedUrl = dappUrl.replace(/^https?:\/\//i, '');
+
+    if (type === 'metamask') {
+      return 'https://metamask.app.link/dapp/' + strippedUrl;
+    }
+
+    if (type === 'trustwallet') {
+      return 'https://link.trustwallet.com/open_url?url=' + encodeURIComponent(dappUrl);
+    }
+
+    if (type === 'coinbase') {
+      return 'https://go.cb-w.com/dapp?cb_url=' + encodeURIComponent(dappUrl);
+    }
+
+    return dappUrl;
+  }
+
+  matchProvider(walletType, provider) {
+    if (!provider) return false;
+
+    const type = String(walletType || 'auto').toLowerCase();
+    if (type === 'auto') {
+      return true;
+    }
+
+    if (type === 'metamask') return !!provider.isMetaMask;
+    if (type === 'trustwallet') return !!provider.isTrust || !!provider.isTrustWallet;
+    if (type === 'coinbase') return !!provider.isCoinbaseWallet;
+    if (type === 'binance') return !!provider.isBinance || provider === window.BinanceChain;
+    if (type === 'walletconnect') return false; // WalletConnect is not an injected provider
+
+    return true;
+  }
+
+  pickProvider(walletType = 'auto') {
+    const providers = this.getInjectedProviders();
+
+    if (!providers.length) {
+      throw new Error('No compatible wallet provider detected in this browser.');
+    }
+
+    const matched = providers.find((provider) => this.matchProvider(walletType, provider));
+    if (matched) return matched;
+
+    if (walletType === 'walletconnect') {
+      throw new Error('No extension detected. Open this page in a wallet app or scan the QR helper in Deposit.');
+    }
+
+    throw new Error('Selected wallet provider is not detected. Please install or enable that wallet.');
+  }
+
+  detectProviderName(provider) {
+    if (!provider) return 'unknown';
+    if (provider.isMetaMask) return 'metamask';
+    if (provider.isTrust || provider.isTrustWallet) return 'trustwallet';
+    if (provider.isCoinbaseWallet) return 'coinbase';
+    if (provider.isBinance || provider === window.BinanceChain) return 'binance';
+    return 'injected';
+  }
+
+  async connectWallet(walletType = 'auto') {
+    const provider = this.pickProvider(walletType);
+
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    if (!accounts || !accounts.length) {
+      throw new Error('Wallet returned no accounts.');
+    }
+
+    this.web3Instance = provider;
+    this.userAccount = accounts[0];
+    this.walletConnected = true;
+
+    const rawChain = await provider.request({ method: 'eth_chainId' });
+    this.chainId = String(rawChain).startsWith('0x') ? parseInt(rawChain, 16) : Number(rawChain);
+
+    if (!this.supportedChains[this.chainId]) {
+      throw new Error('Unsupported network. Switch to Ethereum Mainnet or BNB Smart Chain.');
+    }
+
+    return {
+      account: this.userAccount,
+      chain: this.chainId,
+      chainName: this.supportedChains[this.chainId].name,
+      provider: this.detectProviderName(provider)
     };
   }
 
-  /**
-   * Initialize Web3 instance - Trust Wallet or MetaMask
-   */
-  async initWeb3() {
-    if (typeof window.ethereum === 'undefined') {
-      throw new Error('No crypto wallet detected. Please install Trust Wallet or MetaMask.');
-    }
-    
-    this.web3Instance = window.ethereum;
-    return this.web3Instance;
+  async getGasPrice() {
+    return this.web3Instance.request({ method: 'eth_gasPrice' });
   }
 
-  /**
-   * Connect wallet - Trust Wallet via WalletConnect or MetaMask
-   */
-  async connectWallet(walletType = 'trustwallet') {
-    try {
-      const provider = await this.getProvider(walletType);
-      const accounts = await provider.request({ method: 'eth_requestAccounts' });
-      
-      this.userAccount = accounts[0];
-      this.walletConnected = true;
-      
-      // Get chainId
-      const chainId = await provider.request({ method: 'eth_chainId' });
-      this.chainId = parseInt(chainId, 16);
-      
-      // Validate chain is supported
-      if (!this.supportedChains[this.chainId]) {
-        throw new Error(`Chain ID ${this.chainId} not supported. Please switch to Ethereum, BSC, or TRON.`);
-      }
-      
-      return {
-        account: this.userAccount,
-        chain: this.chainId,
-        chainName: this.supportedChains[this.chainId].name
-      };
-    } catch (error) {
-      console.error('Wallet connection failed:', error);
-      throw error;
-    }
+  toWei(amount, currency) {
+    const decimals = {
+      ETH: 18,
+      BNB: 18
+    };
+    const units = decimals[currency] || 18;
+    return Math.floor(Number(amount) * Math.pow(10, units)).toString();
   }
 
-  /**
-   * Get provider based on wallet type
-   */
-  async getProvider(walletType) {
-    // Trust Wallet uses window.ethereum just like MetaMask
-    // Both are compatible with EVM chains
-    if ((walletType === 'trustwallet' || walletType === 'metamask') && window.ethereum) {
-      return window.ethereum;
-    }
-    throw new Error('Trust Wallet or MetaMask not detected. Please install one of these wallets.');
+  encodePaymentData(description) {
+    if (!description) return '0x';
+    const encoded = Array.from(description)
+      .map((ch) => ch.charCodeAt(0).toString(16).padStart(2, '0'))
+      .join('');
+    return '0x' + encoded.slice(0, 128);
   }
 
-  /**
-   * Process cryptocurrency payment
-   * @param {Object} paymentDetails - { amount, currency, recipientAddress }
-   */
+  async buildTransactionPayload(amount, currency, recipientAddress, description) {
+    const supportedNative = ['ETH', 'BNB'];
+    if (!supportedNative.includes(currency)) {
+      throw new Error('Direct wallet transfer currently supports ETH or BNB only. Use Deposit for BTC/USDT transfers.');
+    }
+
+    const gasPrice = await this.getGasPrice();
+    const defaultRecipient = this.treasuryNativeAddress[this.chainId] || this.treasuryNativeAddress[1];
+
+    return {
+      from: this.userAccount,
+      to: recipientAddress || defaultRecipient,
+      value: this.toWei(amount, currency),
+      gas: '21000',
+      gasPrice: gasPrice,
+      data: this.encodePaymentData(description)
+    };
+  }
+
   async processPayment(paymentDetails) {
     if (!this.walletConnected) {
       throw new Error('Wallet not connected');
     }
-
-    const { amount, currency, recipientAddress, description } = paymentDetails;
 
     if (this.paymentInProgress) {
       throw new Error('Payment already in progress');
@@ -176,18 +272,13 @@ class CryptoPaymentManager {
     this.paymentInProgress = true;
 
     try {
-      // Convert amount to wei for ERC20 or native tokens
-      const chainData = this.supportedChains[this.chainId];
-      
-      // Create transaction based on currency
-      let txPayload = await this.buildTransactionPayload(
-        amount,
-        currency,
-        recipientAddress,
-        description
+      const txPayload = await this.buildTransactionPayload(
+        paymentDetails.amount,
+        paymentDetails.currency,
+        paymentDetails.recipientAddress,
+        paymentDetails.description
       );
 
-      // Sign and send transaction
       const txHash = await this.web3Instance.request({
         method: 'eth_sendTransaction',
         params: [txPayload]
@@ -195,144 +286,49 @@ class CryptoPaymentManager {
 
       return {
         transactionHash: txHash,
-        amount: amount,
-        currency: currency,
-        recipientAddress: recipientAddress,
+        amount: paymentDetails.amount,
+        currency: paymentDetails.currency,
+        recipientAddress: txPayload.to,
         chainId: this.chainId,
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
-      console.error('Payment processing failed:', error);
-      throw error;
     } finally {
       this.paymentInProgress = false;
     }
   }
 
-  /**
-   * Build transaction payload
-   */
-  async buildTransactionPayload(amount, currency, recipientAddress, description) {
-    const gasPrice = await this.getGasPrice();
-    
-    // Convert amount to proper denomination
-    let valueInWei = this.toWei(amount, currency);
-
-    return {
-      from: this.userAccount,
-      to: recipientAddress || '0x7Kef1234567890abcdefghijklmnopqrstuvwxyz', // AL-MUDIR treasury
-      value: valueInWei,
-      gas: '21000',
-      gasPrice: gasPrice,
-      data: this.encodePaymentData(description)
-    };
-  }
-
-  /**
-   * Get current gas price
-   */
-  async getGasPrice() {
-    const gasPrice = await this.web3Instance.request({
-      method: 'eth_gasPrice'
-    });
-    return gasPrice;
-  }
-
-  /**
-   * Convert amount to wei based on currency
-   */
-  toWei(amount, currency) {
-    const decimals = {
-      ETH: 18,
-      USDC: 6,
-      USDT: 6,
-      MATIC: 18,
-      BNB: 18
-    };
-
-    const decimalPlaces = decimals[currency] || 18;
-    const multiplier = Math.pow(10, decimalPlaces);
-    return (amount * multiplier).toFixed(0);
-  }
-
-  /**
-   * Encode payment description for on-chain data
-   */
-  encodePaymentData(description) {
-    if (!description) return '0x';
-    
-    // Browser-compatible UTF-8 to hex encoding
-    let hexStr = '';
-    for (let i = 0; i < description.length; i++) {
-      hexStr += description.charCodeAt(i).toString(16).padStart(2, '0');
-    }
-    return '0x' + hexStr.substring(0, 128);
-  }
-
-  /**
-   * Verify transaction on-chain
-   */
-  async verifyTransaction(txHash) {
-    try {
-      const receipt = await this.web3Instance.request({
-        method: 'eth_getTransactionReceipt',
-        params: [txHash]
-      });
-
-      return {
-        confirmed: receipt && receipt.status === '0x1',
-        blockNumber: receipt?.blockNumber,
-        gasUsed: receipt?.gasUsed,
-        timestamp: Date.now()
-      };
-    } catch (error) {
-      console.error('Transaction verification failed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Calculate payment in USD
-   */
-  calculateUSD(amount, currency) {
-    const rate = this.paymentRates[currency] || 0;
-    return amount * rate;
-  }
-
-  /**
-   * Fetch real-time fiat currency rates from ExchangeRate-API
-   */
   async fetchFiatRates() {
     try {
       const response = await fetch(this.fiatApiUrl);
       const data = await response.json();
+      if (!data?.rates) throw new Error('Invalid fiat rate response');
 
-      if (data && data.rates) {
-        // Inject USD base if missing
-        data.rates.USD = data.rates.USD || 1;
-
-        this.rateCache.fiat = {
-          rates: data.rates,
-          timestamp: Date.now()
-        };
-        return data.rates;
-      }
-      throw new Error('Invalid fiat rates response');
-    } catch (error) {
-      console.error('Failed to fetch fiat rates:', error);
+      data.rates.USD = data.rates.USD || 1;
+      this.rateCache.fiat = { rates: data.rates, timestamp: Date.now() };
+      return data.rates;
+    } catch (_) {
       return null;
     }
   }
 
-  /**
-   * Fetch real-time cryptocurrency rates from CoinGecko
-   */
   async fetchCryptoRates() {
     try {
       const cryptoIds = {
         BTC: 'bitcoin',
         ETH: 'ethereum',
         BNB: 'binancecoin',
+        USDT: 'tether',
+        USDC: 'usd-coin',
+        XRP: 'ripple',
+        LTC: 'litecoin',
+        BCH: 'bitcoin-cash',
+        DOGE: 'dogecoin',
+        TRX: 'tron',
+        TON: 'the-open-network',
+        XLM: 'stellar',
+        AVAX: 'avalanche-2',
+        MATIC: 'matic-network',
+        APT: 'aptos',
         ADA: 'cardano',
         SOL: 'solana',
         DOT: 'polkadot',
@@ -343,417 +339,107 @@ class CryptoPaymentManager {
       const ids = Object.values(cryptoIds).join(',');
       const response = await fetch(`${this.cryptoApiUrl}?ids=${ids}&vs_currencies=usd`);
       const data = await response.json();
+      if (!data) throw new Error('Invalid crypto rate response');
 
-      if (data) {
-        const rates = {};
+      const rates = {};
+      Object.entries(cryptoIds).forEach(([symbol, id]) => {
+        if (data[id]?.usd) rates[symbol] = data[id].usd;
+      });
 
-        Object.entries(cryptoIds).forEach(([code, id]) => {
-          if (data[id] && typeof data[id].usd === 'number') {
-            rates[code] = data[id].usd;
-          }
-        });
-
-        this.rateCache.crypto = {
-          rates,
-          timestamp: Date.now()
-        };
-        return rates;
-      }
-      throw new Error('Invalid crypto rates response');
-    } catch (error) {
-      console.error('Failed to fetch crypto rates:', error);
+      this.rateCache.crypto = { rates, timestamp: Date.now() };
+      return rates;
+    } catch (_) {
       return null;
     }
   }
 
-  /**
-   * Fetch live float rates as a Google-like converter fallback.
-   */
-  async fetchGoogleLiveRate(fromCurrency, toCurrency) {
-    try {
-      const base = fromCurrency.toUpperCase();
-      const quote = toCurrency.toUpperCase();
-      const response = await fetch(`https://api.exchangerate.host/convert?from=${base}&to=${quote}`);
-      const data = await response.json();
-      
-      if (data && data.result && typeof data.result === 'number') {
-        return data.result;
-      }
-      throw new Error('Invalid google-like live rate response');
-    } catch (error) {
-      console.error('Failed to fetch google-like live rate:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Get cached rate or fetch new one if expired
-   */
   async getRate(currency) {
-    const upperCurrency = (currency || '').toUpperCase();
-
-    if (upperCurrency === 'USD') {
-      return 1;
-    }
+    const code = String(currency || '').toUpperCase();
+    if (code === 'USD') return 1;
 
     const now = Date.now();
 
-    if (this.fiatCurrencies.includes(upperCurrency)) {
-      let rates = this.rateCache.fiat?.rates;
-
-      if (!rates || (now - this.rateCache.fiat.timestamp) > this.cacheExpiry) {
-        rates = await this.fetchFiatRates();
-      }
-
-      const fiatRate = rates?.[upperCurrency];
-      if (fiatRate) {
-        console.debug('fiat rate', upperCurrency, fiatRate);
-        return fiatRate;
-      }
-
-      console.warn(`Fiat rate not found for ${upperCurrency}, trying Google-style fallback`);
-      const fallbackRate = await this.fetchGoogleLiveRate(upperCurrency, 'USD');
-      if (fallbackRate && fallbackRate > 0) {
-        return fallbackRate;
-      }
-
-      console.warn(`Google-style fallback failed for ${upperCurrency}, falling back to static`);
-      return this.paymentRates[upperCurrency] || 1;
+    // Fiat path: support broad ISO fiat symbols using live API rates.
+    if (!this.rateCache.fiat || now - this.rateCache.fiat.timestamp > this.cacheExpiry) {
+      await this.fetchFiatRates();
+    }
+    const fiatRate = this.rateCache.fiat?.rates?.[code];
+    if (typeof fiatRate === 'number' && fiatRate > 0) {
+      return fiatRate;
     }
 
-    if (this.cryptoCurrencies.includes(upperCurrency)) {
-      let rates = this.rateCache.crypto?.rates;
-
-      if (!rates || (now - this.rateCache.crypto.timestamp) > this.cacheExpiry) {
-        rates = await this.fetchCryptoRates();
+    if (this.cryptoCurrencies.includes(code)) {
+      if (!this.rateCache.crypto || now - this.rateCache.crypto.timestamp > this.cacheExpiry) {
+        await this.fetchCryptoRates();
       }
-
-      const cryptoRate = rates?.[upperCurrency];
-      if (cryptoRate) {
-        console.debug('crypto rate', upperCurrency, cryptoRate);
+      const cryptoRate = this.rateCache.crypto?.rates?.[code] || this.paymentRates[code];
+      if (typeof cryptoRate === 'number' && cryptoRate > 0) {
         return cryptoRate;
       }
-
-      console.warn(`Crypto rate not found for ${upperCurrency}, falling back to static`);
-      return this.paymentRates[upperCurrency] || 1;
     }
 
-    console.warn(`Currency ${upperCurrency} not in fiat or crypto list, falling back to static`);
-    return this.paymentRates[upperCurrency] || 1;
+    if (typeof this.paymentRates[code] === 'number' && this.paymentRates[code] > 0) {
+      return this.paymentRates[code];
+    }
+
+    throw new Error('Unsupported currency: ' + code);
   }
 
-  /**
-   * Convert amount from one currency to another with real-time rates
-   */
   async convertCurrency(amount, fromCurrency, toCurrency) {
-    try {
-      const fromCode = (fromCurrency || '').toUpperCase();
-      const toCode = (toCurrency || '').toUpperCase();
+    const value = Number(amount);
+    const fromCode = String(fromCurrency || '').toUpperCase();
+    const toCode = String(toCurrency || '').toUpperCase();
 
-      if (!amount || amount <= 0) {
-        throw new Error('Invalid amount');
-      }
+    if (!value || value <= 0) throw new Error('Invalid amount');
+    if (fromCode === toCode) return value;
 
-      if (fromCode === toCode) {
-        return amount;
-      }
-
-      const [fromRate, toRate] = await Promise.all([
-        this.getRate(fromCode),
-        this.getRate(toCode)
-      ]);
-
-      if (!fromRate || !toRate) {
-        throw new Error('Rate lookup failed');
-      }
-
-      const usdAmount = amount / fromRate;
-      const convertedAmount = usdAmount * toRate;
-
-      return convertedAmount;
-    } catch (error) {
-      console.error('Currency conversion failed:', error);
-      const fromRate = this.paymentRates[fromCurrency] || 1;
-      const toRate = this.paymentRates[toCurrency] || 1;
-      return (amount * fromRate) / toRate;
-    }
-  }
-
-  /**
-   * Convert any supported currency amount to the equivalent USDT amount
-   */
-  convertToUSDT(amount, currency) {
-    const rate = this.paymentRates[currency] || 0;
-    if (rate <= 0) {
-      throw new Error('Currency conversion not supported');
-    }
-    const usdValue = this.calculateUSD(amount, currency);
-    return usdValue / this.paymentRates.USDT;
-  }
-
-  /**
-   * Process a card payment (simulated) and then convert to USDT and send to treasury
-   */
-  async processCardPayment(paymentDetails) {
-    const { usdAmount, cardLast4 } = paymentDetails;
-
-    if (usdAmount < this.serviceFeeUSD) {
-      throw new Error(`Minimum service fee is $${this.serviceFeeUSD.toFixed(2)} USD`);
-    }
-
-    // Payment processing must be done by a PCI-compliant backend in production.
-    // This client-side stub simulates successful card authorization.
-    const txReference = `CARD-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-
-    // Simulate USDT conversion and send. Here we only return values to be confirmed by backend.
-    const usdtAmount = usdAmount / this.paymentRates.USDT;
-
-    return {
-      status: 'authorized',
-      txReference,
-      cardLast4,
-      usdAmount,
-      usdtAmount,
-      recipient: this.treasuryUSDTAddress[this.chainId] || this.treasuryUSDTAddress[1],
-      timestamp: new Date().toISOString()
+    // Rate normalisation:
+    // - Fiat rates (exchangerate-api) = units of that currency per 1 USD  (EUR: 0.92 → 1 USD = 0.92 EUR)
+    //   So: 1 unit costs 1/rate USD.
+    // - Crypto rates (CoinGecko)      = USD price per 1 unit              (ETH: 3500 → 1 ETH = $3500)
+    //   So: 1 unit costs rate USD.
+    const toUsdPrice = (code, rate) => {
+      if (code === 'USD') return 1;
+      return this.fiatCurrencies.includes(code) ? 1 / rate : rate;
     };
-  }
-
-  /**
-   * Validate a gift card code and return its USD amount
-   */
-  validateGiftCard(code) {
-    const normalized = String(code).trim().toUpperCase();
-    if (this.allowedGiftCards[normalized]) {
-      return this.allowedGiftCards[normalized];
-    }
-    throw new Error('Invalid gift card code');
-  }
-
-  /**
-   * Get supported chain info
-   */
-  getChainInfo(chainId) {
-    return this.supportedChains[chainId];
-  }
-
-  /**
-   * Switch network
-   */
-  async switchNetwork(chainId) {
-    try {
-      await this.web3Instance.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x' + chainId.toString(16) }]
-      });
-      this.chainId = chainId;
-      return true;
-    } catch (error) {
-      if (error.code === 4902) {
-        // Chain not added to wallet, need to add it
-        return await this.addNetwork(chainId);
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Add network to wallet
-   */
-  async addNetwork(chainId) {
-    const chain = this.supportedChains[chainId];
-    if (!chain) throw new Error('Chain not supported');
 
     try {
-      await this.web3Instance.request({
-        method: 'wallet_addEthereumChain',
-        params: [
-          {
-            chainId: '0x' + chainId.toString(16),
-            chainName: chain.name,
-            rpcUrls: [chain.rpc],
-            nativeCurrency: {
-              name: chain.name,
-              symbol: chain.symbol,
-              decimals: 18
-            }
-          }
-        ]
-      });
-      return true;
-    } catch (error) {
-      console.error('Failed to add network:', error);
-      throw error;
+      const [fromRate, toRate] = await Promise.all([this.getRate(fromCode), this.getRate(toCode)]);
+      const fromUsd = toUsdPrice(fromCode, fromRate);
+      const toUsd = toUsdPrice(toCode, toRate);
+      return (value * fromUsd) / toUsd;
+    } catch (_) {
+      const fromRate = this.paymentRates[fromCode] || 1;
+      const toRate = this.paymentRates[toCode] || 1;
+      const fromUsd = toUsdPrice(fromCode, fromRate);
+      const toUsd = toUsdPrice(toCode, toRate);
+      return (value * fromUsd) / toUsd;
     }
   }
 
-  /**
-   * Disconnect wallet
-   */
   disconnectWallet() {
     this.userAccount = null;
     this.walletConnected = false;
     this.web3Instance = null;
-    console.log('Wallet disconnected');
+    this.chainId = null;
   }
 
-  /**
-   * Get wallet balance
-   */
   async getBalance() {
-    if (!this.walletConnected) {
-      throw new Error('Wallet not connected');
-    }
+    if (!this.walletConnected || !this.userAccount) throw new Error('Wallet not connected');
 
-    try {
-      const balance = await this.web3Instance.request({
-        method: 'eth_getBalance',
-        params: [this.userAccount, 'latest']
-      });
+    const balanceHex = await this.web3Instance.request({
+      method: 'eth_getBalance',
+      params: [this.userAccount, 'latest']
+    });
 
-      return (parseInt(balance, 16) / Math.pow(10, 18)).toFixed(4);
-    } catch (error) {
-      console.error('Failed to get balance:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Fetch real-time fiat currency rates from ExchangeRate-API
-   */
-  async fetchFiatRates() {
-    try {
-      const response = await fetch(this.fiatApiUrl);
-      const data = await response.json();
-
-      if (data.rates) {
-        // Cache the rates
-        this.rateCache.fiat = {
-          rates: data.rates,
-          timestamp: Date.now()
-        };
-        return data.rates;
-      }
-      throw new Error('Invalid fiat rates response');
-    } catch (error) {
-      console.error('Failed to fetch fiat rates:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Fetch real-time cryptocurrency rates from CoinGecko
-   */
-  async fetchCryptoRates() {
-    try {
-      const cryptoIds = {
-        BTC: 'bitcoin',
-        ETH: 'ethereum',
-        BNB: 'binancecoin',
-        ADA: 'cardano',
-        SOL: 'solana',
-        DOT: 'polkadot',
-        LINK: 'chainlink',
-        UNI: 'uniswap'
-      };
-
-      const ids = Object.values(cryptoIds).join(',');
-      const response = await fetch(`${this.cryptoApiUrl}?ids=${ids}&vs_currencies=usd`);
-      const data = await response.json();
-
-      if (data) {
-        // Convert back to our currency codes and cache
-        const rates = {};
-        Object.entries(cryptoIds).forEach(([code, id]) => {
-          if (data[id] && data[id].usd) {
-            rates[code] = data[id].usd;
-          }
-        });
-
-        this.rateCache.crypto = {
-          rates: rates,
-          timestamp: Date.now()
-        };
-        return rates;
-      }
-      throw new Error('Invalid crypto rates response');
-    } catch (error) {
-      console.error('Failed to fetch crypto rates:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Get cached rate or fetch new one if expired
-   */
-  async getRate(currency) {
-    const now = Date.now();
-    let rates;
-
-    if (this.fiatCurrencies.includes(currency)) {
-      // Fiat currency
-      if (!this.rateCache.fiat || (now - this.rateCache.fiat.timestamp) > this.cacheExpiry) {
-        rates = await this.fetchFiatRates();
-      } else {
-        rates = this.rateCache.fiat.rates;
-      }
-
-      if (rates && rates[currency]) {
-        return rates[currency];
-      }
-    } else if (this.cryptoCurrencies.includes(currency)) {
-      // Cryptocurrency
-      if (!this.rateCache.crypto || (now - this.rateCache.crypto.timestamp) > this.cacheExpiry) {
-        rates = await this.fetchCryptoRates();
-      } else {
-        rates = this.rateCache.crypto.rates;
-      }
-
-      if (rates && rates[currency]) {
-        return rates[currency];
-      }
-    }
-
-    // Fallback to static rates
-    return this.paymentRates[currency] || 1;
-  }
-
-  /**
-   * Convert amount from one currency to another with real-time rates
-   */
-  async convertCurrency(amount, fromCurrency, toCurrency) {
-    try {
-      if (fromCurrency === toCurrency) {
-        return amount;
-      }
-
-      // Get real-time rates
-      const [fromRate, toRate] = await Promise.all([
-        this.getRate(fromCurrency),
-        this.getRate(toCurrency)
-      ]);
-
-      // Convert through USD as base
-      const usdAmount = amount / fromRate;
-      const convertedAmount = usdAmount * toRate;
-
-      return convertedAmount;
-    } catch (error) {
-      console.error('Currency conversion failed:', error);
-      // Fallback to static rates
-      const fromRate = this.paymentRates[fromCurrency] || 1;
-      const toRate = this.paymentRates[toCurrency] || 1;
-      return (amount * fromRate) / toRate;
-    }
+    return (parseInt(balanceHex, 16) / Math.pow(10, 18)).toFixed(4);
   }
 }
 
-// Export for use
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = CryptoPaymentManager;
 }
 
-// Also expose globally in browsers
 if (typeof window !== 'undefined') {
   window.CryptoPaymentManager = CryptoPaymentManager;
 }

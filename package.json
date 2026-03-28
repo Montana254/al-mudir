@@ -4,8 +4,14 @@
   "description": "AL-MUDIR: Private Wealth & Fintech Ventures",
   "main": "index.html",
   "scripts": {
-    "test": "echo 'No tests specified' && exit 0"
+    "test": "node wallet.test.js",
+    "check:syntax": "node --check api/telegram-alert.js && node --check api/access-verify-token.js && node --check crypto-payment.js",
+      "check:syntax": "node --check api/telegram-alert.js && node --check api/access-verify-token.js && node --check api/auth-register.js && node --check api/auth-verify-otp.js && node --check api/auth-login.js && node --check api/auth-session.js && node --check api/auth-profile.js && node --check api/auth-resend-otp.js && node --check api/_lib/redis.js && node --check api/_lib/email.js && node --check api/_lib/auth-utils.js && node --check crypto-payment.js",
+    "check:system": "npm run check:syntax && npm test"
   },
   "author": "Montana254",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
 }
