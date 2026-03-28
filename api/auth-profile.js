@@ -1,6 +1,7 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
 const { sanitize } = require('./_lib/auth-utils');
+const { ensureUserRecord, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
 
 async function resolveSession(req) {
   const auth = req.headers['authorization'] || '';
@@ -11,7 +12,7 @@ async function resolveSession(req) {
   const session = JSON.parse(sessionRaw);
   const userRaw = await redis('GET', 'user:' + session.email);
   if (!userRaw) return { error: 'user_not_found', status: 404 };
-  return { token, user: JSON.parse(userRaw) };
+  return { token, session, user: JSON.parse(userRaw) };
 }
 
 module.exports = withDb(async function handler(req, res) {
@@ -24,11 +25,13 @@ module.exports = withDb(async function handler(req, res) {
     const ctx = await resolveSession(req);
     if (ctx.error) return res.status(ctx.status).json({ ok: false, error: ctx.error });
 
-    const { token, user } = ctx;
+    const { token } = ctx;
+    const ensured = await ensureUserRecord(redis, ctx.user);
+    const user = ensured.user;
+    if (ensured.changed) await redis('SET', 'user:' + user.email, JSON.stringify(user));
 
     if (req.method === 'GET') {
-      const { passwordHash: _h, passwordSalt: _s, ...safe } = user;
-      return res.status(200).json({ ok: true, profile: safe });
+      return res.status(200).json({ ok: true, profile: toSafeProfile(user) });
     }
 
     // PUT / POST — update profile fields
@@ -50,6 +53,12 @@ module.exports = withDb(async function handler(req, res) {
     if (body.phone !== undefined) {
       user.phone = body.phone ? sanitize(body.phone, 20) : null;
     }
+    if (body.otpChannel !== undefined) {
+      const nextChannel = String(body.otpChannel || '').toLowerCase();
+      if (nextChannel === 'email' || (nextChannel === 'phone' && user.phone)) {
+        user.otpChannel = nextChannel;
+      }
+    }
     if (body.brokerName && body.brokerAccountId) {
       const bName = sanitize(body.brokerName, 80);
       const bId = sanitize(body.brokerAccountId, 60);
@@ -63,11 +72,36 @@ module.exports = withDb(async function handler(req, res) {
       }
     }
     if (body.kycState) {
-      const allowed = ['unverified', 'pending', 'verified'];
+      const allowed = ['unverified', 'pending', 'verified', 'rejected'];
       if (allowed.includes(body.kycState)) user.kycState = body.kycState;
     }
     if (body.kycData) {
       user.kycData = body.kycData;
+    }
+    if (body.profilePic !== undefined) {
+      if (body.profilePic && typeof body.profilePic === 'string' && body.profilePic.startsWith('data:image/') && body.profilePic.length < 200000) {
+        user.profilePic = body.profilePic;
+      } else if (!body.profilePic) {
+        user.profilePic = null;
+      }
+    }
+    // Wallet linking — once linked, only the stored address can be unlinked
+    if (body.linkedWallet !== undefined) {
+      if (body.linkedWallet && typeof body.linkedWallet === 'object') {
+        const addr = sanitize(String(body.linkedWallet.address || ''), 128);
+        const provider = sanitize(String(body.linkedWallet.provider || ''), 30);
+        const chain = sanitize(String(body.linkedWallet.chain || ''), 40);
+        if (addr && /^(0x[0-9a-fA-F]{40}|[a-zA-Z0-9]{20,128})$/.test(addr)) {
+          user.linkedWallet = {
+            address: addr,
+            provider: provider,
+            chain: chain,
+            linkedAt: new Date().toISOString()
+          };
+        }
+      } else if (body.linkedWallet === null) {
+        user.linkedWallet = null;
+      }
     }
     if (typeof body.freeAccess === 'boolean') {
       user.freeAccess = body.freeAccess;
@@ -78,10 +112,10 @@ module.exports = withDb(async function handler(req, res) {
 
     user.updatedAt = new Date().toISOString();
     await redis('SET', 'user:' + user.email, JSON.stringify(user));
+    await saveUserProfileSnapshot(redis, user);
     await redis('EXPIRE', 'session:' + token, 86400);
 
-    const { passwordHash: _h, passwordSalt: _s, ...safe } = user;
-    return res.status(200).json({ ok: true, profile: safe });
+    return res.status(200).json({ ok: true, profile: toSafeProfile(user) });
   } catch (error) {
     const msg = String(error && error.message ? error.message : 'server_error');
     if (msg.includes('redis_not_configured')) {

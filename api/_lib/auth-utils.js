@@ -15,6 +15,10 @@ function generateSessionToken() {
   return crypto.randomBytes(32).toString('hex');
 }
 
+function generateUserId() {
+  return 'ALM-' + crypto.randomBytes(6).toString('hex').toUpperCase();
+}
+
 async function hashPassword(password, salt) {
   const s = salt || crypto.randomBytes(32).toString('hex');
   return new Promise((resolve, reject) => {
@@ -35,4 +39,4 @@ async function verifyPassword(password, storedHash, storedSalt) {
   }
 }
 
-module.exports = { sanitize, generateOtp, generateSessionToken, hashPassword, verifyPassword };
+module.exports = { sanitize, generateOtp, generateSessionToken, generateUserId, hashPassword, verifyPassword };

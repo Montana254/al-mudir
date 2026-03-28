@@ -1,5 +1,6 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
+const { ensureUserRecord, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
 
 module.exports = withDb(async function handler(req, res) {
   try {
@@ -22,11 +23,13 @@ module.exports = withDb(async function handler(req, res) {
     if (!userRaw) return res.status(404).json({ ok: false, error: 'user_not_found' });
 
     const user = JSON.parse(userRaw);
+    const ensured = await ensureUserRecord(redis, user);
+    if (ensured.changed) await redis('SET', 'user:' + session.email, JSON.stringify(ensured.user));
+    await saveUserProfileSnapshot(redis, ensured.user);
     // Slide session TTL on each validated request
     await redis('EXPIRE', 'session:' + token, 86400);
 
-    const { passwordHash: _h, passwordSalt: _s, ...safeProfile } = user;
-    return res.status(200).json({ ok: true, profile: safeProfile });
+    return res.status(200).json({ ok: true, profile: toSafeProfile(ensured.user) });
   } catch (error) {
     const msg = String(error && error.message ? error.message : 'server_error');
     if (msg.includes('redis_not_configured')) {

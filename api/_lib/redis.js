@@ -1,4 +1,5 @@
 'use strict';
+const crypto = require('crypto');
 
 // ──────────────────────────────────────────────────────────
 // Telegram-backed key-value store.
@@ -13,9 +14,73 @@ let _dirty = false;
 let _pinnedMsgId = null;
 
 const STALE_MS = 4000; // re-download if cache is older than 4 s
+const DB_FORMAT = 'almudir-db-v1';
 
 function botToken() { return (process.env.TELEGRAM_BOT_TOKEN || '').trim(); }
 function dbChatId() { return (process.env.TELEGRAM_DB_CHAT_ID || process.env.TELEGRAM_CHAT_ID || '').trim(); }
+function dbSecret() {
+  return (process.env.TG_DB_SECRET || process.env.ACCESS_VERIFY_SECRET || process.env.TELEGRAM_BOT_TOKEN || '').trim();
+}
+
+function deriveKey(secret) {
+  return crypto.createHash('sha256').update(String(secret || '')).digest();
+}
+
+function encryptDbPayload(plainJson) {
+  const secret = dbSecret();
+  if (!secret) return plainJson;
+
+  const iv = crypto.randomBytes(12);
+  const key = deriveKey(secret);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  cipher.setAAD(Buffer.from(DB_FORMAT));
+  const encrypted = Buffer.concat([cipher.update(plainJson, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+
+  return JSON.stringify({
+    _format: DB_FORMAT,
+    _enc: 'aes-256-gcm',
+    iv: iv.toString('base64url'),
+    tag: tag.toString('base64url'),
+    data: encrypted.toString('base64url'),
+    at: Date.now()
+  });
+}
+
+function decryptDbPayload(rawText) {
+  const secret = dbSecret();
+  let parsed;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    return {};
+  }
+
+  // Backward compatibility: support old plain JSON object shape.
+  if (!parsed || !parsed._enc) {
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  }
+
+  if (parsed._format !== DB_FORMAT || parsed._enc !== 'aes-256-gcm') {
+    throw new Error('db_payload_format_invalid');
+  }
+  if (!secret) {
+    throw new Error('db_secret_missing');
+  }
+
+  const key = deriveKey(secret);
+  const iv = Buffer.from(String(parsed.iv || ''), 'base64url');
+  const tag = Buffer.from(String(parsed.tag || ''), 'base64url');
+  const data = Buffer.from(String(parsed.data || ''), 'base64url');
+
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+  decipher.setAAD(Buffer.from(DB_FORMAT));
+  decipher.setAuthTag(tag);
+  const plain = Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
+
+  const obj = JSON.parse(plain);
+  return obj && typeof obj === 'object' ? obj : {};
+}
 
 async function tg(method, payload) {
   const tk = botToken();
@@ -56,7 +121,7 @@ async function loadDb() {
     if (fileRes.ok && fileRes.result && fileRes.result.file_path) {
       const url = 'https://api.telegram.org/file/bot' + tk + '/' + fileRes.result.file_path;
       const body = await (await fetch(url)).text();
-      try { _cache = JSON.parse(body); } catch { _cache = {}; }
+      try { _cache = decryptDbPayload(body); } catch { _cache = {}; }
     } else { _cache = {}; }
   } else {
     _pinnedMsgId = null;
@@ -81,7 +146,8 @@ async function flushDb() {
   }
 
   const json = JSON.stringify(_cache);
-  const blob = new Blob([json], { type: 'application/json' });
+  const payload = encryptDbPayload(json);
+  const blob = new Blob([payload], { type: 'application/json' });
   const chat = dbChatId();
 
   if (_pinnedMsgId) {
@@ -129,6 +195,7 @@ async function redis(...args) {
       if (entry._exp && Date.now() > entry._exp) {
         delete db[key];
         _dirty = true;
+        await flushDb();
         return null;
       }
       return entry._val;
@@ -150,6 +217,7 @@ async function redis(...args) {
       if (db[key]) {
         db[key]._exp = Date.now() + Number(args[2]) * 1000;
         _dirty = true;
+        await flushDb();
       }
       return 1;
     }

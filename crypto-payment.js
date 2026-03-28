@@ -86,6 +86,25 @@ class CryptoPaymentManager {
       USDT_ERC20: '0x3b8BAdeCEbB98258F27405a8Dff37e2308AB6E20',
       USDT_TRC20: 'TLNNQNDsH6JG9dxd99Tqfkb8eSPRUyhC4E'
     };
+
+    // ERC-20 / BEP-20 token contracts for direct wallet transfers
+    this.tokenContracts = {
+      1: { // Ethereum Mainnet
+        USDT: { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', decimals: 6 },
+        USDC: { address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', decimals: 6 },
+        LINK: { address: '0x514910771AF9Ca656af840dff83E8264EcF986CA', decimals: 18 }
+      },
+      56: { // BNB Smart Chain
+        USDT: { address: '0x55d398326f99059fF775485246999027B3197955', decimals: 18 },
+        USDC: { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', decimals: 18 }
+      }
+    };
+
+    // Quick deposit coin → network mapping for backend
+    this.quickDepositNetworkMap = {
+      1:  { ETH: 'erc20', USDT: 'erc20', USDC: 'erc20', LINK: 'erc20' },
+      56: { BNB: 'bep20', USDT: 'bep20', USDC: 'bep20' }
+    };
   }
 
   getInjectedProviders() {
@@ -422,6 +441,106 @@ class CryptoPaymentManager {
     this.walletConnected = false;
     this.web3Instance = null;
     this.chainId = null;
+  }
+
+  /**
+   * Get the list of coins available for quick (one-click) deposit on the current chain.
+   * Returns array of { coin, type: 'native'|'token', network, decimals?, tokenAddress? }
+   */
+  getQuickDepositCoins() {
+    if (!this.chainId) return [];
+    const chain = this.supportedChains[this.chainId];
+    if (!chain) return [];
+
+    const coins = [];
+    const networkMap = this.quickDepositNetworkMap[this.chainId] || {};
+
+    // Native coin first
+    coins.push({
+      coin: chain.symbol,
+      type: 'native',
+      network: networkMap[chain.symbol] || 'erc20',
+      decimals: 18
+    });
+
+    // ERC-20 / BEP-20 tokens
+    const tokens = this.tokenContracts[this.chainId] || {};
+    for (const [symbol, info] of Object.entries(tokens)) {
+      coins.push({
+        coin: symbol,
+        type: 'token',
+        network: networkMap[symbol] || 'erc20',
+        decimals: info.decimals,
+        tokenAddress: info.address
+      });
+    }
+
+    return coins;
+  }
+
+  /**
+   * Get ERC-20 / BEP-20 token balance for the connected wallet.
+   */
+  async getTokenBalance(tokenAddress, decimals) {
+    if (!this.walletConnected || !this.userAccount) throw new Error('Wallet not connected');
+
+    // balanceOf(address) selector: 0x70a08231
+    const data = '0x70a08231' + this.userAccount.slice(2).toLowerCase().padStart(64, '0');
+
+    const balanceHex = await this.web3Instance.request({
+      method: 'eth_call',
+      params: [{ to: tokenAddress, data: data }, 'latest']
+    });
+
+    return parseInt(balanceHex, 16) / Math.pow(10, decimals);
+  }
+
+  /**
+   * Send ERC-20 / BEP-20 token from connected wallet to treasury.
+   */
+  async sendToken(tokenAddress, amount, decimals, recipientAddress) {
+    if (!this.walletConnected) throw new Error('Wallet not connected');
+    if (this.paymentInProgress) throw new Error('Payment already in progress');
+
+    this.paymentInProgress = true;
+    try {
+      const to = recipientAddress || this.treasuryNativeAddress[this.chainId] || this.treasuryNativeAddress[1];
+
+      // Encode transfer(address, uint256)
+      // Parse amount to token units avoiding floating point issues
+      const parts = String(amount).split('.');
+      const whole = parts[0] || '0';
+      const frac = (parts[1] || '').slice(0, decimals).padEnd(decimals, '0');
+      const unitsBigInt = BigInt(whole) * BigInt(10 ** decimals) + BigInt(frac);
+      const amountHex = unitsBigInt.toString(16).padStart(64, '0');
+      const addrHex = to.slice(2).toLowerCase().padStart(64, '0');
+      const data = '0xa9059cbb' + addrHex + amountHex;
+
+      const gasPrice = await this.getGasPrice();
+
+      const txHash = await this.web3Instance.request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: this.userAccount,
+          to: tokenAddress,
+          value: '0x0',
+          gas: '0x' + (100000).toString(16),
+          gasPrice: gasPrice,
+          data: data
+        }]
+      });
+
+      return {
+        transactionHash: txHash,
+        amount: amount,
+        tokenAddress: tokenAddress,
+        recipientAddress: to,
+        chainId: this.chainId,
+        timestamp: new Date().toISOString()
+      };
+    } finally {
+      this.paymentInProgress = false;
+    }
   }
 
   async getBalance() {

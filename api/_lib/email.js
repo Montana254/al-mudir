@@ -1,6 +1,9 @@
 'use strict';
 
 const FROM = process.env.EMAIL_FROM || 'AL-MUDIR <noreply@al-mudir.org>';
+const TWILIO_SID = (process.env.TWILIO_ACCOUNT_SID || '').trim();
+const TWILIO_TOKEN = (process.env.TWILIO_AUTH_TOKEN || '').trim();
+const TWILIO_FROM = (process.env.TWILIO_FROM_NUMBER || '').trim();
 
 function esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -68,4 +71,65 @@ async function sendOtpEmail(to, otp, name) {
   return res.json();
 }
 
-module.exports = { sendOtpEmail };
+async function sendOtpSms(to, otp, name) {
+  if (!TWILIO_SID || !TWILIO_TOKEN || !TWILIO_FROM) {
+    throw new Error('sms_not_configured');
+  }
+
+  const body = new URLSearchParams();
+  body.set('To', String(to));
+  body.set('From', TWILIO_FROM);
+  body.set('Body', 'AL-MUDIR verification code for ' + String(name || 'client') + ': ' + otp + '. Expires in 10 minutes.');
+
+  const auth = Buffer.from(TWILIO_SID + ':' + TWILIO_TOKEN).toString('base64');
+  const res = await fetch('https://api.twilio.com/2010-04-01/Accounts/' + TWILIO_SID + '/Messages.json', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Basic ' + auth,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: body.toString()
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error('sms_failed: ' + (data.message || res.status));
+  }
+
+  return data;
+}
+
+function maskEmail(email) {
+  const value = String(email || '').trim();
+  const at = value.indexOf('@');
+  if (at <= 1) return value;
+  return value.slice(0, 2) + '***' + value.slice(at);
+}
+
+function maskPhone(phone) {
+  const value = String(phone || '').trim();
+  if (value.length < 5) return value;
+  return value.slice(0, 3) + '***' + value.slice(-2);
+}
+
+async function sendOtpCode(params) {
+  const email = String(params && params.email || '').trim();
+  const phone = String(params && params.phone || '').trim();
+  const otp = String(params && params.otp || '').trim();
+  const name = String(params && params.name || 'Client').trim();
+  const preferredChannel = String(params && params.preferredChannel || 'email').trim().toLowerCase();
+
+  if (preferredChannel === 'phone' && phone) {
+    try {
+      await sendOtpSms(phone, otp, name);
+      return { method: 'phone', target: maskPhone(phone) };
+    } catch (error) {
+      if (!email) throw error;
+    }
+  }
+
+  await sendOtpEmail(email, otp, name);
+  return { method: 'email', target: maskEmail(email) };
+}
+
+module.exports = { sendOtpEmail, sendOtpCode };

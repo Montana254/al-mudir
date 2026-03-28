@@ -1,7 +1,8 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
-const { sendOtpEmail } = require('./_lib/email');
+const { sendOtpCode } = require('./_lib/email');
 const { generateOtp, sanitize } = require('./_lib/auth-utils');
+const { ensureUserRecord } = require('./_lib/user-profile');
 
 const rateLimitMap = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
@@ -41,22 +42,27 @@ module.exports = withDb(async function handler(req, res) {
     const userRaw = await redis('GET', 'user:' + email);
     if (!userRaw) return res.status(404).json({ ok: false, error: 'user_not_found' });
 
-    const user = JSON.parse(userRaw);
+    const ensured = await ensureUserRecord(redis, JSON.parse(userRaw));
+    const user = ensured.user;
+    if (ensured.changed) await redis('SET', 'user:' + email, JSON.stringify(user));
     if (user.verified) return res.status(400).json({ ok: false, error: 'already_verified' });
 
     const otp = generateOtp();
     await redis('SET', 'otp:' + email, JSON.stringify({ code: otp, exp: Date.now() + 10 * 60 * 1000 }));
     await redis('EXPIRE', 'otp:' + email, 600);
-    await sendOtpEmail(email, otp, user.name);
+    const delivery = await sendOtpCode({ email, phone: user.phone, otp, name: user.name, preferredChannel: user.otpChannel || 'email' });
+    user.verificationMethod = delivery.method;
+    user.updatedAt = new Date().toISOString();
+    await redis('SET', 'user:' + email, JSON.stringify(user));
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, verificationMethod: delivery.method, deliveryTarget: delivery.target });
   } catch (error) {
     const msg = String(error && error.message ? error.message : 'server_error');
     if (msg.includes('redis_not_configured')) {
       return res.status(503).json({ ok: false, error: 'storage_not_configured' });
     }
-    if (msg.includes('email_not_configured')) {
-      return res.status(503).json({ ok: false, error: 'email_not_configured' });
+    if (msg.includes('email_not_configured') || msg.includes('sms_not_configured')) {
+      return res.status(503).json({ ok: false, error: 'otp_not_configured' });
     }
     return res.status(500).json({ ok: false, error: 'server_error' });
   }

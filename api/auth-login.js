@@ -1,6 +1,7 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
 const { verifyPassword, generateSessionToken, sanitize } = require('./_lib/auth-utils');
+const { ensureUserRecord, getOtpDeliveryPreview, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
 
 const rateLimitMap = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
@@ -42,20 +43,23 @@ module.exports = withDb(async function handler(req, res) {
     if (!userRaw) return res.status(401).json({ ok: false, error: 'invalid_credentials' });
 
     const user = JSON.parse(userRaw);
+    const ensured = await ensureUserRecord(redis, user);
+    if (ensured.changed) await redis('SET', 'user:' + email, JSON.stringify(ensured.user));
+    await saveUserProfileSnapshot(redis, ensured.user);
 
-    if (!user.verified) {
-      return res.status(403).json({ ok: false, error: 'account_not_verified', requiresVerification: true, email });
+    if (!ensured.user.verified) {
+      const delivery = getOtpDeliveryPreview(ensured.user);
+      return res.status(403).json({ ok: false, error: 'account_not_verified', requiresVerification: true, email, verificationMethod: delivery.method, deliveryTarget: delivery.target });
     }
 
-    const valid = await verifyPassword(password, user.passwordHash, user.passwordSalt);
+    const valid = await verifyPassword(password, ensured.user.passwordHash, ensured.user.passwordSalt);
     if (!valid) return res.status(401).json({ ok: false, error: 'invalid_credentials' });
 
     const sessionToken = generateSessionToken();
     await redis('SET', 'session:' + sessionToken, JSON.stringify({ email, createdAt: new Date().toISOString() }));
     await redis('EXPIRE', 'session:' + sessionToken, 86400);
 
-    const { passwordHash: _h, passwordSalt: _s, ...safeProfile } = user;
-    return res.status(200).json({ ok: true, token: sessionToken, profile: safeProfile });
+    return res.status(200).json({ ok: true, token: sessionToken, profile: toSafeProfile(ensured.user) });
   } catch (error) {
     const msg = String(error && error.message ? error.message : 'server_error');
     if (msg.includes('redis_not_configured')) {

@@ -1,6 +1,7 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
 const { generateSessionToken, sanitize } = require('./_lib/auth-utils');
+const { ensureUserRecord, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
 
 const rateLimitMap = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
@@ -57,18 +58,19 @@ module.exports = withDb(async function handler(req, res) {
     if (!userRaw) return res.status(404).json({ ok: false, error: 'user_not_found' });
 
     const user = JSON.parse(userRaw);
-    user.verified = true;
-    user.verifiedAt = new Date().toISOString();
-    user.updatedAt = new Date().toISOString();
+    const ensured = await ensureUserRecord(redis, user);
+    ensured.user.verified = true;
+    ensured.user.verifiedAt = new Date().toISOString();
+    ensured.user.updatedAt = new Date().toISOString();
 
     const sessionToken = generateSessionToken();
-    await redis('SET', 'user:' + email, JSON.stringify(user));
+    await redis('SET', 'user:' + email, JSON.stringify(ensured.user));
+    await saveUserProfileSnapshot(redis, ensured.user);
     await redis('DEL', 'otp:' + email);
     await redis('SET', 'session:' + sessionToken, JSON.stringify({ email, createdAt: new Date().toISOString() }));
     await redis('EXPIRE', 'session:' + sessionToken, 86400);
 
-    const { passwordHash: _h, passwordSalt: _s, ...safeProfile } = user;
-    return res.status(200).json({ ok: true, token: sessionToken, profile: safeProfile });
+    return res.status(200).json({ ok: true, token: sessionToken, profile: toSafeProfile(ensured.user) });
   } catch (error) {
     const msg = String(error && error.message ? error.message : 'server_error');
     if (msg.includes('redis_not_configured')) {
