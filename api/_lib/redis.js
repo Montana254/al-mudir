@@ -226,6 +226,15 @@ async function redis(...args) {
   }
 }
 
+// ── Flush lock — serialise concurrent flushes within a warm instance ──
+let _flushLock = Promise.resolve();
+
+async function safeFlush() {
+  if (!_dirty || _cache === null) return;
+  _flushLock = _flushLock.then(() => flushDb()).catch(() => {});
+  return _flushLock;
+}
+
 // ── Wrapper: auto-flush after handler completes ─────────
 function withDb(handler) {
   return async function wrappedHandler(req, res) {
@@ -237,7 +246,7 @@ function withDb(handler) {
     try {
       return await handler(req, res);
     } finally {
-      try { await flushDb(); } catch { /* best-effort flush */ }
+      try { await safeFlush(); } catch { /* best-effort flush */ }
     }
   };
 }
