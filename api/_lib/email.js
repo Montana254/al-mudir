@@ -37,13 +37,12 @@ async function sendOtpViaTelegram(to, otp, name) {
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!botToken || !chatId) throw new Error('email_not_configured: no email provider and Telegram fallback unavailable');
 
-  const text = '\uD83D\uDD10 OTP Verification — FORWARD TO USER\n\n'
+  const text = '\uD83D\uDD10 OTP Verification \u2014 FORWARD TO USER\n\n'
     + '\uD83D\uDC64 Name: ' + esc(name) + '\n'
     + '\uD83D\uDCE7 Email: ' + esc(to) + '\n'
     + '\uD83D\uDD22 OTP Code: <b>' + otp + '</b>\n\n'
     + '\u23F0 Expires in 10 minutes.\n'
-    + '\n\u26A0\uFE0F No email provider configured. Set RESEND_API_KEY on Vercel to enable direct email delivery.\n'
-    + 'Run: bash setup-email.sh <your-resend-key>';
+    + '\n\u26A0\uFE0F No email provider configured.\nSet RESEND_API_KEY on Vercel to enable direct email delivery.';
 
   const r = await fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
     method: 'POST',
