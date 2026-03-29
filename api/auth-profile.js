@@ -1,6 +1,6 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
-const { sanitize } = require('./_lib/auth-utils');
+const { sanitize, hashPassword, verifyPassword } = require('./_lib/auth-utils');
 const { ensureUserRecord, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
 
 async function resolveSession(req) {
@@ -44,6 +44,33 @@ module.exports = withDb(async function handler(req, res) {
       }
     } else {
       body = req.body || {};
+    }
+
+    // ── Password change action ──
+    if (body.action === 'changePassword') {
+      const currentPassword = String(body.currentPassword || '');
+      const newPassword = String(body.newPassword || '');
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ ok: false, error: 'missing_fields' });
+      }
+      if (newPassword.length < 8) {
+        return res.status(400).json({ ok: false, error: 'password_too_short' });
+      }
+      if (newPassword.length > 72) {
+        return res.status(400).json({ ok: false, error: 'password_too_long' });
+      }
+      const valid = await verifyPassword(currentPassword, user.passwordHash, user.passwordSalt);
+      if (!valid) {
+        return res.status(403).json({ ok: false, error: 'incorrect_password' });
+      }
+      const { hash, salt } = await hashPassword(newPassword);
+      user.passwordHash = hash;
+      user.passwordSalt = salt;
+      user.updatedAt = new Date().toISOString();
+      await redis('SET', 'user:' + user.email, JSON.stringify(user));
+      await saveUserProfileSnapshot(redis, user);
+      await redis('EXPIRE', 'session:' + token, 86400);
+      return res.status(200).json({ ok: true, message: 'password_changed' });
     }
 
     if (body.name !== undefined && body.name !== null) {
@@ -108,6 +135,15 @@ module.exports = withDb(async function handler(req, res) {
       if (body.freeAccess && !user.freeAccessGrantedAt) {
         user.freeAccessGrantedAt = new Date().toISOString();
       }
+    }
+    if (body.securityPrefs && typeof body.securityPrefs === 'object') {
+      const sp = body.securityPrefs;
+      user.securityPrefs = {
+        twoFA: sp.twoFA === true,
+        email: sp.email !== false,
+        sms: sp.sms === true,
+        telegram: sp.telegram === true
+      };
     }
 
     user.updatedAt = new Date().toISOString();
