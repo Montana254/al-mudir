@@ -1066,10 +1066,8 @@
             <div class="mt-5 hidden space-y-2 lg:block">
               <button data-panel="home" class="dash-nav-btn active dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Home</button>
               <button data-panel="trade" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Trade</button>
-              <button data-panel="signals" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Signals</button>
               <button data-panel="bot" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs"><i class="fa-solid fa-robot mr-1 text-[var(--dash-accent)]"></i>Trading Bot</button>
               <button data-panel="deposit" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Deposit</button>
-              <button data-panel="security" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Security</button>
               <button data-panel="profile" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Profile</button>
             </div>
           </aside>
@@ -1378,16 +1376,6 @@
                   </div>
                   <div id="positionsTableBody" class="text-xs"></div>
                 </div>
-              </div>
-            </section>
-
-            <section id="panelSignals" class="dashboard-panel hidden">
-              <div class="dash-card rounded-xl p-5">
-                <div class="flex items-center justify-between">
-                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Institutional Signals</p>
-                  <span class="text-[10px] uppercase tracking-[0.14em] text-[var(--dash-accent)]">SMC / ICT Engine</span>
-                </div>
-                <div id="dashboardSignalsGrid" class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3"></div>
               </div>
             </section>
 
@@ -1940,9 +1928,17 @@
                   <p class="text-xs text-gray-400">Your account is fully verified and all features are unlocked.</p>
                 </div>
               </div>
-            </section>
 
-            <section id="panelSecurity" class="dashboard-panel hidden space-y-4">
+              <!-- Signals (inside profile) -->
+              <div class="dash-card rounded-xl p-5">
+                <div class="flex items-center justify-between">
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Institutional Signals</p>
+                  <span class="text-[10px] uppercase tracking-[0.14em] text-[var(--dash-accent)]">SMC / ICT Engine</span>
+                </div>
+                <div id="dashboardSignalsGrid" class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3"></div>
+              </div>
+
+              <!-- Security (inside profile) -->
               <div class="dash-card rounded-xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
                   <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Security Center</p>
@@ -1988,7 +1984,7 @@
         </div>
 
         <nav class="dash-mobile-nav fixed inset-x-0 bottom-0 z-40 lg:hidden">
-          <div class="mx-auto grid max-w-6xl grid-cols-7 gap-2 px-4 pt-3">
+          <div class="mx-auto grid max-w-6xl grid-cols-5 gap-2 px-4 pt-3">
             <button data-panel="home" class="dash-mobile-nav-btn dashboard-nav-btn active flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
               <i class="fa-solid fa-house text-sm"></i>
               <span class="mt-1">Home</span>
@@ -1997,10 +1993,6 @@
               <i class="fa-solid fa-chart-line text-sm"></i>
               <span class="mt-1">Trade</span>
             </button>
-            <button data-panel="signals" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
-              <i class="fa-solid fa-bullseye text-sm"></i>
-              <span class="mt-1">Signals</span>
-            </button>
             <button data-panel="bot" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
               <i class="fa-solid fa-robot text-sm"></i>
               <span class="mt-1">Bot</span>
@@ -2008,10 +2000,6 @@
             <button data-panel="deposit" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
               <i class="fa-solid fa-wallet text-sm"></i>
               <span class="mt-1">Deposit</span>
-            </button>
-            <button data-panel="security" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
-              <i class="fa-solid fa-shield-halved text-sm"></i>
-              <span class="mt-1">Security</span>
             </button>
             <button data-panel="profile" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
               <i class="fa-solid fa-user text-sm"></i>
@@ -2300,10 +2288,8 @@
     const dashboardPanels = {
       home: document.getElementById('panelHome'),
       trade: document.getElementById('panelTrade'),
-      signals: document.getElementById('panelSignals'),
       bot: document.getElementById('panelBot'),
       deposit: document.getElementById('panelDeposit'),
-      security: document.getElementById('panelSecurity'),
       profile: document.getElementById('panelProfile')
     };
 
@@ -3435,8 +3421,10 @@
         loadSystemWallet({ background: true });
       }
       if (panel === 'profile') updateProfileClientInfo();
-      if (panel === 'signals') renderSignalCards(dashboardSignalsGrid);
-      if (panel === 'security') renderSecuritySessions();
+      if (panel === 'profile') {
+        renderSignalCards(dashboardSignalsGrid);
+        renderSecuritySessions();
+      }
     }
 
     // Alias for inline onclick references
