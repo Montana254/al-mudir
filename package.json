@@ -13,6 +13,7 @@
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "@vercel/analytics": "^2.0.1",
+    "nodemailer": "^8.0.4",
     "pdfkit": "^0.17.2"
   }
 }

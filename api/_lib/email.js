@@ -1,6 +1,12 @@
 'use strict';
 
+const nodemailer = require('nodemailer');
+
 const FROM = process.env.EMAIL_FROM || 'AL-MUDIR <noreply@al-mudir.org>';
+const SMTP_HOST = (process.env.SMTP_HOST || '').trim();
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
+const SMTP_USER = (process.env.SMTP_USER || '').trim();
+const SMTP_PASS = (process.env.SMTP_PASS || '').trim();
 const TWILIO_SID = (process.env.TWILIO_ACCOUNT_SID || '').trim();
 const TWILIO_TOKEN = (process.env.TWILIO_AUTH_TOKEN || '').trim();
 const TWILIO_FROM = (process.env.TWILIO_FROM_NUMBER || '').trim();
@@ -9,11 +15,26 @@ function esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function buildOtpHtml(otp, name) {
+  return `<!DOCTYPE html>
+<html><body style="margin:0;padding:32px;background:#04120f;font-family:Arial,sans-serif;">
+<h2 style="color:#d4af37;margin:0 0 4px;font-size:22px;letter-spacing:3px;font-family:Georgia,serif;">AL-MUDIR</h2>
+<p style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:3px;margin:0 0 28px;">Private Wealth &amp; Fintech Ventures</p>
+<p style="color:#e8e0d0;font-size:14px;margin:0 0 8px;">Hello ${esc(name)},</p>
+<p style="color:#e8e0d0;font-size:14px;margin:0 0 20px;">Your one-time verification code for AL-MUDIR is:</p>
+<div style="background:#0e1114;border:1px solid #242a31;border-radius:8px;padding:32px;text-align:center;margin:0 0 24px;">
+  <span style="font-size:44px;font-weight:700;letter-spacing:18px;color:#d4af37;font-family:'Courier New',monospace;">${otp}</span>
+</div>
+<p style="color:#888;font-size:12px;margin:0 0 6px;">This code expires in <strong style="color:#e8e0d0;">10 minutes</strong>.</p>
+<p style="color:#555;font-size:11px;margin:28px 0 0;border-top:1px solid #1a1a1a;padding-top:16px;">If you did not create an AL-MUDIR account, you can safely ignore this email.</p>
+</body></html>`;
+}
+
 // Fallback: send OTP as a Telegram notification to the admin
 async function sendOtpViaTelegram(to, otp, name) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!botToken || !chatId) throw new Error('email_not_configured: no RESEND_API_KEY and Telegram fallback unavailable');
+  if (!botToken || !chatId) throw new Error('email_not_configured: no email provider and Telegram fallback unavailable');
 
   const text = '\uD83D\uDD10 OTP Verification Request\n\n'
     + 'Name: ' + esc(name) + '\n'
@@ -31,24 +52,10 @@ async function sendOtpViaTelegram(to, otp, name) {
   return r.json();
 }
 
-async function sendOtpEmail(to, otp, name) {
+// Path 1: Resend API (primary)
+async function sendViaResend(to, otp, name) {
   const key = process.env.RESEND_API_KEY;
-
-  // If no email API key, fall back to Telegram notification
-  if (!key) return sendOtpViaTelegram(to, otp, name);
-
-  const html = `<!DOCTYPE html>
-<html><body style="margin:0;padding:32px;background:#04120f;font-family:Arial,sans-serif;">
-<h2 style="color:#d4af37;margin:0 0 4px;font-size:22px;letter-spacing:3px;font-family:Georgia,serif;">AL-MUDIR</h2>
-<p style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:3px;margin:0 0 28px;">Private Wealth &amp; Fintech Ventures</p>
-<p style="color:#e8e0d0;font-size:14px;margin:0 0 8px;">Hello ${esc(name)},</p>
-<p style="color:#e8e0d0;font-size:14px;margin:0 0 20px;">Your one-time verification code for AL-MUDIR is:</p>
-<div style="background:#0e1114;border:1px solid #242a31;border-radius:8px;padding:32px;text-align:center;margin:0 0 24px;">
-  <span style="font-size:44px;font-weight:700;letter-spacing:18px;color:#d4af37;font-family:'Courier New',monospace;">${otp}</span>
-</div>
-<p style="color:#888;font-size:12px;margin:0 0 6px;">This code expires in <strong style="color:#e8e0d0;">10 minutes</strong>.</p>
-<p style="color:#555;font-size:11px;margin:28px 0 0;border-top:1px solid #1a1a1a;padding-top:16px;">If you did not create an AL-MUDIR account, you can safely ignore this email.</p>
-</body></html>`;
+  if (!key) return false;
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -60,15 +67,53 @@ async function sendOtpEmail(to, otp, name) {
       from: FROM,
       to: [String(to)],
       subject: 'Your AL-MUDIR verification code: ' + otp,
-      html
+      html: buildOtpHtml(otp, name)
     })
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error('email_failed: ' + (err.message || err.name || res.status));
+    throw new Error('resend_failed: ' + (err.message || err.name || res.status));
   }
-  return res.json();
+  return true;
+}
+
+// Path 2: SMTP via nodemailer (any SMTP provider — Gmail, Brevo, Mailtrap, etc.)
+async function sendViaSmtp(to, otp, name) {
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) return false;
+
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASS }
+  });
+
+  await transporter.sendMail({
+    from: FROM,
+    to: String(to),
+    subject: 'Your AL-MUDIR verification code: ' + otp,
+    html: buildOtpHtml(otp, name),
+    text: 'Your AL-MUDIR verification code is: ' + otp + '. This code expires in 10 minutes.'
+  });
+  return true;
+}
+
+// Master email sender: tries Resend → SMTP → Telegram fallback
+async function sendOtpEmail(to, otp, name) {
+  // Try Resend API first
+  try { if (await sendViaResend(to, otp, name)) return { provider: 'resend' }; } catch (e) {
+    console.error('[email] Resend failed:', e.message);
+  }
+
+  // Try SMTP second
+  try { if (await sendViaSmtp(to, otp, name)) return { provider: 'smtp' }; } catch (e) {
+    console.error('[email] SMTP failed:', e.message);
+  }
+
+  // Final fallback: Telegram (admin-facing)
+  await sendOtpViaTelegram(to, otp, name);
+  return { provider: 'telegram_fallback' };
 }
 
 async function sendOtpSms(to, otp, name) {
