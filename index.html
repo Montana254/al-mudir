@@ -1739,51 +1739,164 @@
                 </div>
               </div>
 
-              <div class="dash-card rounded-xl p-5 space-y-4">
-                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Account Settings</p>
-                <h6 class="text-lg text-white">User Profile</h6>
-                <div class="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Full Name</p>
-                    <input id="profileName" type="text" maxlength="80" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm" placeholder="Update your name">
-                  </div>
-                  <div>
-                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Email</p>
-                    <input id="profileEmail" type="email" readonly class="mt-2 w-full rounded border border-[#2f3741] bg-[#0a0d10] px-3 py-2 text-sm text-gray-400">
-                  </div>
+              <!-- ── Service Menu Buttons ── -->
+              <div class="dash-card rounded-xl p-5 space-y-3">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Services</p>
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <button data-profile-section="profileSettingsSection" class="profile-menu-btn group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-black/20 p-4 text-center transition hover:border-[var(--dash-accent)]/50 hover:bg-[var(--dash-accent)]/5">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--dash-accent)]/10 text-[var(--dash-accent)] group-hover:bg-[var(--dash-accent)]/20"><i class="fa-solid fa-gear"></i></span>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-300 group-hover:text-white">Account Settings</span>
+                  </button>
+                  <button data-profile-section="profileBrokerSection" class="profile-menu-btn group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-black/20 p-4 text-center transition hover:border-[var(--dash-accent)]/50 hover:bg-[var(--dash-accent)]/5">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20"><i class="fa-solid fa-building-columns"></i></span>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-300 group-hover:text-white">Broker Signup</span>
+                  </button>
+                  <button data-profile-section="profileSignalsSection" class="profile-menu-btn group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-black/20 p-4 text-center transition hover:border-[var(--dash-accent)]/50 hover:bg-[var(--dash-accent)]/5">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10 text-green-400 group-hover:bg-green-500/20"><i class="fa-solid fa-signal"></i></span>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-300 group-hover:text-white">Signals</span>
+                  </button>
+                  <button data-profile-section="profileKycSection" class="profile-menu-btn group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-black/20 p-4 text-center transition hover:border-[var(--dash-accent)]/50 hover:bg-[var(--dash-accent)]/5">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-500/10 text-yellow-400 group-hover:bg-yellow-500/20"><i class="fa-solid fa-id-card"></i></span>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-300 group-hover:text-white">KYC Verification</span>
+                  </button>
                 </div>
-                <div>
-                  <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">AL-MUDIR System ID</p>
-                  <input id="profileUserId" type="text" readonly class="mt-2 w-full rounded border border-[#2f3741] bg-[#0a0d10] px-3 py-2 text-sm text-gray-400">
-                </div>
-                <button id="saveProfileBtn" class="w-full rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Save Profile</button>
-                <button id="logoutBtn" class="w-full rounded border border-red-500/50 px-3 py-2 text-[11px] uppercase tracking-[0.14em] text-red-300 hover:bg-red-500/10">Log out</button>
-                <p id="profileStatus" class="hidden text-center text-xs"></p>
               </div>
 
-              <div class="dash-card rounded-xl p-5 space-y-4">
-                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Broker Signup Verification</p>
-                <p class="text-xs text-gray-400">Complete broker signup once. Free access link requests are accepted only after successful broker signup and User ID verification.</p>
-                <a href="https://one.exnessonelink.com/a/aczb4cfol7" target="_blank" rel="noopener noreferrer" class="block w-full rounded border border-[#3a3a3a] py-2 text-center text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Open Official Broker Partnership Link</a>
-                <div class="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Broker Name</p>
-                    <input id="brokerName" type="text" maxlength="80" placeholder="e.g. Exness" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+              <!-- ═══ Account Settings Section (hidden by default) ═══ -->
+              <div id="profileSettingsSection" class="profile-section hidden space-y-5">
+                <div class="dash-card rounded-xl p-5 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <button class="profile-back-btn rounded-full border border-white/10 h-8 w-8 flex items-center justify-center text-gray-400 hover:bg-white/5 hover:text-white"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+                      <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Account Settings</p>
+                    </div>
+                  </div>
+                  <h6 class="text-lg text-white">User Profile</h6>
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Full Name</p>
+                      <input id="profileName" type="text" maxlength="80" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm" placeholder="Update your name">
+                    </div>
+                    <div>
+                      <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Email</p>
+                      <input id="profileEmail" type="email" readonly class="mt-2 w-full rounded border border-[#2f3741] bg-[#0a0d10] px-3 py-2 text-sm text-gray-400">
+                    </div>
                   </div>
                   <div>
-                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Broker Account ID</p>
+                    <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">AL-MUDIR System ID</p>
+                    <input id="profileUserId" type="text" readonly class="mt-2 w-full rounded border border-[#2f3741] bg-[#0a0d10] px-3 py-2 text-sm text-gray-400">
+                  </div>
+                  <button id="saveProfileBtn" class="w-full rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]"><i class="fa-solid fa-floppy-disk mr-1"></i>Save Profile</button>
+                  <button id="logoutBtn" class="w-full rounded border border-red-500/50 px-3 py-2 text-[11px] uppercase tracking-[0.14em] text-red-300 hover:bg-red-500/10"><i class="fa-solid fa-right-from-bracket mr-1"></i>Log out</button>
+                  <p id="profileStatus" class="hidden text-center text-xs"></p>
+                </div>
+
+                <!-- Security Center (inside Account Settings) -->
+                <div class="dash-card rounded-xl p-5 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400"><i class="fa-solid fa-shield-halved mr-1 text-green-400"></i>Security Center</p>
+                    <span class="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-green-300">Protected</span>
+                  </div>
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <label class="rounded border border-white/10 bg-black/20 px-3 py-2 text-xs flex items-center justify-between">
+                      <span>Two-Factor Authentication (2FA)</span>
+                      <input id="security2fa" type="checkbox" class="h-4 w-4">
+                    </label>
+                    <label class="rounded border border-white/10 bg-black/20 px-3 py-2 text-xs flex items-center justify-between">
+                      <span>Email Alerts</span>
+                      <input id="securityEmailAlerts" type="checkbox" class="h-4 w-4" checked>
+                    </label>
+                    <label class="rounded border border-white/10 bg-black/20 px-3 py-2 text-xs flex items-center justify-between">
+                      <span>SMS Alerts</span>
+                      <input id="securitySmsAlerts" type="checkbox" class="h-4 w-4">
+                    </label>
+                    <label class="rounded border border-white/10 bg-black/20 px-3 py-2 text-xs flex items-center justify-between">
+                      <span>Telegram Alerts</span>
+                      <input id="securityTelegramAlerts" type="checkbox" class="h-4 w-4" checked>
+                    </label>
+                  </div>
+                  <div class="rounded border border-white/10 bg-black/20 p-4 space-y-3">
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Change Password</p>
+                    <div class="grid gap-3 md:grid-cols-3">
+                      <input id="securityCurrentPassword" type="password" maxlength="72" placeholder="Current password" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                      <input id="securityNewPassword" type="password" maxlength="72" placeholder="New password" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                      <input id="securityConfirmPassword" type="password" maxlength="72" placeholder="Confirm new password" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    </div>
+                    <button id="securityChangePasswordBtn" class="rounded border border-[#3a3a3a] px-4 py-2 text-[11px] uppercase tracking-[0.12em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]"><i class="fa-solid fa-key mr-1"></i>Update Password</button>
+                  </div>
+                  <div class="rounded border border-white/10 bg-black/20 p-4 space-y-2">
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Active Sessions</p>
+                    <div id="securitySessions" class="space-y-2 text-xs text-gray-300"></div>
+                  </div>
+                  <p id="securityStatus" class="hidden text-center text-xs"></p>
+                </div>
+
+                <!-- Appearance (inside Account Settings) -->
+                <div class="dash-card rounded-xl p-5 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400"><i class="fa-solid fa-palette mr-1 text-purple-400"></i>Appearance</p>
+                  </div>
+                  <label class="rounded border border-white/10 bg-black/20 px-4 py-3 flex items-center justify-between cursor-pointer">
+                    <span class="flex items-center gap-2 text-sm text-white"><i class="fa-solid fa-circle-half-stroke text-[var(--dash-accent)]"></i> Dark Mode</span>
+                    <button id="themeToggleBtn" type="button" class="relative w-11 h-6 rounded-full border border-white/20 bg-[var(--dash-accent)]/20 transition-colors focus:outline-none" aria-label="Toggle theme">
+                      <span id="themeToggleDot" class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--dash-accent)] shadow transition-transform"></span>
+                    </button>
+                  </label>
+                  <p class="text-[10px] text-gray-500">Switch between dark and light interface modes.</p>
+                </div>
+              </div>
+
+              <!-- ═══ Broker Signup Section (hidden by default) ═══ -->
+              <div id="profileBrokerSection" class="profile-section hidden">
+                <div class="dash-card rounded-xl p-5 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <button class="profile-back-btn rounded-full border border-white/10 h-8 w-8 flex items-center justify-center text-gray-400 hover:bg-white/5 hover:text-white"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+                      <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Broker Signup Verification</p>
+                    </div>
+                  </div>
+                  <p class="text-xs text-gray-400">Complete broker signup once. Free access link requests are accepted only after successful broker signup and User ID verification.</p>
+                  <a href="https://one.exnessonelink.com/a/aczb4cfol7" target="_blank" rel="noopener noreferrer" class="block w-full rounded border border-[#3a3a3a] py-2 text-center text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>Open Official Broker Partnership Link</a>
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Broker Name</p>
+                      <input id="brokerName" type="text" maxlength="80" placeholder="e.g. Exness" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                      <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Broker Account ID</p>
                       <p class="text-[10px] text-gray-600 mt-1">Get this from Exness after signing up — it becomes your permanent AL-MUDIR Client ID.</p>
                       <input id="brokerAccountId" type="text" maxlength="60" placeholder="e.g. 12345678 (from Exness)" class="mt-2 w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    </div>
                   </div>
+                  <button id="completeBrokerSignupBtn" class="w-full rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]"><i class="fa-solid fa-check mr-1"></i>Complete Broker Signup</button>
+                  <p id="brokerSignupStatus" class="hidden text-center text-xs"></p>
                 </div>
-                <button id="completeBrokerSignupBtn" class="w-full rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Complete Broker Signup</button>
-                <p id="brokerSignupStatus" class="hidden text-center text-xs"></p>
               </div>
+
+              <!-- ═══ Signals Section (hidden by default) ═══ -->
+              <div id="profileSignalsSection" class="profile-section hidden">
+                <div class="dash-card rounded-xl p-5">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <button class="profile-back-btn rounded-full border border-white/10 h-8 w-8 flex items-center justify-center text-gray-400 hover:bg-white/5 hover:text-white"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+                      <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Institutional Signals</p>
+                    </div>
+                    <span class="text-[10px] uppercase tracking-[0.14em] text-[var(--dash-accent)]">SMC / ICT Engine</span>
+                  </div>
+                  <div id="dashboardSignalsGrid" class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3"></div>
+                </div>
+              </div>
+
+              <!-- ═══ KYC Section (hidden by default) ═══ -->
+              <div id="profileKycSection" class="profile-section hidden">
 
               <!-- Identity Verification (KYC) -->
               <div class="dash-card rounded-xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
-                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Identity Verification</p>
+                  <div class="flex items-center gap-2">
+                    <button class="profile-back-btn rounded-full border border-white/10 h-8 w-8 flex items-center justify-center text-gray-400 hover:bg-white/5 hover:text-white"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+                    <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Identity Verification</p>
+                  </div>
                   <span id="kycBadge" class="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.12em] font-semibold text-red-400">Unverified</span>
                 </div>
                 <p class="text-xs text-gray-400">Complete KYC verification to unlock higher funding limits and full trading access. Provide valid government-issued identity documents and proof of residence. All data is encrypted and stored securely.</p>
@@ -1920,71 +2033,8 @@
                   <p class="text-xs text-gray-400">Your account is fully verified and all features are unlocked.</p>
                 </div>
               </div>
+              </div><!-- end profileKycSection -->
 
-              <!-- Signals (inside profile) -->
-              <div class="dash-card rounded-xl p-5">
-                <div class="flex items-center justify-between">
-                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Institutional Signals</p>
-                  <span class="text-[10px] uppercase tracking-[0.14em] text-[var(--dash-accent)]">SMC / ICT Engine</span>
-                </div>
-                <div id="dashboardSignalsGrid" class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3"></div>
-              </div>
-
-              <!-- Security (inside profile) -->
-              <div class="dash-card rounded-xl p-5 space-y-4">
-                <div class="flex items-center justify-between">
-                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Security Center</p>
-                  <span class="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-green-300">Protected</span>
-                </div>
-                <div class="grid gap-3 md:grid-cols-2">
-                  <label class="rounded border border-white/10 bg-black/20 px-3 py-2 text-xs flex items-center justify-between">
-                    <span>Two-Factor Authentication (2FA)</span>
-                    <input id="security2fa" type="checkbox" class="h-4 w-4">
-                  </label>
-                  <label class="rounded border border-white/10 bg-black/20 px-3 py-2 text-xs flex items-center justify-between">
-                    <span>Email Alerts</span>
-                    <input id="securityEmailAlerts" type="checkbox" class="h-4 w-4" checked>
-                  </label>
-                  <label class="rounded border border-white/10 bg-black/20 px-3 py-2 text-xs flex items-center justify-between">
-                    <span>SMS Alerts</span>
-                    <input id="securitySmsAlerts" type="checkbox" class="h-4 w-4">
-                  </label>
-                  <label class="rounded border border-white/10 bg-black/20 px-3 py-2 text-xs flex items-center justify-between">
-                    <span>Telegram Alerts</span>
-                    <input id="securityTelegramAlerts" type="checkbox" class="h-4 w-4" checked>
-                  </label>
-                </div>
-
-                <div class="rounded border border-white/10 bg-black/20 p-4 space-y-3">
-                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Change Password</p>
-                  <div class="grid gap-3 md:grid-cols-3">
-                    <input id="securityCurrentPassword" type="password" maxlength="72" placeholder="Current password" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
-                    <input id="securityNewPassword" type="password" maxlength="72" placeholder="New password" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
-                    <input id="securityConfirmPassword" type="password" maxlength="72" placeholder="Confirm new password" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
-                  </div>
-                  <button id="securityChangePasswordBtn" class="rounded border border-[#3a3a3a] px-4 py-2 text-[11px] uppercase tracking-[0.12em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Update Password</button>
-                </div>
-
-                <div class="rounded border border-white/10 bg-black/20 p-4 space-y-2">
-                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Active Sessions</p>
-                  <div id="securitySessions" class="space-y-2 text-xs text-gray-300"></div>
-                </div>
-                <p id="securityStatus" class="hidden text-center text-xs"></p>
-              </div>
-
-              <!-- Appearance (inside profile) -->
-              <div class="dash-card rounded-xl p-5 space-y-4">
-                <div class="flex items-center justify-between">
-                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Appearance</p>
-                </div>
-                <label class="rounded border border-white/10 bg-black/20 px-4 py-3 flex items-center justify-between cursor-pointer">
-                  <span class="flex items-center gap-2 text-sm text-white"><i class="fa-solid fa-circle-half-stroke text-[var(--dash-accent)]"></i> Dark Mode</span>
-                  <button id="themeToggleBtn" type="button" class="relative w-11 h-6 rounded-full border border-white/20 bg-[var(--dash-accent)]/20 transition-colors focus:outline-none" aria-label="Toggle theme">
-                    <span id="themeToggleDot" class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--dash-accent)] shadow transition-transform"></span>
-                  </button>
-                </label>
-                <p class="text-[10px] text-gray-500">Switch between dark and light interface modes.</p>
-              </div>
             </section>
           </main>
         </div>
@@ -3430,12 +3480,45 @@
         loadBotStatus();
         loadSystemWallet({ background: true });
       }
-      if (panel === 'profile') updateProfileClientInfo();
       if (panel === 'profile') {
-        renderSignalCards(dashboardSignalsGrid);
+        updateProfileClientInfo();
+        closeProfileSections(); // reset to menu view
         renderSecuritySessions();
       }
     }
+
+    // ── Profile service menu navigation ──
+    function closeProfileSections() {
+      document.querySelectorAll('.profile-section').forEach(function(s) { s.classList.add('hidden'); });
+    }
+
+    function openProfileSection(sectionId) {
+      closeProfileSections();
+      var section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.remove('hidden');
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      if (sectionId === 'profileSignalsSection') {
+        renderSignalCards(dashboardSignalsGrid);
+      }
+      if (sectionId === 'profileSettingsSection') {
+        renderSecuritySessions();
+      }
+    }
+
+    document.querySelectorAll('.profile-menu-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var target = btn.dataset.profileSection;
+        if (target) openProfileSection(target);
+      });
+    });
+
+    document.querySelectorAll('.profile-back-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        closeProfileSections();
+      });
+    });
 
     // Alias for inline onclick references
     function switchPanel(p) { switchDashboardPanel(p); }
