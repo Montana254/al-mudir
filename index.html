@@ -721,9 +721,6 @@
             <div id="notifList" class="space-y-2"></div>
           </div>
         </div>
-        <button id="themeToggleBtn" type="button" class="icon-chip" aria-label="Toggle theme">
-          <i class="fa-solid fa-circle-half-stroke"></i>
-        </button>
         <a href="#portalAuth" class="btn-outline rounded px-5 py-2 text-[11px] uppercase tracking-[0.18em]">Access Portal</a>
       </div>
     </div>
@@ -1979,6 +1976,20 @@
                 </div>
                 <p id="securityStatus" class="hidden text-center text-xs"></p>
               </div>
+
+              <!-- Appearance (inside profile) -->
+              <div class="dash-card rounded-xl p-5 space-y-4">
+                <div class="flex items-center justify-between">
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Appearance</p>
+                </div>
+                <label class="rounded border border-white/10 bg-black/20 px-4 py-3 flex items-center justify-between cursor-pointer">
+                  <span class="flex items-center gap-2 text-sm text-white"><i class="fa-solid fa-circle-half-stroke text-[var(--dash-accent)]"></i> Dark Mode</span>
+                  <button id="themeToggleBtn" type="button" class="relative w-11 h-6 rounded-full border border-white/20 bg-[var(--dash-accent)]/20 transition-colors focus:outline-none" aria-label="Toggle theme">
+                    <span id="themeToggleDot" class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--dash-accent)] shadow transition-transform"></span>
+                  </button>
+                </label>
+                <p class="text-[10px] text-gray-500">Switch between dark and light interface modes.</p>
+              </div>
             </section>
           </main>
         </div>
@@ -2443,10 +2454,9 @@
       const next = theme === 'light' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
       try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
-      if (themeToggleBtn) {
-        themeToggleBtn.innerHTML = next === 'light'
-          ? '<i class="fa-solid fa-moon"></i>'
-          : '<i class="fa-solid fa-circle-half-stroke"></i>';
+      var dot = document.getElementById('themeToggleDot');
+      if (dot) {
+        dot.style.transform = next === 'light' ? 'translateX(1.25rem)' : 'translateX(0)';
       }
       if (publicChartInitialized) initPublicChart();
       initDashboardChart();

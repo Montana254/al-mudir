@@ -1258,15 +1258,20 @@ module.exports = withDb(async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'already_active', detail: 'Trading bot is already activated on this account.' });
     }
 
-    // Deduct $399 from USDT balance
+    // Deduct from balance or accept external payment
     const balances = await getWalletBalances(email);
-    const usdBal = balances['USDT'] || 0;
-    if (usdBal < BOT_PRICE_USD) {
-      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + BOT_PRICE_USD + ' USDT but have $' + usdBal.toFixed(2) + '. Fund your account first.' });
+    const isExternalGateway = gateway === 'visa' || gateway === 'mastercard' || gateway === 'apple';
+    if (isExternalGateway) {
+      // External card/Apple Pay — payment collected externally, no balance deduction
+    } else {
+      // Crypto — deduct from USDT balance
+      const usdBal = balances['USDT'] || 0;
+      if (usdBal < BOT_PRICE_USD) {
+        return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + BOT_PRICE_USD + ' USDT but have $' + usdBal.toFixed(2) + '. Fund your account first.' });
+      }
+      balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
+      await setWalletBalances(email, balances);
     }
-
-    balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
-    await setWalletBalances(email, balances);
 
     // Collect entire purchase as system revenue
     await addSystemFee('USDT', BOT_PRICE_USD);
