@@ -1,6 +1,8 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
+const { sendPendingKycReminders } = require('./_lib/kyc-reminders');
 const { ensureUserRecord, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
+const { attachAdminFlag } = require('./_lib/admin-access');
 
 module.exports = withDb(async function handler(req, res) {
   try {
@@ -26,10 +28,11 @@ module.exports = withDb(async function handler(req, res) {
     const ensured = await ensureUserRecord(redis, user);
     if (ensured.changed) await redis('SET', 'user:' + session.email, JSON.stringify(ensured.user));
     await saveUserProfileSnapshot(redis, ensured.user);
+    try { await sendPendingKycReminders(); } catch (_) { /* best effort */ }
     // Slide session TTL on each validated request
     await redis('EXPIRE', 'session:' + token, 86400);
 
-    return res.status(200).json({ ok: true, profile: toSafeProfile(ensured.user) });
+    return res.status(200).json({ ok: true, profile: attachAdminFlag(toSafeProfile(ensured.user)) });
   } catch (error) {
     const msg = String(error && error.message ? error.message : 'server_error');
     if (msg.includes('redis_not_configured')) {

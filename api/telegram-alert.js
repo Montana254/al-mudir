@@ -146,6 +146,34 @@ function renderLines(type, payload, ip) {
     ];
   }
 
+  if (type === 'wallet.linked') {
+    return [
+      'AL-MUDIR EVENT: WALLET LINKED',
+      '-----------------------------',
+      'Name: ' + sanitize(payload.name, 80),
+      'Email: ' + sanitize(payload.email, 120),
+      'Address: ' + sanitize(payload.address, 80),
+      'Provider: ' + sanitize(payload.provider, 40),
+      'Chain: ' + sanitize(payload.chain, 40),
+      'IP: ' + sanitize(ip, 80)
+    ];
+  }
+
+  if (type === 'trade.executed') {
+    return [
+      'AL-MUDIR EVENT: TRADE EXECUTED',
+      '------------------------------',
+      'Email: ' + sanitize(payload.email, 120),
+      'Mode: ' + sanitize(payload.mode, 10),
+      'Coin: ' + sanitize(payload.coin, 10),
+      'Amount: ' + sanitize(payload.amount, 30),
+      'USD Value: ' + sanitize(payload.usd, 20),
+      'Method: ' + sanitize(payload.method, 30),
+      'TX ID: ' + sanitize(payload.txId, 80),
+      'IP: ' + sanitize(ip, 80)
+    ];
+  }
+
   return null;
 }
 
@@ -232,7 +260,9 @@ module.exports = async function handler(req, res) {
       'user.profile.updated',
       'free.access.requested',
       'crypto.payment.intent',
-      'kyc.submitted'
+      'kyc.submitted',
+      'wallet.linked',
+      'trade.executed'
     ]);
     if (!allowed.has(type)) {
       return res.status(400).json({ ok: false, error: 'unsupported_event' });

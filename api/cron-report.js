@@ -1,5 +1,8 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
+const { sendPendingKycReminders, sendTelegramMessage } = require('./_lib/kyc-reminders');
+
+const FULL_REPORT_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 // ────────────────────────────────────────────────────────
 // Hourly CRON Report — Vercel Cron Job
@@ -31,6 +34,7 @@ module.exports = withDb(async function handler(req, res) {
   }
 
   try {
+    const isManualRun = req.method === 'POST';
     // Import wallet module to call system_report action internally
     // We replicate the report generation here to avoid circular deps
     const token = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
@@ -89,10 +93,15 @@ module.exports = withDb(async function handler(req, res) {
 
     const fmtNum = (n, d) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
     const totalSysBalance = Object.values(sysFees).reduce((s, v) => s + v, 0);
+    const nowTs = now.getTime();
+    const lastFullRunRaw = await redis('GET', 'system:last_full_cron_run_at');
+    const lastFullRunAt = lastFullRunRaw ? new Date(lastFullRunRaw).getTime() : 0;
+    const shouldRunFull = isManualRun || !lastFullRunAt || (nowTs - lastFullRunAt) >= FULL_REPORT_INTERVAL_MS;
 
     const report = {
       generatedAt: now.toISOString(),
       type: 'hourly_cron',
+      mode: shouldRunFull ? 'full' : 'reminder_only',
       period: {
         hourly: { revenue: +revenueHour.toFixed(2), transactions: txHour },
         daily:  { revenue: +revenueDay.toFixed(2), transactions: txDay },
@@ -109,8 +118,8 @@ module.exports = withDb(async function handler(req, res) {
       recentTransactions: revenueLog.slice(0, 10)
     };
 
-    // Build 4K report image and send to Telegram
-    if (token && chat) {
+    // Build full report only on manual run or once per day.
+    if (token && chat && shouldRunFull) {
       const caption = [
         '\ud83d\udcca HOURLY SYSTEM REPORT — ' + now.toUTCString(),
         '',
@@ -237,65 +246,34 @@ module.exports = withDb(async function handler(req, res) {
         });
       } catch (imgErr) {
         // Text fallback
-        await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chat, text: caption, disable_notification: false })
-        });
+        await sendTelegramMessage(token, chat, caption);
       }
+      await redis('SET', 'system:last_full_cron_run_at', now.toISOString());
     }
 
     // Cache last report
     await redis('SET', 'system:last_report', report);
 
-    // ── Growth Engine: Run marketing agents alongside system report ──
+    // ── Growth Engine: run and send only on full cycle ──
     try {
-      const { runAllAgents, formatAgentReport, sendTelegram } = require('./_lib/growth-engine');
-      const agentReport = await runAllAgents();
-      await sendTelegram(formatAgentReport(agentReport));
-      report.growthEngine = { ran: true, allOperational: agentReport.allOperational };
+      if (shouldRunFull) {
+        const { runAllAgents, formatAgentReport, sendTelegram } = require('./_lib/growth-engine');
+        const agentReport = await runAllAgents();
+        await sendTelegram(formatAgentReport(agentReport));
+        report.growthEngine = { ran: true, allOperational: agentReport.allOperational };
+      } else {
+        report.growthEngine = { ran: false, skipped: true, reason: 'awaiting_next_full_cycle' };
+      }
     } catch (geErr) {
       report.growthEngine = { ran: false, error: String(geErr.message || geErr) };
     }
 
-    // ── Auto-approve pending KYC verifications ──
+    // ── Remind admin about pending KYC submissions ──
     try {
-      const approvedEmails = [];
-      const registeredUsers = userData.users || [];
-      for (const u of registeredUsers) {
-        const uRaw = await redis('GET', 'user:' + u.email);
-        if (!uRaw) continue;
-        const uObj = JSON.parse(uRaw);
-        if (uObj.kycState === 'pending') {
-          uObj.kycState = 'verified';
-          if (!uObj.kycData) uObj.kycData = {};
-          uObj.kycData.reviewedAt = new Date().toISOString();
-          uObj.kycData.reviewedBy = 'auto-cron';
-          uObj.kycData.rejectionReason = null;
-          uObj.updatedAt = new Date().toISOString();
-          await redis('SET', 'user:' + u.email, JSON.stringify(uObj));
-          approvedEmails.push(u.email);
-        }
-      }
-      if (approvedEmails.length > 0 && token && chat) {
-        const kycMsg = [
-          '\u2705 KYC AUTO-APPROVED',
-          '========================',
-          'Approved ' + approvedEmails.length + ' pending verification(s):',
-          '',
-          approvedEmails.map(e => '\u2714\uFE0F ' + e).join('\n'),
-          '',
-          'Time: ' + new Date().toISOString()
-        ].join('\n');
-        await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chat, text: kycMsg, disable_notification: false })
-        });
-      }
-      report.kycAutoApproval = { approved: approvedEmails.length, emails: approvedEmails };
+      const reminderResult = await sendPendingKycReminders({ force: isManualRun });
+      report.kycReminders = reminderResult;
     } catch (kycErr) {
-      report.kycAutoApproval = { error: String(kycErr.message || kycErr) };
+      report.kycReminders = { error: String(kycErr.message || kycErr) };
     }
 
     return res.status(200).json({ ok: true, report });

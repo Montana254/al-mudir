@@ -131,7 +131,7 @@ SECTION 8: GATEWAY HEALTH
   Apple Pay:                [status]
   Visa 3D Secure:           [status]
   Mastercard 3D Secure:     [status]
-  Telegram Wallet:          [status]
+  Trust Wallet:             [status]
   Price Feed:               [status]
   Database:                 [status]
   Treasury:                 [status]

@@ -2,6 +2,7 @@
 const { redis, withDb } = require('./_lib/redis');
 const { sanitize, hashPassword, verifyPassword } = require('./_lib/auth-utils');
 const { ensureUserRecord, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
+const { attachAdminFlag } = require('./_lib/admin-access');
 
 async function resolveSession(req) {
   const auth = req.headers['authorization'] || '';
@@ -31,7 +32,7 @@ module.exports = withDb(async function handler(req, res) {
     if (ensured.changed) await redis('SET', 'user:' + user.email, JSON.stringify(user));
 
     if (req.method === 'GET') {
-      return res.status(200).json({ ok: true, profile: toSafeProfile(user) });
+      return res.status(200).json({ ok: true, profile: attachAdminFlag(toSafeProfile(user)) });
     }
 
     // PUT / POST — update profile fields
@@ -151,7 +152,7 @@ module.exports = withDb(async function handler(req, res) {
     await saveUserProfileSnapshot(redis, user);
     await redis('EXPIRE', 'session:' + token, 86400);
 
-    return res.status(200).json({ ok: true, profile: toSafeProfile(user) });
+    return res.status(200).json({ ok: true, profile: attachAdminFlag(toSafeProfile(user)) });
   } catch (error) {
     const msg = String(error && error.message ? error.message : 'server_error');
     if (msg.includes('redis_not_configured')) {

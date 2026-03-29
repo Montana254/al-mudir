@@ -49,7 +49,11 @@ module.exports = withDb(async function handler(req, res) {
     await saveUserProfileSnapshot(redis, ensured.user);
 
     if (!ensured.user.verified) {
-      const delivery = getOtpDeliveryPreview(ensured.user);
+      // Send a fresh OTP so the user is never told "expired"
+      const otp = generateOtp();
+      await redis('SET', 'otp:' + email, JSON.stringify({ code: otp, exp: Date.now() + 10 * 60 * 1000, purpose: 'signup' }));
+      await redis('EXPIRE', 'otp:' + email, 600);
+      const delivery = await sendOtpCode({ email, phone: ensured.user.phone, otp, name: ensured.user.name, preferredChannel: ensured.user.otpChannel || 'email' });
       return res.status(403).json({ ok: false, error: 'account_not_verified', requiresVerification: true, email, verificationMethod: delivery.method, deliveryTarget: delivery.target });
     }
 

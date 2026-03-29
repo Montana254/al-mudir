@@ -56,6 +56,7 @@ async function run() {
   const mockTW2 = { isTrustWallet: true };
   const mockCB  = { isCoinbaseWallet: true };
   const mockBN  = { isBinance: true };
+  const mockGeneric = { request: async () => null, on: () => {} };
 
   assert('auto matches anything',                mgr.matchProvider('auto', mockMM));
   assert('metamask matches MetaMask',            mgr.matchProvider('metamask', mockMM));
@@ -64,7 +65,7 @@ async function run() {
   assert('trustwallet matches isTrustWallet',    mgr.matchProvider('trustwallet', mockTW2));
   assert('coinbase matches isCoinbaseWallet',    mgr.matchProvider('coinbase', mockCB));
   assert('binance matches isBinance',            mgr.matchProvider('binance', mockBN));
-  assert('unknown type = true (passthrough)',    mgr.matchProvider('unknown_ext', mockMM));
+  assert('unknown type matches generic provider', mgr.matchProvider('unknown_ext', mockGeneric));
 
   // ── 4. detectProviderName ─────────────────────────────────────────────────
   console.log('\n4. detectProviderName');
@@ -149,7 +150,7 @@ async function run() {
   }
   if (!emptyErr) assert('rejects when wallet returns no accounts', false);
 
-  // Unsupported chain (Polygon = 0x89 = 137)
+  // Additional supported chain (Polygon = 0x89 = 137)
   const polygonProvider = {
     isMetaMask: true,
     request: async (args) => {
@@ -160,12 +161,9 @@ async function run() {
   };
   global.window.ethereum = polygonProvider;
   const mgr4 = new CryptoPaymentManager();
-  let chainErr = false;
-  try { await mgr4.connectWallet('auto'); } catch (e) {
-    chainErr = true;
-    assert('rejects unsupported chain (Polygon)', e.message.includes('Unsupported network'));
-  }
-  if (!chainErr) assert('rejects unsupported chain (Polygon)', false);
+  const polygonWallet = await mgr4.connectWallet('auto');
+  assert('accepts supported chain (Polygon)', polygonWallet.chain === 137);
+  assert('reports Polygon chain name', polygonWallet.chainName === 'Polygon');
 
   // ── 8. Currency conversion (fallback rates — fetch is mocked to fail) ──────
   console.log('\n8. Currency conversion (offline fallback)');
@@ -227,6 +225,22 @@ async function run() {
     assert('rejects duplicate payment in-progress', e.message.includes('already in progress'));
   }
   if (!inProgressErr) assert('rejects duplicate payment in-progress', false);
+
+  // Direct token payment uses token transfer path
+  const mgr7b = new CryptoPaymentManager();
+  mgr7b.walletConnected = true;
+  mgr7b.userAccount = '0x1111111111111111111111111111111111111111';
+  mgr7b.chainId = 1;
+  mgr7b.web3Instance = {
+    request: async (args) => {
+      if (args.method === 'eth_gasPrice') return '0x3b9aca00';
+      if (args.method === 'eth_sendTransaction') return '0xtokenhash';
+      return null;
+    }
+  };
+  const tokenPayment = await mgr7b.processPayment({ amount: 25, currency: 'USDT' });
+  assert('routes USDT payments through token transfer path', tokenPayment.transactionHash === '0xtokenhash');
+  assert('token payment keeps connected chain', tokenPayment.chainId === 1);
 
   // ── 10. toWei conversion ──────────────────────────────────────────────────
   console.log('\n10. toWei conversion');

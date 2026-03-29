@@ -664,6 +664,7 @@
     }
 
     .hidden { display: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
     input::placeholder, textarea::placeholder { color: #77837d; font-size: 0.8rem; letter-spacing: 0.1em; }
     input, textarea, select { color: var(--text); }
 
@@ -710,18 +711,47 @@
 
     /* Smooth momentum scrolling on iOS */
     * { -webkit-overflow-scrolling: touch; }
+
+    /* Modern transition defaults for interactive elements */
+    .dash-card {
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .dash-card:hover {
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Smooth panel transitions */
+    .dashboard-panel {
+      animation: panelFadeIn 0.25s ease-out;
+    }
+    @keyframes panelFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Owner panel crown accent */
+    #panelOwner .dash-card {
+      border-color: rgba(212, 175, 55, 0.15);
+    }
+
+    /* Better scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
   </style>
 </head>
 <body>
   <nav class="fixed top-0 z-50 w-full border-b border-white/10 bg-black/55 backdrop-blur-sm">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
       <div class="serif text-xl tracking-[0.18em] text-gold-gradient">AL-MUDIR</div>
-      <div class="hidden gap-8 md:flex text-xs uppercase tracking-[0.22em] text-gray-300">
+      <div id="navLandingLinks" class="hidden gap-8 md:flex text-xs uppercase tracking-[0.22em] text-gray-300">
         <a href="#about" class="hover:text-white">About</a>
         <a href="#metrics" class="hover:text-white">Metrics</a>
         <a href="#terminal" class="hover:text-white">Terminal</a>
       </div>
       <div class="top-actions">
+        <a href="#portalAuth" class="btn-outline rounded px-5 py-2 text-[11px] uppercase tracking-[0.18em]">Access Portal</a>
         <div class="relative">
           <button id="notifToggleBtn" type="button" class="icon-chip" aria-label="Notifications">
             <i class="fa-solid fa-bell"></i>
@@ -732,11 +762,11 @@
             <div id="notifList" class="space-y-2"></div>
           </div>
         </div>
-        <a href="#portalAuth" class="btn-outline rounded px-5 py-2 text-[11px] uppercase tracking-[0.18em]">Access Portal</a>
       </div>
     </div>
   </nav>
 
+  <div id="landingContent">
   <section class="ticker-wrap mt-[69px]">
     <div id="tickerLaneTop" class="ticker-lane top"></div>
     <div id="tickerLaneBottom" class="ticker-lane bottom"></div>
@@ -795,14 +825,7 @@
         </div>
       </div>
 
-      <div class="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div class="glass rounded-xl p-4">
-          <div class="flex items-center justify-between">
-            <p class="text-[10px] uppercase tracking-[0.16em] text-gray-500">SMC / ICT Live Setups</p>
-            <span class="text-[10px] uppercase tracking-[0.12em] text-[var(--dash-accent)]">6 Active</span>
-          </div>
-          <div id="landingSignalsGrid" class="mt-3 grid gap-3 sm:grid-cols-2"></div>
-        </div>
+      <div class="mt-6">
         <div class="glass rounded-xl p-4">
           <div class="flex items-center justify-between">
             <p class="text-[10px] uppercase tracking-[0.16em] text-gray-500">Order Book</p>
@@ -822,45 +845,28 @@
       </div>
     </div>
   </section>
+  </div><!-- /landingContent -->
 
   <section id="portal" class="px-6 py-20 border-t border-white/10">
     <div class="mx-auto max-w-6xl space-y-8">
-      <div class="text-center">
-        <h3 class="serif text-3xl text-gold-gradient">Client Access Portal</h3>
-        <p class="mt-3 text-sm text-gray-400">Sign up or log in first. Dashboard features unlock only after authentication.</p>
-      </div>
 
-      <div id="portalAuth" class="rounded-xl border border-gold/25 bg-black/25 px-5 py-4 text-center text-xs uppercase tracking-[0.18em] text-gray-300">
-        Existing users log in. New users sign up and verify with OTP.
-      </div>
+      <div id="portalAuth" class="sr-only">Portal</div>
 
-      <div id="welcomeGate" class="welcome-stage rounded-2xl p-6 sm:p-8">
-        <div class="grid gap-8 lg:grid-cols-[1.25fr_0.9fr] lg:items-center">
-          <div>
-            <p class="text-xs uppercase tracking-[0.32em] text-gray-500">Welcome Step</p>
-            <h4 class="serif mt-4 text-3xl leading-tight text-gold-gradient sm:text-4xl">Private Client Access Begins Here</h4>
-            <p class="mt-4 max-w-2xl text-sm leading-7 text-gray-300">AL-MUDIR opens with a welcome layer first. Only verified signups and authenticated logins can move into the protected client dashboard. Each account receives a unique AL-MUDIR system ID on signup, with credentials and records secured in Telegram-backed encrypted storage.</p>
-            <div class="mt-6 flex flex-col gap-3 sm:flex-row">
-              <button id="enterSignupBtn" type="button" class="btn-gold rounded px-6 py-3 text-xs">Create New Account</button>
-              <button id="enterLoginBtn" type="button" class="btn-outline rounded px-6 py-3 text-xs">Login To Dashboard</button>
-            </div>
+      <div id="welcomeGate" class="welcome-stage rounded-2xl p-8 sm:p-12">
+        <div class="mx-auto max-w-lg text-center">
+          <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[var(--dash-accent)]/30 bg-[var(--dash-accent)]/10">
+            <i class="fa-solid fa-vault text-2xl text-[var(--dash-accent)]"></i>
           </div>
-          <div class="rounded-2xl border border-white/10 bg-black/20 p-5 text-sm text-gray-300">
-            <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Access Protocol</p>
-            <div class="mt-4 space-y-3">
-              <div class="rounded-xl border border-white/10 bg-black/20 p-4">
-                <p class="text-[11px] uppercase tracking-[0.16em] text-gray-500">Step 1</p>
-                <p class="mt-1 text-white">Welcome and choose sign up or login.</p>
-              </div>
-              <div class="rounded-xl border border-white/10 bg-black/20 p-4">
-                <p class="text-[11px] uppercase tracking-[0.16em] text-gray-500">Step 2</p>
-                <p class="mt-1 text-white">Receive OTP by email, or by phone when SMS is configured.</p>
-              </div>
-              <div class="rounded-xl border border-white/10 bg-black/20 p-4">
-                <p class="text-[11px] uppercase tracking-[0.16em] text-gray-500">Step 3</p>
-                <p class="mt-1 text-white">Enter the protected dashboard with your AL-MUDIR ID.</p>
-              </div>
-            </div>
+          <h4 class="serif mt-6 text-3xl leading-tight text-gold-gradient sm:text-4xl">Welcome to AL-MUDIR</h4>
+          <p class="mt-4 text-sm leading-7 text-gray-400">Institutional-grade wealth management. Sign in to access your private dashboard or create a new account to get started.</p>
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <button id="enterSignupBtn" type="button" class="btn-gold rounded-lg px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.16em]">Create Account</button>
+            <button id="enterLoginBtn" type="button" class="btn-outline rounded-lg px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.16em]">Sign In</button>
+          </div>
+          <div class="mt-8 flex items-center justify-center gap-6 text-[10px] uppercase tracking-[0.14em] text-gray-600">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-[var(--dash-accent)]/60"></i>OTP Verified</span>
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-lock text-[var(--dash-accent)]/60"></i>Encrypted</span>
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-fingerprint text-[var(--dash-accent)]/60"></i>Secure Access</span>
           </div>
         </div>
       </div>
@@ -1077,6 +1083,7 @@
               <button data-panel="bot" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs"><i class="fa-solid fa-robot mr-1 text-[var(--dash-accent)]"></i>Trading Bot</button>
               <button data-panel="deposit" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Deposit</button>
               <button data-panel="profile" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Profile</button>
+              <button data-panel="owner" id="ownerNavBtn" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs hidden"><i class="fa-solid fa-crown mr-1 text-[var(--dash-accent)]"></i>Owner</button>
             </div>
           </aside>
 
@@ -1126,6 +1133,31 @@
                       <button class="wallet-quick-btn rounded py-2 text-xs">History</button>
                       <button onclick="switchDashboardPanel('profile')" class="wallet-quick-btn rounded py-2 text-xs">Profile</button>
                     </div>
+                  </div>
+
+                  <!-- Connected Wallet Balance (live on-chain) -->
+                  <div id="homeWalletCard" class="dash-card rounded-xl p-5 hidden">
+                    <div class="flex items-center justify-between">
+                      <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Connected Wallet</p>
+                      <span id="homeWalletProvider" class="rounded-full border border-[var(--dash-accent)]/30 bg-[var(--dash-accent)]/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[var(--dash-accent)]">Wallet</span>
+                    </div>
+                    <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                      <div class="rounded border border-white/10 bg-black/20 p-3">
+                        <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Address</p>
+                        <p id="homeWalletAddr" class="mt-1 text-sm font-semibold text-[var(--dash-accent)] truncate">—</p>
+                      </div>
+                      <div class="rounded border border-white/10 bg-black/20 p-3">
+                        <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Network</p>
+                        <p id="homeWalletNetwork" class="mt-1 text-sm font-semibold text-white">—</p>
+                      </div>
+                    </div>
+                    <div class="mt-3 rounded border border-[var(--dash-accent)]/20 bg-[var(--dash-accent)]/5 p-4 text-center">
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Live On-Chain Balance</p>
+                      <p class="mt-1 text-2xl font-semibold text-white"><span id="homeWalletBal">…</span></p>
+                      <p id="homeWalletBalUsd" class="mt-0.5 text-sm text-gray-400"></p>
+                      <p id="homeWalletUpdatedAt" class="mt-1 text-[10px] text-gray-600">Fetching…</p>
+                    </div>
+                    <button onclick="switchDashboardPanel('deposit')" class="mt-3 w-full rounded border border-[var(--dash-accent)]/30 bg-[var(--dash-accent)]/10 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--dash-accent)] hover:bg-[var(--dash-accent)]/20">Manage Wallet</button>
                   </div>
 
                   <div class="dash-card rounded-xl p-5">
@@ -1208,10 +1240,13 @@
                   <div class="dash-card rounded-xl p-4">
                     <div class="flex items-center justify-between gap-2">
                       <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Execution Terminal</p>
-                      <div class="flex items-center gap-1">
+                      <div class="flex items-center gap-1 flex-wrap">
                         <button data-chart-symbol="OANDA:XAUUSD" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">XAUUSD</button>
                         <button data-chart-symbol="BINANCE:BTCUSDT" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">BTCUSDT</button>
                         <button data-chart-symbol="BINANCE:ETHUSDT" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">ETHUSDT</button>
+                        <button data-chart-symbol="BINANCE:SOLUSDT" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">SOLUSDT</button>
+                        <button data-chart-symbol="BINANCE:BNBUSDT" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">BNBUSDT</button>
+                        <button data-chart-symbol="FX:EURUSD" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">EURUSD</button>
                       </div>
                     </div>
                     <div class="mt-2 flex items-center gap-1">
@@ -1220,8 +1255,13 @@
                       <button data-chart-interval="15" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">15m</button>
                       <button data-chart-interval="60" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">1h</button>
                       <button data-chart-interval="240" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">4h</button>
+                      <button data-chart-interval="D" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">1D</button>
                     </div>
-                    <div class="mt-3 rounded border border-white/10 p-2" style="height:280px;">
+                    <div id="marketStatusBadge" class="mt-2 flex items-center gap-2">
+                      <span id="marketStatusDot" class="inline-block h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
+                      <span id="marketStatusText" class="text-[10px] uppercase tracking-[0.12em] text-green-400">Market Open</span>
+                    </div>
+                    <div class="mt-2 rounded border border-white/10 p-1" style="height:380px;">
                       <div id="tradingview_dashboard_xau" style="height:100%;width:100%;"></div>
                     </div>
                   </div>
@@ -1313,6 +1353,22 @@
                   <p id="tradeFeeAmount" class="hidden">$0.00</p>
                 </div>
 
+                <!-- Payment method selector for trade -->
+                <div>
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Payment Method</p>
+                  <div class="relative">
+                    <button id="tradePayMethodToggle" type="button" class="w-full flex items-center justify-between rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:border-[var(--dash-accent)]">
+                      <span id="tradePayMethodLabel"><i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet</span>
+                      <i class="fa-solid fa-chevron-down text-[8px] text-gray-500"></i>
+                    </button>
+                    <div id="tradePayMethodDropdown" class="hidden absolute z-20 mt-1 w-full rounded border border-[#2f3741] bg-[#0f1317] shadow-xl overflow-hidden">
+                      <button data-trade-pay="crypto" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] bg-[var(--dash-accent)]/10 font-semibold hover:bg-[var(--dash-accent)]/20 border-b border-white/5"><i class="fa-brands fa-bitcoin mr-2"></i>Crypto Wallet</button>
+                      <button data-trade-pay="usdt_wallet" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-solid fa-wallet mr-2"></i>USDT / USDC Wallet</button>
+                      <button data-trade-pay="trust_wallet" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5"><i class="fa-solid fa-shield-halved mr-2"></i>Trust Wallet</button>
+                    </div>
+                  </div>
+                </div>
+
                 <button id="executeTradeBtn" class="w-full rounded bg-green-500 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">Buy BTC</button>
                 <p id="tradeStatus" class="hidden text-center text-xs"></p>
               </div>
@@ -1341,24 +1397,15 @@
                 <!-- Payment method selector -->
                 <div class="space-y-2">
                   <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Payment Method</p>
-                  <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    <button data-pay-method="crypto" class="pay-method-btn active rounded border border-[var(--dash-accent)]/50 bg-[var(--dash-accent)]/10 py-2 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] font-semibold"><i class="fa-brands fa-bitcoin mr-1"></i>Crypto</button>
-                    <button data-pay-method="apple" class="pay-method-btn rounded border border-white/10 py-2 text-[10px] uppercase tracking-[0.1em] text-gray-400 hover:border-white/30"><i class="fa-brands fa-apple mr-1"></i>Apple Pay</button>
-                    <button data-pay-method="visa" class="pay-method-btn rounded border border-white/10 py-2 text-[10px] uppercase tracking-[0.1em] text-gray-400 hover:border-white/30"><i class="fa-brands fa-cc-visa mr-1"></i>Visa</button>
-                    <button data-pay-method="mastercard" class="pay-method-btn rounded border border-white/10 py-2 text-[10px] uppercase tracking-[0.1em] text-gray-400 hover:border-white/30"><i class="fa-brands fa-cc-mastercard mr-1"></i>MC</button>
-                  </div>
-                  <!-- Card input (hidden unless Visa/MC selected) -->
-                  <div id="cardInputArea" class="hidden space-y-2 rounded border border-white/10 bg-black/20 p-3">
-                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Card Details</p>
-                    <input id="cardNumber" type="text" maxlength="19" inputmode="numeric" placeholder="1234 5678 9012 3456" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm font-mono" autocomplete="cc-number">
-                    <div class="grid grid-cols-2 gap-2">
-                      <input id="cardExpiry" type="text" maxlength="5" inputmode="numeric" placeholder="MM/YY" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm font-mono" autocomplete="cc-exp">
-                      <input id="cardCvc" type="text" maxlength="4" inputmode="numeric" placeholder="CVC" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm font-mono" autocomplete="cc-csc">
-                    </div>
-                    <input id="cardHolder" type="text" maxlength="60" placeholder="Cardholder name" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm" autocomplete="cc-name">
-                    <div class="flex items-center gap-2 text-[10px] text-gray-500">
-                      <i class="fa-solid fa-lock text-[var(--dash-accent)]"></i>
-                      <span>256-bit SSL · PCI DSS compliant · 3D Secure verified</span>
+                  <div class="relative">
+                    <button id="payMethodToggle" class="w-full flex items-center justify-between rounded border border-[var(--dash-accent)]/50 bg-[var(--dash-accent)]/10 px-3 py-2.5 text-[11px] uppercase tracking-[0.1em] text-[var(--dash-accent)] font-semibold hover:bg-[var(--dash-accent)]/20">
+                      <span id="payMethodLabel"><i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet</span>
+                      <i class="fa-solid fa-chevron-down text-[10px] ml-2"></i>
+                    </button>
+                    <div id="payMethodDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 rounded border border-white/15 bg-[#0e1114] shadow-xl overflow-hidden">
+                      <button data-pay-method="crypto" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] bg-[var(--dash-accent)]/10 font-semibold hover:bg-[var(--dash-accent)]/20 border-b border-white/5"><i class="fa-brands fa-bitcoin mr-2"></i>Crypto Wallet</button>
+                      <button data-pay-method="usdt_wallet" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-solid fa-wallet mr-2"></i>USDT / USDC Wallet</button>
+                      <button data-pay-method="trust_wallet" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5"><i class="fa-solid fa-shield-halved mr-2"></i>Trust Wallet</button>
                     </div>
                   </div>
                 </div>
@@ -1446,7 +1493,7 @@
                     <p class="text-[10px] font-semibold text-red-400"><i class="fa-solid fa-fire mr-1"></i>60% OFF — Save $600</p>
                   </div>
                   <button id="botBuyBtn" class="w-full rounded-lg bg-[var(--dash-accent)] py-3 text-sm font-bold uppercase tracking-[0.14em] text-black hover:opacity-90 shadow-lg shadow-[var(--dash-accent)]/20"><i class="fa-solid fa-rocket mr-2"></i>Activate Trading Bot — $399</button>
-                  <p class="text-[10px] text-gray-500">Deducted from your USDT balance. <a href="#" class="text-[var(--dash-accent)] underline" onclick="switchPanel('deposit');return false;">Fund account →</a></p>
+                  <p class="text-[10px] text-gray-500">Pay via Crypto Wallet, Trust Wallet, or USDT/USDC balance.</p>
                 </div>
                 <p id="botPurchaseStatus" class="hidden text-center text-xs"></p>
               </div>
@@ -1561,7 +1608,8 @@
                     <option value="trustwallet" class="text-black">Trust Wallet</option>
                     <option value="coinbase" class="text-black">Coinbase Wallet</option>
                     <option value="binance" class="text-black">Binance Wallet</option>
-                    <option value="walletconnect" class="text-black">Any WalletConnect compatible wallet</option>
+                    <option value="any" class="text-black">Any EIP-1193 Wallet</option>
+                    <option value="walletconnect" class="text-black">WalletConnect (open in wallet app)</option>
                   </select>
                   <button id="connectWalletBtn" class="rounded border border-[#3a3a3a] py-2 text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Connect Wallet</button>
                 </div>
@@ -1769,6 +1817,10 @@
                   <button data-profile-section="profileKycSection" class="profile-menu-btn group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-black/20 p-4 text-center transition hover:border-[var(--dash-accent)]/50 hover:bg-[var(--dash-accent)]/5">
                     <span class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-500/10 text-yellow-400 group-hover:bg-yellow-500/20"><i class="fa-solid fa-id-card"></i></span>
                     <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-300 group-hover:text-white">KYC Verification</span>
+                  </button>
+                  <button id="profileAdminKycMenuBtn" data-profile-section="profileAdminKycSection" class="profile-menu-btn hidden group flex flex-col items-center gap-2 rounded-xl border border-red-400/20 bg-red-500/5 p-4 text-center transition hover:border-red-400/40 hover:bg-red-500/10">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10 text-red-300 group-hover:bg-red-500/20"><i class="fa-solid fa-user-shield"></i></span>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-red-200 group-hover:text-white">Admin KYC Review</span>
                   </button>
                 </div>
               </div>
@@ -2046,7 +2098,110 @@
               </div>
               </div><!-- end profileKycSection -->
 
+              <!-- ═══ Admin KYC Review Section (admin only) ═══ -->
+              <div id="profileAdminKycSection" class="profile-section hidden">
+                <div class="dash-card rounded-xl p-5 space-y-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                      <button class="profile-back-btn rounded-full border border-white/10 h-8 w-8 flex items-center justify-center text-gray-400 hover:bg-white/5 hover:text-white"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+                      <p class="text-[11px] uppercase tracking-[0.2em] text-red-200">Admin KYC Queue</p>
+                    </div>
+                    <button id="adminKycRefreshBtn" class="rounded border border-red-400/30 bg-red-500/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-red-200 hover:bg-red-500/20"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
+                  </div>
+                  <p class="text-xs text-gray-400">Review pending KYC submissions and approve or reject directly from the dashboard.</p>
+                  <div class="rounded border border-white/10 bg-black/20 p-3 text-xs text-gray-300 flex items-center justify-between">
+                    <span>Pending Submissions</span>
+                    <span id="adminKycQueueCount" class="rounded border border-red-400/30 bg-red-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-red-200">0</span>
+                  </div>
+                  <button id="adminVerifyAllBtn" class="w-full rounded border border-[var(--dash-accent)]/50 bg-[var(--dash-accent)]/10 py-2.5 text-[11px] uppercase tracking-[0.12em] text-[var(--dash-accent)] font-semibold hover:bg-[var(--dash-accent)]/20"><i class="fa-solid fa-check-double mr-1"></i>Verify All Pending Users</button>
+                  <p id="adminKycStatus" class="hidden text-center text-xs"></p>
+                  <div id="adminKycQueueList" class="space-y-3"></div>
+                </div>
+              </div>
+
             </section>
+
+            <!-- ═══ OWNER PANEL (Admin Only) ═══ -->
+            <section id="panelOwner" class="dashboard-panel hidden space-y-5">
+              <div class="dash-card rounded-xl p-5 space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-[11px] uppercase tracking-[0.2em] text-[var(--dash-accent)]"><i class="fa-solid fa-crown mr-1"></i>Owner Dashboard</p>
+                    <p class="mt-1 text-xs text-gray-400">System revenue, collected fees, and user management.</p>
+                  </div>
+                  <button id="ownerRefreshBtn" class="rounded border border-[var(--dash-accent)]/30 bg-[var(--dash-accent)]/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-[var(--dash-accent)] hover:bg-[var(--dash-accent)]/20"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
+                </div>
+              </div>
+
+              <!-- Revenue Summary Cards -->
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div class="dash-card rounded-xl p-4 space-y-1">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Revenue (24h)</p>
+                  <p id="ownerRevDay" class="text-lg font-semibold text-green-300">$0.00</p>
+                </div>
+                <div class="dash-card rounded-xl p-4 space-y-1">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Revenue (7d)</p>
+                  <p id="ownerRevWeek" class="text-lg font-semibold text-green-300">$0.00</p>
+                </div>
+                <div class="dash-card rounded-xl p-4 space-y-1">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Total Revenue</p>
+                  <p id="ownerRevTotal" class="text-lg font-semibold text-[var(--dash-accent)]">$0.00</p>
+                </div>
+              </div>
+
+              <!-- System Fee Balances -->
+              <div class="dash-card rounded-xl p-5 space-y-3">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Collected System Fees</p>
+                <div id="ownerFeeGrid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  <div class="rounded border border-white/10 bg-black/20 p-3 text-center text-xs text-gray-400">Loading...</div>
+                </div>
+              </div>
+
+              <!-- Withdraw Section -->
+              <div class="dash-card rounded-xl p-5 space-y-3">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Withdraw Funds</p>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <select id="ownerWithdrawCoin" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    <option value="USDT" class="text-black">USDT</option>
+                    <option value="USDC" class="text-black">USDC</option>
+                    <option value="BTC" class="text-black">BTC</option>
+                    <option value="ETH" class="text-black">ETH</option>
+                    <option value="BNB" class="text-black">BNB</option>
+                  </select>
+                  <input id="ownerWithdrawAmount" type="number" min="0.01" step="0.01" placeholder="Amount" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  <button id="ownerWithdrawBtn" class="rounded bg-[var(--dash-accent)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black hover:opacity-90"><i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>Withdraw</button>
+                </div>
+                <p id="ownerWithdrawStatus" class="hidden text-center text-xs"></p>
+              </div>
+
+              <!-- Gateway Health -->
+              <div class="dash-card rounded-xl p-5 space-y-3">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Gateway Health</p>
+                <div id="ownerGatewayGrid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  <div class="rounded border border-white/10 bg-black/20 p-3 text-center text-xs text-gray-400">Loading...</div>
+                </div>
+              </div>
+
+              <!-- Registered Users -->
+              <div class="dash-card rounded-xl p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Registered Users</p>
+                  <span id="ownerUserCount" class="rounded border border-[var(--dash-accent)]/30 bg-[var(--dash-accent)]/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--dash-accent)]">0</span>
+                </div>
+                <div id="ownerUserList" class="max-h-60 overflow-y-auto space-y-2">
+                  <div class="rounded border border-white/10 bg-black/20 p-3 text-center text-xs text-gray-400">Loading...</div>
+                </div>
+              </div>
+
+              <!-- Recent Revenue Log -->
+              <div class="dash-card rounded-xl p-5 space-y-3">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Recent Revenue Log</p>
+                <div id="ownerRevenueLog" class="max-h-80 overflow-y-auto space-y-2">
+                  <div class="rounded border border-white/10 bg-black/20 p-3 text-center text-xs text-gray-400">Loading...</div>
+                </div>
+              </div>
+            </section>
+
           </main>
         </div>
 
@@ -2154,10 +2309,21 @@
               </div>
             </div>
 
-            <!-- Payment method badge -->
-            <div class="flex items-center justify-between rounded border border-white/10 bg-black/20 px-3 py-2">
-              <span class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Payment Method</span>
-              <span id="co3dMethod" class="text-xs text-white"><i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet</span>
+            <!-- Payment method selector in checkout (dropdown — matches trade panel) -->
+            <div class="space-y-2">
+              <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Choose Payment Method</p>
+              <div class="relative">
+                <button id="coPayMethodToggle" class="w-full flex items-center justify-between rounded border border-[var(--dash-accent)]/50 bg-[var(--dash-accent)]/10 px-3 py-2.5 text-[11px] uppercase tracking-[0.1em] text-[var(--dash-accent)] font-semibold hover:bg-[var(--dash-accent)]/20">
+                  <span id="coPayMethodLabel"><i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet</span>
+                  <i class="fa-solid fa-chevron-down text-[10px] ml-2"></i>
+                </button>
+                <div id="coPayMethodDropdown" class="hidden absolute z-30 left-0 right-0 mt-1 rounded border border-white/15 bg-[#0e1114] shadow-xl overflow-hidden">
+                  <button data-co-method="crypto" class="co-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] bg-[var(--dash-accent)]/10 font-semibold hover:bg-[var(--dash-accent)]/20 border-b border-white/5"><i class="fa-brands fa-bitcoin mr-2"></i>Crypto Wallet</button>
+                  <button data-co-method="usdt_wallet" class="co-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-solid fa-wallet mr-2"></i>USDT / USDC Wallet</button>
+                  <button data-co-method="trust_wallet" class="co-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5"><i class="fa-solid fa-shield-halved mr-2"></i>Trust Wallet</button>
+                </div>
+              </div>
+              <p id="co3dMethodNote" class="text-[9px] text-gray-500 text-center hidden"></p>
             </div>
 
             <!-- Security badges -->
@@ -2193,8 +2359,10 @@
   <script src="https://s3.tradingview.com/tv.js" onload="initPublicChart()"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="/crypto-payment.js"></script>
+  <script src="/agents.js"></script>
   <script>
     const SESSION_KEY = 'alm_session_v3';
+    const PAYMENT_METHOD_KEY = 'alm_payment_method_v1';
     const BROKER_PARTNERSHIP_LINK = 'https://one.exnessonelink.com/a/aczb4cfol7';
 
     const signupForm = document.getElementById('signupForm');
@@ -2211,6 +2379,10 @@
     const dashboard = document.getElementById('dashboard');
     const authArea = document.getElementById('authArea');
     const welcomeGate = document.getElementById('welcomeGate');
+    const landingContent = document.getElementById('landingContent');
+    const navLandingLinks = document.getElementById('navLandingLinks');
+    const portalSection = document.getElementById('portal');
+    const siteFooter = document.querySelector('footer');
     const enterSignupBtn = document.getElementById('enterSignupBtn');
     const enterLoginBtn = document.getElementById('enterLoginBtn');
     const backToWelcomeBtn = document.getElementById('backToWelcomeBtn');
@@ -2282,8 +2454,12 @@
     const kycSidebarBadge = document.getElementById('kycSidebarBadge');
     const submitKycBtn = document.getElementById('submitKycBtn');
     const kycStatus = document.getElementById('kycStatus');
+    const profileAdminKycMenuBtn = document.getElementById('profileAdminKycMenuBtn');
+    const adminKycRefreshBtn = document.getElementById('adminKycRefreshBtn');
+    const adminKycStatus = document.getElementById('adminKycStatus');
+    const adminKycQueueCount = document.getElementById('adminKycQueueCount');
+    const adminKycQueueList = document.getElementById('adminKycQueueList');
     const dashboardNavBtns = document.querySelectorAll('.dashboard-nav-btn');
-
     // ── Deposit flow refs ──
     const depositCoinSelect = document.getElementById('depositCoinSelect');
     const depositNetworkSelect = document.getElementById('depositNetworkSelect');
@@ -2357,7 +2533,8 @@
       trade: document.getElementById('panelTrade'),
       bot: document.getElementById('panelBot'),
       deposit: document.getElementById('panelDeposit'),
-      profile: document.getElementById('panelProfile')
+      profile: document.getElementById('panelProfile'),
+      owner: document.getElementById('panelOwner')
     };
 
     let currentUser = null;
@@ -2379,6 +2556,7 @@
     let currentPositionsMode = 'open';
     let preferredDashboardPanel = null;
     let tradeMode = 'buy';
+    let adminKycQueue = [];
     let systemWalletData = { balances: {}, prices: {}, coins: {}, networks: {}, treasuryAddresses: {}, fees: {}, depositFeeRate: 0.0005, transactions: [] };
     let systemWalletInFlight = null;
     let systemWalletLoadedOnce = false;
@@ -2534,9 +2712,15 @@
         id: Date.now() + Math.random(),
         message: String(message || ''),
         tone: tone || 'neutral',
-        ts: new Date()
+        ts: new Date(),
+        read: false
       };
       notificationItems = [item].concat(notificationItems).slice(0, 18);
+      renderNotifications();
+    }
+
+    function markAllNotificationsRead() {
+      notificationItems.forEach(function(n) { n.read = true; });
       renderNotifications();
     }
 
@@ -2547,14 +2731,20 @@
         notifCountBadge.classList.add('hidden');
         return;
       }
-      notifCountBadge.textContent = String(notificationItems.length);
-      notifCountBadge.classList.remove('hidden');
+      var unread = notificationItems.filter(function(n) { return !n.read; }).length;
+      if (unread > 0) {
+        notifCountBadge.textContent = String(unread);
+        notifCountBadge.classList.remove('hidden');
+      } else {
+        notifCountBadge.classList.add('hidden');
+      }
       notifList.innerHTML = notificationItems.map(function(n) {
         const time = n.ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const toneClass = n.tone === 'good' ? 'text-green-300' : n.tone === 'warn' ? 'text-yellow-300' : 'text-gray-300';
-        return '<div class="rounded border border-white/10 bg-black/20 px-3 py-2">'
+        const readStyle = n.read ? ' opacity-50' : '';
+        return '<div class="rounded border border-white/10 bg-black/20 px-3 py-2' + readStyle + '">'
           + '<p class="text-xs ' + toneClass + '">' + n.message + '</p>'
-          + '<p class="mt-1 text-[10px] text-gray-500">' + time + '</p>'
+          + '<p class="mt-1 text-[10px] text-gray-500">' + time + (n.read ? '' : ' · <span class=&quot;text-[var(--dash-accent)]&quot;>new</span>') + '</p>'
           + '</div>';
       }).join('');
     }
@@ -2563,7 +2753,10 @@
       if (!notifToggleBtn || !notifPanel) return;
       notifToggleBtn.addEventListener('click', function(event) {
         event.stopPropagation();
+        var wasHidden = notifPanel.classList.contains('hidden');
         notifPanel.classList.toggle('hidden');
+        // Auto-mark all as read when panel is opened
+        if (wasHidden) markAllNotificationsRead();
       });
       document.addEventListener('click', function(event) {
         if (!notifPanel.contains(event.target) && !notifToggleBtn.contains(event.target)) {
@@ -2866,7 +3059,6 @@
     function initProDashboardWidgets() {
       renderMarketBoard();
       renderTickerTape();
-      renderSignalCards(landingSignalsGrid);
       renderSignalCards(dashboardSignalsGrid);
       renderOrderBook();
       renderSecuritySessions();
@@ -2929,7 +3121,13 @@
       dashboard.classList.add('hidden');
       otpArea.classList.add('hidden');
       authArea.classList.add('hidden');
+      // Restore landing page sections
+      if (landingContent) landingContent.classList.remove('hidden');
+      if (navLandingLinks) navLandingLinks.classList.remove('hidden');
+      if (portalSection) { portalSection.classList.add('py-20', 'border-t', 'border-white/10'); portalSection.classList.remove('pt-[76px]'); }
+      if (siteFooter) siteFooter.classList.remove('hidden');
       if (welcomeGate) welcomeGate.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       if (reason === 'inactive') {
         showStatus(loginStatus, 'Session timed out after 10 minutes of inactivity. Please log in again.', 'neutral');
       }
@@ -3305,6 +3503,17 @@
         if (walletType) walletType.disabled = false;
         walletStatus.textContent = 'Wallet linked to your account.';
         walletStatus.className = 'text-center text-xs text-[var(--dash-accent)]';
+        // Show home wallet card with saved info
+        var homeCard = document.getElementById('homeWalletCard');
+        if (homeCard) {
+          homeCard.classList.remove('hidden');
+          var hp = document.getElementById('homeWalletProvider');
+          if (hp) hp.textContent = user.linkedWallet.provider || 'Wallet';
+          var ha = document.getElementById('homeWalletAddr');
+          if (ha) { ha.textContent = truncateAddress(user.linkedWallet.address); ha.title = user.linkedWallet.address; }
+          var hn = document.getElementById('homeWalletNetwork');
+          if (hn) hn.textContent = user.linkedWallet.chain || 'Unknown';
+        }
         // Check if live provider connection exists
         var manager = initializePaymentManager();
         if (manager && manager.walletConnected && manager.userAccount) {
@@ -3322,6 +3531,9 @@
         if (walletType) walletType.disabled = false;
         var unlinkBtn = document.getElementById('unlinkWalletBtn');
         if (unlinkBtn) unlinkBtn.classList.add('hidden');
+        // Hide home wallet card
+        var homeCard = document.getElementById('homeWalletCard');
+        if (homeCard) homeCard.classList.add('hidden');
       }
     }
 
@@ -3452,9 +3664,15 @@
       if (welcomeGate) welcomeGate.classList.add('hidden');
       authArea.classList.add('hidden');
       otpArea.classList.add('hidden');
+      // Hide landing page sections
+      if (landingContent) landingContent.classList.add('hidden');
+      if (navLandingLinks) navLandingLinks.classList.add('hidden');
+      if (portalSection) { portalSection.classList.remove('py-20', 'border-t', 'border-white/10'); portalSection.classList.add('pt-[76px]'); }
+      if (siteFooter) siteFooter.classList.add('hidden');
       dashboard.classList.remove('hidden');
       dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
       renderKycState(user);
+      applyAdminKycAccess(user);
       renderBrokerSignupState(user);
       restoreSecurityPrefs(user);
       initProDashboardWidgets();
@@ -3481,10 +3699,14 @@
       dashboardNavBtns.forEach((btn) => {
         btn.classList.toggle('active', btn.dataset.panel === panel);
       });
+      // Scroll to top of dashboard on panel switch
+      if (dashboard) dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
       if (panel === 'home') {
         requestAnimationFrame(initDashboardChart);
+        // Background data load — non-blocking
+        loadSystemWallet({ background: true });
       }
-      if (panel === 'home' || panel === 'trade' || panel === 'deposit') {
+      if (panel === 'trade' || panel === 'deposit') {
         loadSystemWallet({ background: true });
       }
       if (panel === 'bot') {
@@ -3493,8 +3715,11 @@
       }
       if (panel === 'profile') {
         updateProfileClientInfo();
-        closeProfileSections(); // reset to menu view
+        closeProfileSections();
         renderSecuritySessions();
+      }
+      if (panel === 'owner') {
+        loadOwnerDashboard();
       }
     }
 
@@ -3515,6 +3740,9 @@
       }
       if (sectionId === 'profileSettingsSection') {
         renderSecuritySessions();
+      }
+      if (sectionId === 'profileAdminKycSection') {
+        loadAdminKycQueue(true);
       }
     }
 
@@ -3599,6 +3827,288 @@
       }
     }
 
+    function isCurrentUserAdmin() {
+      return !!(currentUser && currentUser.isAdmin);
+    }
+
+    function applyAdminKycAccess(user) {
+      const allowed = !!(user && user.isAdmin);
+      if (profileAdminKycMenuBtn) profileAdminKycMenuBtn.classList.toggle('hidden', !allowed);
+      const adminSection = document.getElementById('profileAdminKycSection');
+      if (adminSection && !allowed) adminSection.classList.add('hidden');
+      // Show/hide owner nav button
+      var ownerNavBtn = document.getElementById('ownerNavBtn');
+      if (ownerNavBtn) ownerNavBtn.classList.toggle('hidden', !allowed);
+    }
+
+    // ── Owner Dashboard Functions ──────────────────────────
+    async function loadOwnerDashboard() {
+      if (!isCurrentUserAdmin()) return;
+      var h = authHeaders();
+      if (!h) return;
+      try {
+        var r = await fetch('/api/wallet', { method: 'POST', headers: h, body: JSON.stringify({ action: 'owner_dashboard' }) });
+        var d = await r.json();
+        if (!d.ok) return;
+        renderOwnerDashboard(d);
+      } catch (e) { /* silent */ }
+    }
+
+    function renderOwnerDashboard(data) {
+      var fmtUsd = function(n) { return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+
+      // Revenue cards
+      var revDay = document.getElementById('ownerRevDay');
+      var revWeek = document.getElementById('ownerRevWeek');
+      var revTotal = document.getElementById('ownerRevTotal');
+      if (revDay) revDay.textContent = fmtUsd(data.revenue && data.revenue.day);
+      if (revWeek) revWeek.textContent = fmtUsd(data.revenue && data.revenue.week);
+      if (revTotal) revTotal.textContent = fmtUsd(data.revenue && data.revenue.total);
+
+      // System fee balances
+      var feeGrid = document.getElementById('ownerFeeGrid');
+      if (feeGrid && data.systemFees) {
+        var entries = Object.entries(data.systemFees).filter(function(e) { return e[1] > 0; });
+        if (!entries.length) {
+          feeGrid.innerHTML = '<div class="col-span-full rounded border border-white/10 bg-black/20 p-3 text-center text-xs text-gray-400">No collected fees yet.</div>';
+        } else {
+          feeGrid.innerHTML = entries.map(function(e) {
+            return '<div class="rounded border border-white/10 bg-black/20 p-3 text-center space-y-1">' +
+              '<p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">' + e[0] + '</p>' +
+              '<p class="text-sm font-semibold text-white">' + fmtUsd(e[1]) + '</p>' +
+            '</div>';
+          }).join('');
+        }
+      }
+
+      // Gateway health
+      var gwGrid = document.getElementById('ownerGatewayGrid');
+      if (gwGrid && data.gateways) {
+        gwGrid.innerHTML = Object.values(data.gateways).map(function(gw) {
+          var color = gw.status === 'operational' ? 'text-green-300 border-green-500/30' : gw.status === 'degraded' ? 'text-yellow-300 border-yellow-500/30' : 'text-red-300 border-red-500/30';
+          var icon = gw.status === 'operational' ? 'fa-circle-check' : gw.status === 'degraded' ? 'fa-triangle-exclamation' : 'fa-circle-xmark';
+          return '<div class="rounded border ' + color + ' bg-black/20 p-3 text-center space-y-1">' +
+            '<i class="fa-solid ' + icon + ' ' + color.split(' ')[0] + '"></i>' +
+            '<p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">' + (gw.name || '') + '</p>' +
+            '<p class="text-[10px] ' + color.split(' ')[0] + '">' + (gw.status || '') + '</p>' +
+          '</div>';
+        }).join('');
+      }
+
+      // User list
+      var userCount = document.getElementById('ownerUserCount');
+      var userList = document.getElementById('ownerUserList');
+      if (userCount) userCount.textContent = String(data.users && data.users.count || 0);
+      if (userList && data.users && data.users.list) {
+        if (!data.users.list.length) {
+          userList.innerHTML = '<div class="rounded border border-white/10 bg-black/20 p-3 text-center text-xs text-gray-400">No users registered yet.</div>';
+        } else {
+          userList.innerHTML = data.users.list.map(function(u) {
+            return '<div class="rounded border border-white/10 bg-black/20 p-3 flex items-center justify-between">' +
+              '<span class="text-xs text-white">' + (u.email || 'Unknown') + '</span>' +
+              '<span class="text-[10px] text-gray-500">' + (u.registeredAt ? new Date(u.registeredAt).toLocaleDateString() : '') + '</span>' +
+            '</div>';
+          }).join('');
+        }
+      }
+
+      // Revenue log
+      var revLogEl = document.getElementById('ownerRevenueLog');
+      if (revLogEl && data.revenueLog) {
+        if (!data.revenueLog.length) {
+          revLogEl.innerHTML = '<div class="rounded border border-white/10 bg-black/20 p-3 text-center text-xs text-gray-400">No revenue entries yet.</div>';
+        } else {
+          revLogEl.innerHTML = data.revenueLog.slice(0, 50).map(function(r) {
+            var typeColor = r.type === 'buy' || r.type === 'deposit' ? 'text-green-300' : r.type === 'sell' ? 'text-red-300' : r.type === 'owner_withdraw' ? 'text-yellow-300' : 'text-gray-300';
+            return '<div class="rounded border border-white/10 bg-black/20 p-2.5 flex items-center justify-between gap-2">' +
+              '<div class="flex items-center gap-2">' +
+                '<span class="text-[10px] uppercase ' + typeColor + ' font-semibold">' + (r.type || '') + '</span>' +
+                '<span class="text-[10px] text-gray-400">' + (r.coin || '') + '</span>' +
+              '</div>' +
+              '<div class="text-right">' +
+                '<p class="text-xs text-white">' + fmtUsd(r.feeUsd) + '</p>' +
+                '<p class="text-[9px] text-gray-500">' + (r.ts ? new Date(r.ts).toLocaleString() : '') + '</p>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        }
+      }
+    }
+
+    // Owner withdraw handler
+    (function() {
+      var btn = document.getElementById('ownerWithdrawBtn');
+      var statusEl = document.getElementById('ownerWithdrawStatus');
+      if (!btn) return;
+      btn.addEventListener('click', async function() {
+        var coin = document.getElementById('ownerWithdrawCoin').value;
+        var amount = parseFloat(document.getElementById('ownerWithdrawAmount').value) || 0;
+        if (amount <= 0) { showStatus(statusEl, 'Enter a valid amount.', 'error'); return; }
+        var h = authHeaders();
+        if (!h) { showStatus(statusEl, 'Sign in required.', 'error'); return; }
+        btn.disabled = true;
+        try {
+          var r = await fetch('/api/wallet', { method: 'POST', headers: h, body: JSON.stringify({ action: 'owner_withdraw', coin: coin, amount: amount }) });
+          var d = await r.json();
+          if (!r.ok || !d.ok) {
+            showStatus(statusEl, d.detail || d.error || 'Withdrawal failed.', 'error');
+          } else {
+            showStatus(statusEl, 'Withdrawn ' + amount + ' ' + coin + ' successfully. TX: ' + (d.tx && d.tx.id || ''), 'success');
+            document.getElementById('ownerWithdrawAmount').value = '';
+            loadOwnerDashboard();
+          }
+        } catch (e) {
+          showStatus(statusEl, 'Network error.', 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    })();
+
+    // Owner refresh handler
+    (function() {
+      var btn = document.getElementById('ownerRefreshBtn');
+      if (!btn) return;
+      btn.addEventListener('click', function() { loadOwnerDashboard(); });
+    })();
+
+    function renderAdminKycQueue(items) {
+      if (!adminKycQueueList || !adminKycQueueCount) return;
+      const queue = Array.isArray(items) ? items : [];
+      adminKycQueueCount.textContent = String(queue.length);
+      if (!queue.length) {
+        adminKycQueueList.innerHTML = '<div class="rounded border border-white/10 bg-black/20 p-4 text-xs text-gray-400 text-center">No pending KYC submissions right now.</div>';
+        return;
+      }
+
+      adminKycQueueList.innerHTML = queue.map(function(entry) {
+        const submittedAt = entry.submittedAt ? new Date(entry.submittedAt).toLocaleString() : 'Unknown';
+        const address = entry.address || {};
+        const docInfo = entry.documents || {};
+        return [
+          '<div class="rounded border border-white/10 bg-black/20 p-4 space-y-3">',
+          '<div class="flex items-center justify-between gap-2">',
+          '<div>',
+          '<p class="text-xs font-semibold text-white">' + normalize(entry.name || 'Client', 80) + '</p>',
+          '<p class="text-[11px] text-gray-400">' + normalize(entry.email || '', 120) + ' · ' + normalize(entry.userId || 'No ID', 40) + '</p>',
+          '</div>',
+          '<span class="rounded border border-yellow-500/30 bg-yellow-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-yellow-300">Pending</span>',
+          '</div>',
+          '<div class="grid gap-2 md:grid-cols-2 text-[11px] text-gray-300">',
+          '<p><span class="text-gray-500">Submitted:</span> ' + normalize(submittedAt, 80) + '</p>',
+          '<p><span class="text-gray-500">ID Type:</span> ' + normalize(entry.idType || 'N/A', 40) + '</p>',
+          '<p><span class="text-gray-500">ID Number:</span> ' + normalize(entry.idDocNumber || 'N/A', 50) + '</p>',
+          '<p><span class="text-gray-500">Nationality:</span> ' + normalize(entry.nationality || 'N/A', 50) + '</p>',
+          '<p class="md:col-span-2"><span class="text-gray-500">Address:</span> ' + normalize([address.street, address.city, address.state, address.postalCode, address.country].filter(Boolean).join(', ') || 'N/A', 260) + '</p>',
+          '<p class="md:col-span-2"><span class="text-gray-500">Documents:</span> Front ' + (docInfo.idFront ? 'Yes' : 'No') + ' · Back ' + (docInfo.idBack ? 'Yes' : 'No') + ' · Residence ' + (docInfo.residence ? 'Yes' : 'No') + '</p>',
+          '</div>',
+          '<div class="flex flex-wrap gap-2">',
+          '<button data-admin-approve="' + normalize(entry.email || '', 120) + '" class="rounded border border-[var(--dash-accent)]/50 bg-[var(--dash-accent)]/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-[var(--dash-accent)] hover:bg-[var(--dash-accent)]/20"><i class="fa-solid fa-shield-check mr-1"></i>Approve</button>',
+          '<button data-admin-reject="' + normalize(entry.email || '', 120) + '" class="rounded border border-red-400/40 bg-red-500/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-red-200 hover:bg-red-500/20"><i class="fa-solid fa-ban mr-1"></i>Reject</button>',
+          '</div>',
+          '</div>'
+        ].join('');
+      }).join('');
+    }
+
+    async function loadAdminKycQueue(force) {
+      if (!isCurrentUserAdmin()) return;
+      const h = authHeaders();
+      if (!h) return;
+      if (adminKycStatus) {
+        showStatus(adminKycStatus, force ? 'Refreshing admin queue...' : 'Loading admin queue...', 'neutral');
+      }
+      try {
+        const res = await fetch('/api/kyc', {
+          method: 'POST',
+          headers: h,
+          body: JSON.stringify({ action: 'admin_queue' })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'admin_queue_failed');
+        adminKycQueue = Array.isArray(data.queue) ? data.queue : [];
+        renderAdminKycQueue(adminKycQueue);
+        if (adminKycStatus) showStatus(adminKycStatus, 'Queue synced. Pending: ' + adminKycQueue.length + '.', 'success');
+      } catch (_) {
+        if (adminKycStatus) showStatus(adminKycStatus, 'Could not load admin queue.', 'error');
+      }
+    }
+
+    async function submitAdminKycDecision(email, decision, reason) {
+      if (!isCurrentUserAdmin()) return;
+      const h = authHeaders();
+      if (!h) return;
+      if (adminKycStatus) showStatus(adminKycStatus, 'Submitting review decision...', 'neutral');
+      try {
+        const res = await fetch('/api/kyc', {
+          method: 'POST',
+          headers: h,
+          body: JSON.stringify({ action: 'admin_review', email: email, decision: decision, reason: reason || '' })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'review_failed');
+        if (adminKycStatus) showStatus(adminKycStatus, 'Review saved for ' + email + '.', 'success');
+        await loadAdminKycQueue(true);
+      } catch (_) {
+        if (adminKycStatus) showStatus(adminKycStatus, 'Review could not be saved.', 'error');
+      }
+    }
+
+    if (adminKycRefreshBtn) {
+      adminKycRefreshBtn.addEventListener('click', function() {
+        loadAdminKycQueue(true);
+      });
+    }
+
+    var adminVerifyAllBtn = document.getElementById('adminVerifyAllBtn');
+    if (adminVerifyAllBtn) {
+      adminVerifyAllBtn.addEventListener('click', async function() {
+        if (!isCurrentUserAdmin()) return;
+        if (!confirm('Verify ALL pending KYC submissions? This cannot be undone.')) return;
+        var h = authHeaders();
+        if (!h) return;
+        if (adminKycStatus) showStatus(adminKycStatus, 'Verifying all pending users...', 'neutral');
+        adminVerifyAllBtn.disabled = true;
+        try {
+          var res = await fetch('/api/kyc', {
+            method: 'POST', headers: h,
+            body: JSON.stringify({ action: 'admin_verify_all' })
+          });
+          var data = await res.json();
+          if (!res.ok || !data.ok) throw new Error(data.error || 'verify_all_failed');
+          if (adminKycStatus) showStatus(adminKycStatus, 'Verified ' + data.verified + ' users successfully.', 'success');
+          addNotification('Bulk verified ' + data.verified + ' KYC submissions.', 'good');
+          await loadAdminKycQueue(true);
+        } catch (err) {
+          if (adminKycStatus) showStatus(adminKycStatus, 'Bulk verify failed: ' + (err.message || 'error'), 'error');
+        }
+        adminVerifyAllBtn.disabled = false;
+      });
+    }
+
+    document.addEventListener('click', function(event) {
+      var approveBtn = event.target.closest('[data-admin-approve]');
+      if (approveBtn) {
+        var email = normalize(approveBtn.getAttribute('data-admin-approve') || '', 120).toLowerCase();
+        if (email) submitAdminKycDecision(email, 'verified', '');
+        return;
+      }
+
+      var rejectBtn = event.target.closest('[data-admin-reject]');
+      if (rejectBtn) {
+        var rejectEmail = normalize(rejectBtn.getAttribute('data-admin-reject') || '', 120).toLowerCase();
+        if (!rejectEmail) return;
+        var reason = window.prompt('Enter rejection reason for ' + rejectEmail + ':', 'Documents did not pass compliance checks');
+        if (reason === null) return;
+        reason = normalize(reason, 500);
+        if (!reason) {
+          if (adminKycStatus) showStatus(adminKycStatus, 'Rejection reason is required.', 'error');
+          return;
+        }
+        submitAdminKycDecision(rejectEmail, 'rejected', reason);
+      }
+    });
+
     function initializePaymentManager() {
       if (!paymentManager && typeof window.CryptoPaymentManager !== 'undefined') {
         paymentManager = new window.CryptoPaymentManager();
@@ -3667,28 +4177,41 @@
       if (!manager || !manager.walletConnected) return;
       walletBalanceDisplay.textContent = '\u2026';
       walletBalanceUsdDisplay.textContent = '';
+      var homeBalEl = document.getElementById('homeWalletBal');
+      var homeBalUsdEl = document.getElementById('homeWalletBalUsd');
+      var homeUpdEl = document.getElementById('homeWalletUpdatedAt');
+      if (homeBalEl) homeBalEl.textContent = '\u2026';
       try {
         const balance = await manager.getBalance();
         const symbol = (manager.supportedChains[manager.chainId] || {}).symbol || 'ETH';
         walletBalanceDisplay.textContent = balance + ' ' + symbol;
+        if (homeBalEl) homeBalEl.textContent = balance + ' ' + symbol;
         try {
           const rate = await manager.getRate(symbol);
           const usd = parseFloat(balance) * rate;
-          walletBalanceUsdDisplay.textContent = '\u2248 $' + usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USD';
+          var usdStr = '\u2248 $' + usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USD';
+          walletBalanceUsdDisplay.textContent = usdStr;
+          if (homeBalUsdEl) homeBalUsdEl.textContent = usdStr;
         } catch (_) {
           walletBalanceUsdDisplay.textContent = '';
+          if (homeBalUsdEl) homeBalUsdEl.textContent = '';
         }
         const now = new Date();
-        walletBalanceUpdatedAt.textContent = 'Updated ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        var timeStr = 'Updated ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        walletBalanceUpdatedAt.textContent = timeStr;
+        if (homeUpdEl) homeUpdEl.textContent = timeStr;
       } catch (_) {
         walletBalanceDisplay.textContent = 'Unavailable';
         walletBalanceUsdDisplay.textContent = '';
+        if (homeBalEl) homeBalEl.textContent = 'Unavailable';
+        if (homeBalUsdEl) homeBalUsdEl.textContent = '';
       }
     }
 
     function showWalletConnectedCard(wallet) {
       const labels = { metamask: 'MetaMask', trustwallet: 'Trust', coinbase: 'Coinbase', binance: 'Binance', injected: 'Injected' };
-      walletProviderBadge.textContent = labels[wallet.provider] || wallet.provider || 'Wallet';
+      var providerLabel = labels[wallet.provider] || wallet.provider || 'Wallet';
+      walletProviderBadge.textContent = providerLabel;
       walletAddrDisplay.textContent = truncateAddress(wallet.account);
       walletAddrDisplay.title = wallet.account;
       walletNetworkDisplay.textContent = wallet.chainName || 'Unknown';
@@ -3702,6 +4225,17 @@
       // Update profile wallet display
       var pw = document.getElementById('profileWalletAddr');
       if (pw) pw.textContent = truncateAddress(wallet.account);
+      // Update home panel wallet card
+      var homeCard = document.getElementById('homeWalletCard');
+      if (homeCard) {
+        homeCard.classList.remove('hidden');
+        var hp = document.getElementById('homeWalletProvider');
+        if (hp) hp.textContent = providerLabel;
+        var ha = document.getElementById('homeWalletAddr');
+        if (ha) { ha.textContent = truncateAddress(wallet.account); ha.title = wallet.account; }
+        var hn = document.getElementById('homeWalletNetwork');
+        if (hn) hn.textContent = wallet.chainName || 'Unknown';
+      }
       // Sync quick deposit panel
       syncQuickDepositState();
     }
@@ -3711,6 +4245,9 @@
       if (walletBalanceTimer) { clearInterval(walletBalanceTimer); walletBalanceTimer = null; }
       var pw = document.getElementById('profileWalletAddr');
       if (pw) pw.textContent = 'Not connected';
+      // Hide home wallet card
+      var homeCard = document.getElementById('homeWalletCard');
+      if (homeCard) homeCard.classList.add('hidden');
       // Sync quick deposit panel
       syncQuickDepositState();
     }
@@ -4005,6 +4542,50 @@
       }
       updateTradePriceAndBalance();
     }
+
+    // ── Trade panel payment method selector ──
+    var tradeSelectedPayMethod = 'crypto';
+    var tradePayMethodToggle = document.getElementById('tradePayMethodToggle');
+    var tradePayMethodDropdown = document.getElementById('tradePayMethodDropdown');
+    var tradePayMethodLabel = document.getElementById('tradePayMethodLabel');
+    var TRADE_PAY_LABELS = {
+      crypto: '<i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet',
+      usdt_wallet: '<i class="fa-solid fa-wallet mr-1"></i>Any Wallet (USDT/USDC)',
+      trust_wallet: '<i class="fa-solid fa-wallet mr-1"></i>Trust Wallet',
+      apple: '<i class="fa-brands fa-apple mr-1"></i>Apple Pay',
+      visa: '<i class="fa-brands fa-cc-visa mr-1"></i>Visa / Debit Card',
+      mastercard: '<i class="fa-brands fa-cc-mastercard mr-1"></i>Mastercard'
+    };
+    if (tradePayMethodToggle) {
+      tradePayMethodToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (tradePayMethodDropdown) tradePayMethodDropdown.classList.toggle('hidden');
+      });
+    }
+    document.querySelectorAll('.trade-pay-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var m = btn.dataset.tradePay;
+        tradeSelectedPayMethod = m;
+        document.querySelectorAll('.trade-pay-btn').forEach(function(b) {
+          if (b.dataset.tradePay === m) {
+            b.className = 'trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] bg-[var(--dash-accent)]/10 font-semibold hover:bg-[var(--dash-accent)]/20 border-b border-white/5';
+          } else {
+            b.className = 'trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5';
+          }
+        });
+        if (tradePayMethodLabel && TRADE_PAY_LABELS[m]) {
+          tradePayMethodLabel.innerHTML = TRADE_PAY_LABELS[m];
+        }
+        if (tradePayMethodDropdown) tradePayMethodDropdown.classList.add('hidden');
+      });
+    });
+    document.addEventListener('click', function(e) {
+      if (tradePayMethodDropdown && !tradePayMethodDropdown.classList.contains('hidden')) {
+        if (!e.target.closest('#tradePayMethodDropdown') && !e.target.closest('#tradePayMethodToggle')) {
+          tradePayMethodDropdown.classList.add('hidden');
+        }
+      }
+    });
 
     function openWalletAppLink(walletName) {
       const manager = initializePaymentManager();
@@ -4328,7 +4909,8 @@
     chartSymbolBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         dashboardChartSymbol = String(btn.dataset.chartSymbol || 'OANDA:XAUUSD');
-        updateChartControlState(); // instant visual feedback before async chart load
+        updateChartControlState();
+        updateMarketStatus();
         initDashboardChart();
       });
     });
@@ -4441,8 +5023,21 @@
         });
         const result = await res.json();
         if (!res.ok || !result.ok) {
-          const msg = result.error === 'otp_invalid' ? 'Incorrect code. Try again.' : result.error === 'otp_expired' ? 'Code expired. Request a new one.' : (result.error || 'Verification failed.');
-          showStatus(otpStatus, msg, 'error');
+          const msg = result.error === 'otp_invalid' ? 'Incorrect code. Try again.' : result.error === 'otp_expired' || result.error === 'otp_expired_or_invalid' ? 'Sending a new code...' : (result.error || 'Verification failed.');
+          showStatus(otpStatus, msg, result.error === 'otp_expired' || result.error === 'otp_expired_or_invalid' ? 'neutral' : 'error');
+          if (result.error === 'otp_expired' || result.error === 'otp_expired_or_invalid') {
+            // Auto-resend a fresh code silently
+            try {
+              var rs = await fetch('/api/auth-resend-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: pendingVerification.email }) });
+              var rd = await rs.json();
+              if (rs.ok && rd.ok) {
+                clearOtpDigits();
+                showStatus(otpStatus, 'New verification code sent to your ' + (rd.verificationMethod || 'email') + '. Enter it below.', 'success');
+              } else {
+                showStatus(otpStatus, 'Enter your verification code. Tap Resend if needed.', 'neutral');
+              }
+            } catch (_) { showStatus(otpStatus, 'Enter your verification code. Tap Resend for a new one.', 'neutral'); }
+          }
           return;
         }
         setSession(result.token);
@@ -5327,29 +5922,71 @@
 
     var selectedPayMethod = 'crypto';
     var payMethodBtns = document.querySelectorAll('.pay-method-btn');
-    var cardInputArea = document.getElementById('cardInputArea');
-    var cardNumber = document.getElementById('cardNumber');
-    var cardExpiry = document.getElementById('cardExpiry');
-    var cardCvc = document.getElementById('cardCvc');
-    var cardHolder = document.getElementById('cardHolder');
+    var payMethodToggle = document.getElementById('payMethodToggle');
+    var payMethodDropdown = document.getElementById('payMethodDropdown');
+    var payMethodLabel = document.getElementById('payMethodLabel');
+
+    var PAY_METHOD_LABELS = {
+      crypto: '<i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet',
+      usdt_wallet: '<i class="fa-solid fa-wallet mr-1"></i>USDT / USDC Wallet',
+      trust_wallet: '<i class="fa-solid fa-shield-halved mr-1"></i>Trust Wallet'
+    };
+
+    var CO_PAY_METHOD_LABELS = {
+      crypto: '<i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet',
+      usdt_wallet: '<i class="fa-solid fa-wallet mr-1"></i>USDT / USDC Wallet',
+      trust_wallet: '<i class="fa-solid fa-shield-halved mr-1"></i>Trust Wallet'
+    };
+
+    function applySelectedPayMethod(nextMethod) {
+      selectedPayMethod = nextMethod || 'crypto';
+      if (!PAY_METHOD_LABELS[selectedPayMethod]) selectedPayMethod = 'crypto';
+      // Update dropdown items highlight
+      payMethodBtns.forEach(function(b) {
+        if (b.dataset.payMethod === selectedPayMethod) {
+          b.className = 'pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] bg-[var(--dash-accent)]/10 font-semibold hover:bg-[var(--dash-accent)]/20 border-b border-white/5';
+        } else {
+          b.className = 'pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5';
+        }
+      });
+      // Update button label
+      if (payMethodLabel) {
+        payMethodLabel.innerHTML = PAY_METHOD_LABELS[selectedPayMethod] || PAY_METHOD_LABELS.crypto;
+      }
+      // Close dropdown
+      if (payMethodDropdown) payMethodDropdown.classList.add('hidden');
+      try { localStorage.setItem(PAYMENT_METHOD_KEY, selectedPayMethod); } catch (_) {}
+    }
+
+    // Toggle dropdown visibility
+    if (payMethodToggle) {
+      payMethodToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        payMethodDropdown.classList.toggle('hidden');
+      });
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+      if (payMethodDropdown && !payMethodDropdown.classList.contains('hidden')) {
+        if (!e.target.closest('#payMethodDropdown') && !e.target.closest('#payMethodToggle')) {
+          payMethodDropdown.classList.add('hidden');
+        }
+      }
+    });
 
     payMethodBtns.forEach(function(btn) {
       btn.addEventListener('click', function() {
-        selectedPayMethod = btn.dataset.payMethod;
-        payMethodBtns.forEach(function(b) {
-          if (b.dataset.payMethod === selectedPayMethod) {
-            b.className = 'pay-method-btn active rounded border border-[var(--dash-accent)]/50 bg-[var(--dash-accent)]/10 py-2 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] font-semibold';
-          } else {
-            b.className = 'pay-method-btn rounded border border-white/10 py-2 text-[10px] uppercase tracking-[0.1em] text-gray-400 hover:border-white/30';
-          }
-        });
-        if (selectedPayMethod === 'visa' || selectedPayMethod === 'mastercard') {
-          cardInputArea.classList.remove('hidden');
-        } else {
-          cardInputArea.classList.add('hidden');
-        }
+        applySelectedPayMethod(btn.dataset.payMethod);
       });
     });
+
+    try {
+      var savedPayMethod = localStorage.getItem(PAYMENT_METHOD_KEY) || 'crypto';
+      if (savedPayMethod) applySelectedPayMethod(savedPayMethod);
+    } catch (_) {
+      applySelectedPayMethod('crypto');
+    }
 
     // Card number formatting (spaces every 4 digits)
     if (cardNumber) cardNumber.addEventListener('input', function() {
@@ -5383,26 +6020,12 @@
     var pendingCheckout = null;
 
     function getPayMethodLabel(method) {
-      var icons = { crypto: '<i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet', apple: '<i class="fa-brands fa-apple mr-1"></i>Apple Pay', visa: '<i class="fa-brands fa-cc-visa mr-1"></i>Visa', mastercard: '<i class="fa-brands fa-cc-mastercard mr-1"></i>Mastercard' };
+      var icons = { crypto: '<i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet', usdt_wallet: '<i class="fa-solid fa-wallet mr-1"></i>USDT / USDC Wallet', trust_wallet: '<i class="fa-solid fa-shield-halved mr-1"></i>Trust Wallet' };
       return icons[method] || method;
     }
 
-    function validateCardDetails() {
-      var num = (cardNumber.value || '').replace(/\s/g, '');
-      var exp = (cardExpiry.value || '');
-      var cvc = (cardCvc.value || '');
-      var name = (cardHolder.value || '').trim();
-      if (num.length < 13 || num.length > 16) return 'Invalid card number.';
-      if (!/^\d{2}\/\d{2}$/.test(exp)) return 'Invalid expiry (MM/YY).';
-      var mm = parseInt(exp.substring(0, 2));
-      if (mm < 1 || mm > 12) return 'Invalid expiry month.';
-      if (cvc.length < 3) return 'Invalid CVC.';
-      if (name.length < 2) return 'Enter cardholder name.';
-      return null;
-    }
-
     function showCheckoutModal(opts) {
-      // opts: { type: 'trade'|'deposit'|'convert', action, coin, amount, price, subtotal, feeRate, fee, total, method, network? }
+      // opts: { type: 'trade'|'deposit'|'convert'|'bot_purchase', action, coin, amount, price, subtotal, feeRate, fee, total, method, network? }
       pendingCheckout = opts;
       co3dAction.textContent = opts.action;
       co3dAsset.textContent = opts.coin;
@@ -5414,11 +6037,73 @@
       if (feeRow) feeRow.classList.remove('hidden');
       co3dFee.textContent = opts.fee || '$0.00';
       co3dTotal.textContent = opts.total;
-      co3dMethod.innerHTML = getPayMethodLabel(opts.method);
+      // Set default selected method in checkout dropdown
+      var coLabel = document.getElementById('coPayMethodLabel');
+      var coDropdown = document.getElementById('coPayMethodDropdown');
+      if (coLabel && CO_PAY_METHOD_LABELS[opts.method]) {
+        coLabel.innerHTML = CO_PAY_METHOD_LABELS[opts.method];
+      }
+      if (coDropdown) coDropdown.classList.add('hidden');
+      var coMethodNote = document.getElementById('co3dMethodNote');
+      if (coMethodNote) coMethodNote.classList.add('hidden');
       co3dStatus.classList.add('hidden');
       co3dConfirm.disabled = false;
       checkoutModal.classList.remove('hidden');
     }
+
+    // Checkout payment method dropdown toggle
+    var coPayMethodToggle = document.getElementById('coPayMethodToggle');
+    var coPayMethodDropdown = document.getElementById('coPayMethodDropdown');
+    var coPayMethodLabel = document.getElementById('coPayMethodLabel');
+
+    if (coPayMethodToggle) {
+      coPayMethodToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (coPayMethodDropdown) coPayMethodDropdown.classList.toggle('hidden');
+      });
+    }
+
+    // Checkout payment method selector (dropdown options)
+    document.querySelectorAll('.co-method-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var m = btn.dataset.coMethod;
+        if (pendingCheckout) pendingCheckout.method = m;
+        // Highlight selected, reset others
+        document.querySelectorAll('.co-method-btn').forEach(function(b) {
+          if (b.dataset.coMethod === m) {
+            b.className = 'co-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] bg-[var(--dash-accent)]/10 font-semibold hover:bg-[var(--dash-accent)]/20 border-b border-white/5';
+          } else {
+            b.className = 'co-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5';
+          }
+        });
+        // Update toggle label
+        if (coPayMethodLabel && CO_PAY_METHOD_LABELS[m]) {
+          coPayMethodLabel.innerHTML = CO_PAY_METHOD_LABELS[m];
+        }
+        // Close dropdown
+        if (coPayMethodDropdown) coPayMethodDropdown.classList.add('hidden');
+        // Method note
+        var note = document.getElementById('co3dMethodNote');
+        if (m === 'trust_wallet') {
+          note.textContent = 'Complete payment via Trust Wallet. A payment link will open.';
+          note.classList.remove('hidden');
+        } else if (m === 'usdt_wallet') {
+          note.textContent = 'Use any connected wallet. Funds are sent directly to the AL-MUDIR treasury address on-chain.';
+          note.classList.remove('hidden');
+        } else {
+          note.classList.add('hidden');
+        }
+      });
+    });
+
+    // Close checkout dropdown on outside click
+    document.addEventListener('click', function(e) {
+      if (coPayMethodDropdown && !coPayMethodDropdown.classList.contains('hidden')) {
+        if (!e.target.closest('#coPayMethodDropdown') && !e.target.closest('#coPayMethodToggle')) {
+          coPayMethodDropdown.classList.add('hidden');
+        }
+      }
+    });
 
     co3dCancel.addEventListener('click', function() {
       checkoutModal.classList.add('hidden');
@@ -5453,6 +6138,15 @@
           showStatus(tradeStatus, verb + ' ' + ck.rawAmount + ' ' + ck.coin + ' ($' + (d.tx && d.tx.usdValue || '0') + ')' + txIdStr, 'success');
           addNotification(verb + ' ' + ck.rawAmount + ' ' + ck.coin + ' — $' + (d.tx && d.tx.usdValue || '0'), 'good');
           trackAnalyticsEvent('trade_executed', { mode: ck.tradeMode, coin: ck.coin, amount: ck.rawAmount, usd: d.tx && d.tx.usdValue, fee: d.fee && d.fee.feeUsd, method: ck.method, txId: d.tx && d.tx.id });
+          notifyEvent('trade.executed', {
+            email: currentUser ? currentUser.email : '',
+            mode: ck.tradeMode,
+            coin: ck.coin,
+            amount: String(ck.rawAmount),
+            usd: String(d.tx && d.tx.usdValue || '0'),
+            method: ck.method,
+            txId: d.tx && d.tx.id || ''
+          });
           checkoutModal.classList.add('hidden');
           pendingCheckout = null;
         } else if (ck.type === 'bot_purchase') {
@@ -5501,8 +6195,41 @@
           var h = authHeaders();
           if (!h) { co3dStatus.textContent = 'Session expired.'; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return; }
 
-          // Validate gateway live readiness for non-crypto methods.
-          if (ck.method !== 'crypto') {
+          if (ck.method === 'trust_wallet') {
+            try {
+              var tgWalletRes = await fetch('/api/wallet', {
+                method: 'POST', headers: h,
+                body: JSON.stringify({
+                  action: 'trust_wallet_intent',
+                  requestedMethod: 'trust_wallet',
+                  sourceAmount: Number(lastQuote.amount || 0),
+                  sourceCurrency: String(lastQuote.from || 'USD'),
+                  targetAmount: Number(lastQuote.converted || 0),
+                  targetAsset: String(lastQuote.to || 'USDT')
+                })
+              });
+              var tgWalletData = await tgWalletRes.json();
+              if (!tgWalletRes.ok || !tgWalletData.ok || !tgWalletData.intent) {
+                co3dStatus.textContent = 'Trust Wallet payment could not be started.';
+                co3dStatus.className = 'text-center text-[10px] text-red-400';
+                co3dConfirm.disabled = false;
+                return;
+              }
+              showStatus(paymentStatus, 'Trust Wallet payment intent created. Complete the payment in Trust Wallet.', 'success');
+              try { window.open(tgWalletData.intent.payUrl || 'https://trustwallet.com/browser-extension', '_blank', 'noopener'); } catch (_) {}
+              checkoutModal.classList.add('hidden');
+              pendingCheckout = null;
+              return;
+            } catch (_) {
+              co3dStatus.textContent = 'Trust Wallet payment could not be started.';
+              co3dStatus.className = 'text-center text-[10px] text-red-400';
+              co3dConfirm.disabled = false;
+              return;
+            }
+          }
+
+          // Validate gateway live readiness for routed card/apple methods.
+          if (ck.method !== 'crypto' && ck.method !== 'usdt_wallet') {
             try {
               var gwRes = await fetch('/api/wallet', {
                 method: 'POST', headers: h,
@@ -5512,11 +6239,11 @@
               var gwKey = ck.method === 'apple' ? 'apple_pay' : ck.method;
               var gw = gwData && gwData.gateways ? gwData.gateways[gwKey] : null;
               if (!gw || gw.status !== 'operational') {
-                // Automatic fallback: create Telegram Wallet intent
+                // Automatic fallback: create Trust Wallet intent
                 var tgIntentRes = await fetch('/api/wallet', {
                   method: 'POST', headers: h,
                   body: JSON.stringify({
-                    action: 'telegram_wallet_intent',
+                    action: 'trust_wallet_intent',
                     requestedMethod: ck.method,
                     sourceAmount: Number(lastQuote.amount || 0),
                     sourceCurrency: String(lastQuote.from || 'USD'),
@@ -5526,16 +6253,16 @@
                 });
                 var tgIntentData = await tgIntentRes.json();
                 if (!tgIntentRes.ok || !tgIntentData.ok || !tgIntentData.intent) {
-                  co3dStatus.textContent = 'Gateway unavailable and Telegram fallback could not be created.';
+                  co3dStatus.textContent = 'Gateway unavailable and Trust Wallet fallback could not be created.';
                   co3dStatus.className = 'text-center text-[10px] text-red-400';
                   co3dConfirm.disabled = false;
                   return;
                 }
 
                 var intent = tgIntentData.intent;
-                var link = intent.payUrl || 'https://t.me/wallet';
-                showStatus(paymentStatus, 'Telegram Wallet fallback started. Intent: ' + intent.id + '. Complete payment in Telegram Wallet, then submit TX hash in Deposit.', 'success');
-                trackAnalyticsEvent('telegram_wallet_intent_created', {
+                var link = intent.payUrl || 'https://trustwallet.com/browser-extension';
+                showStatus(paymentStatus, 'Trust Wallet fallback started. Intent: ' + intent.id + '. Complete payment in Trust Wallet, then submit TX hash in Deposit.', 'success');
+                trackAnalyticsEvent('trust_wallet_intent_created', {
                   intentId: intent.id,
                   requestedMethod: ck.method,
                   sourceAmount: intent.sourceAmount,
@@ -5557,8 +6284,8 @@
             }
           }
 
-          // crypto wallet payment flow — real on-chain transaction
-          if (ck.method === 'crypto') {
+          // crypto / trust_wallet / usdt_wallet — real on-chain transaction
+          if (ck.method === 'crypto' || ck.method === 'usdt_wallet' || ck.method === 'trust_wallet') {
             var manager = initializePaymentManager();
             if (!manager || !manager.walletConnected || !manager.userAccount) {
               co3dStatus.textContent = 'Connect a wallet first.';
@@ -5580,63 +6307,11 @@
               amount: String(lastQuote.converted),
               currency: lastQuote.to,
               transaction_hash: payment.transactionHash,
-              gateway: 'crypto',
+              gateway: ck.method,
               verified: true
             });
-            trackAnalyticsEvent('crypto_payment_submitted', { currency: lastQuote.to, amount: Number(lastQuote.converted.toFixed(6)), method: 'crypto', txHash: payment.transactionHash });
+            trackAnalyticsEvent('crypto_payment_submitted', { currency: lastQuote.to, amount: Number(lastQuote.converted.toFixed(6)), method: ck.method, txHash: payment.transactionHash });
             showStatus(paymentStatus, 'Transaction confirmed: ' + payment.transactionHash, 'success');
-          } else if (ck.method === 'apple') {
-            // Apple Pay — initiate payment request via Payment Request API
-            co3dStatus.textContent = 'Initiating Apple Pay...';
-            if (window.PaymentRequest) {
-              try {
-                var methods = [{ supportedMethods: 'https://apple.com/apple-pay', data: { version: 3, merchantIdentifier: 'merchant.org.al-mudir', merchantCapabilities: ['supports3DS'], supportedNetworks: ['visa', 'masterCard', 'amex'], countryCode: 'US' } }];
-                var details = { total: { label: 'AL-MUDIR', amount: { currency: 'USD', value: String((lastQuote.amount || lastQuote.converted || 0).toFixed(2)) } } };
-                var request = new PaymentRequest(methods, details);
-                var response = await request.show();
-                await response.complete('success');
-                await notifyEvent('crypto.payment.intent', { name: currentUser.name, email: currentUser.email, amount: String(lastQuote.converted), currency: lastQuote.to, gateway: 'apple_pay', verified: true });
-                trackAnalyticsEvent('payment_submitted', { method: 'apple_pay', amount: lastQuote.converted });
-                showStatus(paymentStatus, 'Apple Pay payment processed successfully.', 'success');
-              } catch (apErr) {
-                co3dStatus.textContent = 'Apple Pay not available or was cancelled.'; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return;
-              }
-            } else {
-              co3dStatus.textContent = 'Apple Pay is not supported on this device.'; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return;
-            }
-          } else if (ck.method === 'visa' || ck.method === 'mastercard') {
-            // Card payment — route through Telegram Wallet for verified processing
-            co3dStatus.textContent = 'Setting up secure card payment via Telegram Wallet...';
-            try {
-              var tgCardRes = await fetch('/api/wallet', {
-                method: 'POST', headers: h,
-                body: JSON.stringify({
-                  action: 'telegram_wallet_intent',
-                  requestedMethod: ck.method,
-                  sourceAmount: Number(lastQuote.amount || 0),
-                  sourceCurrency: String(lastQuote.from || 'USD'),
-                  targetAmount: Number(lastQuote.converted || 0),
-                  targetAsset: String(lastQuote.to || 'USDT')
-                })
-              });
-              var tgCardData = await tgCardRes.json();
-              if (!tgCardRes.ok || !tgCardData.ok || !tgCardData.intent) {
-                co3dStatus.textContent = 'Card gateway setup failed. Please use crypto deposit instead.';
-                co3dStatus.className = 'text-center text-[10px] text-red-400';
-                co3dConfirm.disabled = false;
-                return;
-              }
-              var cardIntent = tgCardData.intent;
-              showStatus(paymentStatus, 'Payment intent created: ' + cardIntent.id + '. Complete payment in Telegram Wallet, then submit TX hash in Deposit panel.', 'success');
-              addNotification('Card payment routed to Telegram Wallet — complete payment and submit TX hash.', 'info');
-              trackAnalyticsEvent('card_telegram_intent', { method: ck.method, intentId: cardIntent.id, amount: lastQuote.converted });
-              try { window.open(cardIntent.payUrl || 'https://t.me/wallet', '_blank', 'noopener'); } catch (_) {}
-            } catch (_) {
-              co3dStatus.textContent = 'Payment failed. Please use crypto deposit.';
-              co3dStatus.className = 'text-center text-[10px] text-red-400';
-              co3dConfirm.disabled = false;
-              return;
-            }
           }
           checkoutModal.classList.add('hidden');
           pendingCheckout = null;
@@ -5677,7 +6352,7 @@
         feeRate: feeRate,
         fee: '$' + fee.toFixed(2) + ' (' + (feeRate * 100).toFixed(2) + '%)',
         total: '$' + total.toFixed(2),
-        method: selectedPayMethod
+        method: tradeSelectedPayMethod
       });
     });
 
@@ -5851,14 +6526,8 @@
         return;
       }
 
-      // Card payment validation
-      if (selectedPayMethod === 'visa' || selectedPayMethod === 'mastercard') {
-        var cardErr = validateCardDetails();
-        if (cardErr) { showStatus(paymentStatus, cardErr, 'error'); return; }
-      }
-
       // For crypto, verify wallet first
-      if (selectedPayMethod === 'crypto') {
+      if (selectedPayMethod === 'crypto' || selectedPayMethod === 'usdt_wallet' || selectedPayMethod === 'trust_wallet') {
         var manager = initializePaymentManager();
         if (!manager) { showStatus(paymentStatus, 'Payment module unavailable.', 'error'); return; }
         if (!manager.walletConnected || !manager.userAccount) {
@@ -5867,7 +6536,7 @@
         }
         showStatus(paymentStatus, 'Checking wallet balance...', 'neutral');
         try {
-          var walletBalance = await manager.getBalance();
+          var walletBalance = await manager.getCurrencyBalance(lastQuote.to);
           if (!walletBalance || walletBalance <= 0) {
             showStatus(paymentStatus, 'Insufficient wallet balance.', 'error');
             return;
@@ -5927,14 +6596,52 @@
         withdateranges: true,
         hide_side_toolbar: false,
         hide_top_toolbar: false,
-        allow_symbol_change: false,
+        allow_symbol_change: true,
         save_image: false,
+        details: true,
+        hotlist: false,
+        calendar: false,
+        studies: ['MASimple@tv-basicstudies', 'RSI@tv-basicstudies', 'Volume@tv-basicstudies'],
         timezone: 'Etc/UTC',
         locale: 'en',
-        container_id: 'tradingview_dashboard_xau'
+        container_id: 'tradingview_dashboard_xau',
+        enable_publishing: false,
+        backgroundColor: getTheme() === 'light' ? '#f3eee2' : '#0e1114',
+        gridColor: getTheme() === 'light' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.04)'
       });
 
       updateChartControlState();
+      updateMarketStatus();
+    }
+
+    function updateMarketStatus() {
+      var dot = document.getElementById('marketStatusDot');
+      var text = document.getElementById('marketStatusText');
+      if (!dot || !text) return;
+
+      var now = new Date();
+      var utcH = now.getUTCHours();
+      var utcDay = now.getUTCDay();
+      var symbol = dashboardChartSymbol || '';
+      var isCrypto = symbol.includes('BINANCE:') || symbol.includes('COINBASE:');
+      var isForex = symbol.includes('OANDA:') || symbol.includes('FX:');
+
+      var open = true;
+      if (isCrypto) {
+        open = true; // 24/7
+        text.textContent = 'Market Open \u2022 24/7';
+      } else if (isForex) {
+        // Forex: Sun 22:00 UTC to Fri 22:00 UTC
+        if (utcDay === 0 && utcH < 22) open = false;
+        else if (utcDay === 6) open = false;
+        else if (utcDay === 5 && utcH >= 22) open = false;
+        text.textContent = open ? 'Market Open' : 'Market Closed \u2022 Opens Sun 22:00 UTC';
+      } else {
+        text.textContent = open ? 'Market Open' : 'Market Closed';
+      }
+
+      dot.className = 'inline-block h-2 w-2 rounded-full ' + (open ? 'bg-green-400 animate-pulse' : 'bg-red-400');
+      text.className = 'text-[10px] uppercase tracking-[0.12em] ' + (open ? 'text-green-400' : 'text-red-400');
     }
 
     function restoreSessionIfActive() {
@@ -5976,7 +6683,6 @@
     initTheme();
     renderNotifications();
     renderTickerTape();
-    renderSignalCards(landingSignalsGrid);
     renderSignalCards(dashboardSignalsGrid);
     renderOrderBook();
     renderSecuritySessions();

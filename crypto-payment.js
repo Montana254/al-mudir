@@ -11,7 +11,13 @@ class CryptoPaymentManager {
 
     this.supportedChains = {
       1: { name: 'Ethereum', symbol: 'ETH', rpc: 'https://eth.llamarpc.com' },
-      56: { name: 'BNB Smart Chain', symbol: 'BNB', rpc: 'https://bsc-dataseed.binance.org' }
+      56: { name: 'BNB Smart Chain', symbol: 'BNB', rpc: 'https://bsc-dataseed.binance.org' },
+      137: { name: 'Polygon', symbol: 'MATIC', rpc: 'https://polygon-rpc.com' },
+      43114: { name: 'Avalanche C-Chain', symbol: 'AVAX', rpc: 'https://api.avax.network/ext/bc/C/rpc' },
+      42161: { name: 'Arbitrum One', symbol: 'ETH', rpc: 'https://arb1.arbitrum.io/rpc' },
+      10: { name: 'Optimism', symbol: 'ETH', rpc: 'https://mainnet.optimism.io' },
+      8453: { name: 'Base', symbol: 'ETH', rpc: 'https://mainnet.base.org' },
+      250: { name: 'Fantom', symbol: 'FTM', rpc: 'https://rpc.ftm.tools' }
     };
 
     this.paymentRates = {
@@ -107,20 +113,71 @@ class CryptoPaymentManager {
     };
   }
 
+  discoverWindowProviders() {
+    if (typeof window === 'undefined') return [];
+
+    const discovered = [];
+    const seen = new Set();
+    const skipKeys = new Set([
+      'window', 'document', 'location', 'navigator', 'history', 'localStorage', 'sessionStorage',
+      'performance', 'frames', 'top', 'parent', 'self', 'console', 'crypto', 'external'
+    ]);
+
+    const addProvider = (candidate) => {
+      if (!candidate || typeof candidate !== 'object') return;
+      if (seen.has(candidate)) return;
+      if (typeof candidate.request !== 'function') return;
+
+      const hasSignals = typeof candidate.on === 'function'
+        || typeof candidate.removeListener === 'function'
+        || typeof candidate.isConnected === 'function'
+        || typeof candidate.send === 'function';
+      if (!hasSignals) return;
+
+      seen.add(candidate);
+      discovered.push(candidate);
+    };
+
+    Object.keys(window).forEach((key) => {
+      if (skipKeys.has(key)) return;
+      let candidate;
+      try {
+        candidate = window[key];
+      } catch (_) {
+        return;
+      }
+      addProvider(candidate);
+      if (candidate && Array.isArray(candidate.providers)) {
+        candidate.providers.forEach(addProvider);
+      }
+    });
+
+    return discovered;
+  }
+
   getInjectedProviders() {
     const providers = [];
+    const seen = new Set();
+
+    const pushProvider = (provider) => {
+      if (!provider || seen.has(provider)) return;
+      seen.add(provider);
+      providers.push(provider);
+    };
 
     if (window.ethereum?.providers && Array.isArray(window.ethereum.providers)) {
-      providers.push(...window.ethereum.providers);
+      window.ethereum.providers.forEach(pushProvider);
     }
 
     if (window.ethereum && !providers.includes(window.ethereum)) {
-      providers.push(window.ethereum);
+      pushProvider(window.ethereum);
     }
 
     if (window.BinanceChain && !providers.includes(window.BinanceChain)) {
-      providers.push(window.BinanceChain);
+      pushProvider(window.BinanceChain);
     }
+
+    this.discoverWindowProviders().forEach(pushProvider);
 
     return providers;
   }
@@ -173,7 +230,7 @@ class CryptoPaymentManager {
     if (!provider) return false;
 
     const type = String(walletType || 'auto').toLowerCase();
-    if (type === 'auto') {
+    if (type === 'auto' || type === 'any') {
       return true;
     }
 
@@ -181,9 +238,10 @@ class CryptoPaymentManager {
     if (type === 'trustwallet') return !!provider.isTrust || !!provider.isTrustWallet;
     if (type === 'coinbase') return !!provider.isCoinbaseWallet;
     if (type === 'binance') return !!provider.isBinance || provider === window.BinanceChain;
-    if (type === 'walletconnect') return false; // WalletConnect is not an injected provider
+    if (type === 'walletconnect') return false;
 
-    return true;
+    // Accept any EIP-1193 compatible provider for unknown wallet types
+    return typeof provider.request === 'function';
   }
 
   pickProvider(walletType = 'auto') {
@@ -227,14 +285,13 @@ class CryptoPaymentManager {
     const rawChain = await provider.request({ method: 'eth_chainId' });
     this.chainId = String(rawChain).startsWith('0x') ? parseInt(rawChain, 16) : Number(rawChain);
 
-    if (!this.supportedChains[this.chainId]) {
-      throw new Error('Unsupported network. Switch to Ethereum Mainnet or BNB Smart Chain.');
-    }
+    const chainInfo = this.supportedChains[this.chainId];
+    const chainName = chainInfo ? chainInfo.name : 'Chain ' + this.chainId;
 
     return {
       account: this.userAccount,
       chain: this.chainId,
-      chainName: this.supportedChains[this.chainId].name,
+      chainName: chainName,
       provider: this.detectProviderName(provider)
     };
   }
@@ -243,13 +300,33 @@ class CryptoPaymentManager {
     return this.web3Instance.request({ method: 'eth_gasPrice' });
   }
 
+  amountToUnits(amount, decimals) {
+    const normalized = String(amount || '').trim();
+    if (!normalized || normalized === '0') return '0';
+
+    const parts = normalized.split('.');
+    const whole = parts[0] || '0';
+    const fraction = (parts[1] || '').slice(0, decimals).padEnd(decimals, '0');
+    const base = 10n ** BigInt(decimals);
+    return (BigInt(whole) * base + BigInt(fraction || '0')).toString();
+  }
+
+  getTokenConfig(currency, chainId) {
+    const code = String(currency || '').toUpperCase();
+    const chain = Number(chainId || this.chainId || 0);
+    return (this.tokenContracts[chain] && this.tokenContracts[chain][code]) || null;
+  }
+
   toWei(amount, currency) {
     const decimals = {
       ETH: 18,
-      BNB: 18
+      BNB: 18,
+      MATIC: 18,
+      AVAX: 18,
+      FTM: 18
     };
     const units = decimals[currency] || 18;
-    return Math.floor(Number(amount) * Math.pow(10, units)).toString();
+    return this.amountToUnits(amount, units);
   }
 
   encodePaymentData(description) {
@@ -261,9 +338,9 @@ class CryptoPaymentManager {
   }
 
   async buildTransactionPayload(amount, currency, recipientAddress, description) {
-    const supportedNative = ['ETH', 'BNB'];
+    const supportedNative = ['ETH', 'BNB', 'MATIC', 'AVAX', 'FTM'];
     if (!supportedNative.includes(currency)) {
-      throw new Error('Direct wallet transfer currently supports ETH or BNB only. Use Deposit for BTC/USDT transfers.');
+      throw new Error('Direct native transfer is not available for ' + currency + ' on the connected network.');
     }
 
     const gasPrice = await this.getGasPrice();
@@ -291,6 +368,17 @@ class CryptoPaymentManager {
     this.paymentInProgress = true;
 
     try {
+      const tokenConfig = this.getTokenConfig(paymentDetails.currency, this.chainId);
+      if (tokenConfig) {
+        return await this.sendToken(
+          tokenConfig.address,
+          paymentDetails.amount,
+          tokenConfig.decimals,
+          paymentDetails.recipientAddress,
+          true
+        );
+      }
+
       const txPayload = await this.buildTransactionPayload(
         paymentDetails.amount,
         paymentDetails.currency,
@@ -314,6 +402,15 @@ class CryptoPaymentManager {
     } finally {
       this.paymentInProgress = false;
     }
+  }
+
+  async getCurrencyBalance(currency) {
+    const code = String(currency || '').toUpperCase();
+    const tokenConfig = this.getTokenConfig(code, this.chainId);
+    if (tokenConfig) {
+      return this.getTokenBalance(tokenConfig.address, tokenConfig.decimals);
+    }
+    return parseFloat(await this.getBalance());
   }
 
   async fetchFiatRates() {
@@ -498,20 +595,17 @@ class CryptoPaymentManager {
   /**
    * Send ERC-20 / BEP-20 token from connected wallet to treasury.
    */
-  async sendToken(tokenAddress, amount, decimals, recipientAddress) {
+  async sendToken(tokenAddress, amount, decimals, recipientAddress, skipInProgressCheck) {
     if (!this.walletConnected) throw new Error('Wallet not connected');
-    if (this.paymentInProgress) throw new Error('Payment already in progress');
+    if (!skipInProgressCheck && this.paymentInProgress) throw new Error('Payment already in progress');
 
-    this.paymentInProgress = true;
+    const ownsProgressLock = !skipInProgressCheck;
+    if (ownsProgressLock) this.paymentInProgress = true;
     try {
       const to = recipientAddress || this.treasuryNativeAddress[this.chainId] || this.treasuryNativeAddress[1];
 
       // Encode transfer(address, uint256)
-      // Parse amount to token units avoiding floating point issues
-      const parts = String(amount).split('.');
-      const whole = parts[0] || '0';
-      const frac = (parts[1] || '').slice(0, decimals).padEnd(decimals, '0');
-      const unitsBigInt = BigInt(whole) * BigInt(10 ** decimals) + BigInt(frac);
+      const unitsBigInt = BigInt(this.amountToUnits(amount, decimals));
       const amountHex = unitsBigInt.toString(16).padStart(64, '0');
       const addrHex = to.slice(2).toLowerCase().padStart(64, '0');
       const data = '0xa9059cbb' + addrHex + amountHex;
@@ -539,7 +633,7 @@ class CryptoPaymentManager {
         timestamp: new Date().toISOString()
       };
     } finally {
-      this.paymentInProgress = false;
+      if (ownsProgressLock) this.paymentInProgress = false;
     }
   }
 
@@ -552,6 +646,82 @@ class CryptoPaymentManager {
     });
 
     return (parseInt(balanceHex, 16) / Math.pow(10, 18)).toFixed(4);
+  }
+
+  /**
+   * Send a deposit of a specific token (USDT, USDC, etc.) to the system treasury.
+   * Automatically routes to sendToken for ERC-20/BEP-20, or native transfer for ETH/BNB.
+   * Returns { transactionHash, amount, currency, chainId, recipientAddress, timestamp }
+   */
+  async sendDeposit(currency, amount) {
+    if (!this.walletConnected) throw new Error('Wallet not connected');
+    const code = String(currency || '').toUpperCase();
+    const numAmount = parseFloat(amount);
+    if (!numAmount || numAmount <= 0) throw new Error('Invalid deposit amount');
+
+    const tokenConfig = this.getTokenConfig(code, this.chainId);
+    if (tokenConfig) {
+      // ERC-20 / BEP-20 token transfer to treasury
+      return await this.sendToken(
+        tokenConfig.address,
+        numAmount,
+        tokenConfig.decimals,
+        null, // defaults to treasury address
+        false
+      );
+    }
+
+    // Native transfer (ETH, BNB, etc.)
+    return await this.processPayment({
+      amount: numAmount,
+      currency: code,
+      recipientAddress: this.treasuryNativeAddress[this.chainId] || this.treasuryNativeAddress[1],
+      description: 'AL-MUDIR Deposit'
+    });
+  }
+
+  /**
+   * Initiate a withdrawal from a system wallet address.
+   * Note: This requires the system wallet private key — only call from admin/backend context.
+   * In browser context, this opens the wallet extension for signing with the connected wallet.
+   */
+  async initWithdrawal(currency, amount, recipientAddress) {
+    if (!this.walletConnected) throw new Error('Wallet not connected');
+    if (!recipientAddress) throw new Error('Recipient address required');
+    const code = String(currency || '').toUpperCase();
+    const numAmount = parseFloat(amount);
+    if (!numAmount || numAmount <= 0) throw new Error('Invalid withdrawal amount');
+
+    const tokenConfig = this.getTokenConfig(code, this.chainId);
+    if (tokenConfig) {
+      return await this.sendToken(
+        tokenConfig.address,
+        numAmount,
+        tokenConfig.decimals,
+        recipientAddress,
+        false
+      );
+    }
+
+    return await this.processPayment({
+      amount: numAmount,
+      currency: code,
+      recipientAddress: recipientAddress,
+      description: 'AL-MUDIR Withdrawal'
+    });
+  }
+
+  /**
+   * Get treasury address for a specific coin / chain.
+   */
+  getTreasuryAddress(coin) {
+    const chain = this.chainId || 1;
+    const code = String(coin || '').toUpperCase();
+    // Check token addresses first
+    if (this.treasuryAddresses[code + '_ERC20']) return this.treasuryAddresses[code + '_ERC20'];
+    if (this.treasuryAddresses[code]) return this.treasuryAddresses[code];
+    // Fall back to native treasury for current chain
+    return this.treasuryNativeAddress[chain] || this.treasuryNativeAddress[1];
   }
 }
 

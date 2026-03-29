@@ -2,6 +2,7 @@
 const { redis, withDb } = require('./_lib/redis');
 const { sanitize } = require('./_lib/auth-utils');
 const { ensureUserRecord, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
+const { isAdminEmail } = require('./_lib/admin-access');
 
 // ─── Session resolver ──────────────────────────────────
 async function resolveSession(req) {
@@ -175,6 +176,149 @@ module.exports = withDb(async function handler(req, res) {
       ].filter(Boolean));
 
       return res.status(200).json({ ok: true, state: decision });
+    }
+
+    // ── POST action=admin_queue (admin dashboard, session-based) ──
+    if (action === 'admin_queue') {
+      const adminCtx = await resolveSession(req);
+      if (adminCtx.error) return res.status(adminCtx.status).json({ ok: false, error: adminCtx.error });
+      if (!isAdminEmail(adminCtx.user.email)) return res.status(403).json({ ok: false, error: 'forbidden' });
+
+      const regRaw = await redis('GET', 'system:registered_users');
+      const regData = (regRaw && typeof regRaw === 'object') ? regRaw : { users: [] };
+      const queue = [];
+
+      for (const entry of (regData.users || [])) {
+        const email = String(entry && entry.email || '').toLowerCase();
+        if (!email) continue;
+
+        const userRaw = await redis('GET', 'user:' + email);
+        if (!userRaw) continue;
+        const userObj = typeof userRaw === 'string' ? JSON.parse(userRaw) : userRaw;
+        if (userObj.kycState !== 'pending') continue;
+
+        const docsRaw = await redis('GET', 'kyc_docs:' + email);
+        const docs = docsRaw ? (typeof docsRaw === 'string' ? JSON.parse(docsRaw) : docsRaw) : null;
+        const kyc = userObj.kycData || {};
+        const addr = kyc.address || {};
+
+        queue.push({
+          email: email,
+          name: userObj.name || '',
+          userId: userObj.userId || '',
+          state: userObj.kycState || 'pending',
+          submittedAt: kyc.submittedAt || null,
+          idType: kyc.idType || null,
+          idDocNumber: kyc.idDocNumber || null,
+          nationality: kyc.nationality || null,
+          dob: kyc.dob || null,
+          address: {
+            street: addr.street || '',
+            city: addr.city || '',
+            state: addr.state || '',
+            postalCode: addr.postalCode || '',
+            country: addr.country || ''
+          },
+          documents: {
+            idFront: !!(docs && docs.idDocFront),
+            idBack: !!(docs && docs.idDocBack),
+            residence: !!(docs && docs.residenceDoc),
+            idFrontName: kyc.idDocFrontName || null,
+            idBackName: kyc.idDocBackName || null,
+            residenceName: kyc.residenceDocName || null
+          }
+        });
+      }
+
+      queue.sort(function(a, b) {
+        return new Date(a.submittedAt || 0).getTime() - new Date(b.submittedAt || 0).getTime();
+      });
+
+      return res.status(200).json({ ok: true, queue: queue, count: queue.length });
+    }
+
+    // ── POST action=admin_review (admin dashboard, session-based) ──
+    if (action === 'admin_review') {
+      const adminCtx = await resolveSession(req);
+      if (adminCtx.error) return res.status(adminCtx.status).json({ ok: false, error: adminCtx.error });
+      if (!isAdminEmail(adminCtx.user.email)) return res.status(403).json({ ok: false, error: 'forbidden' });
+
+      const targetEmail = sanitize(body.email, 120).toLowerCase();
+      const decision = String(body.decision || '').toLowerCase();
+      const reason = sanitize(body.reason || '', 500);
+
+      if (!targetEmail) return res.status(400).json({ ok: false, error: 'email_required' });
+      if (!['verified', 'rejected'].includes(decision)) return res.status(400).json({ ok: false, error: 'invalid_decision' });
+      if (decision === 'rejected' && !reason) return res.status(400).json({ ok: false, error: 'rejection_reason_required' });
+
+      const targetRaw = await redis('GET', 'user:' + targetEmail);
+      if (!targetRaw) return res.status(404).json({ ok: false, error: 'user_not_found' });
+      const targetUser = typeof targetRaw === 'string' ? JSON.parse(targetRaw) : targetRaw;
+
+      targetUser.kycState = decision;
+      if (!targetUser.kycData) targetUser.kycData = {};
+      targetUser.kycData.reviewedAt = new Date().toISOString();
+      targetUser.kycData.reviewedBy = adminCtx.user.email;
+      targetUser.kycData.rejectionReason = decision === 'rejected' ? reason : null;
+      targetUser.updatedAt = new Date().toISOString();
+
+      await redis('SET', 'user:' + targetEmail, JSON.stringify(targetUser));
+      await saveUserProfileSnapshot(redis, targetUser);
+
+      await sendTelegramText([
+        'AL-MUDIR KYC REVIEW',
+        '--------------------',
+        'Email: ' + targetEmail,
+        'Name: ' + (targetUser.name || 'N/A'),
+        'Decision: ' + decision.toUpperCase(),
+        decision === 'rejected' ? 'Reason: ' + reason : '',
+        'Reviewed By: ' + adminCtx.user.email,
+        'Reviewed At: ' + targetUser.kycData.reviewedAt
+      ].filter(Boolean));
+
+      return res.status(200).json({ ok: true, state: decision, reviewedAt: targetUser.kycData.reviewedAt });
+    }
+
+    // ── POST action=admin_verify_all (bulk verify every pending user) ──
+    if (action === 'admin_verify_all') {
+      const adminCtx = await resolveSession(req);
+      if (adminCtx.error) return res.status(adminCtx.status).json({ ok: false, error: adminCtx.error });
+      if (!isAdminEmail(adminCtx.user.email)) return res.status(403).json({ ok: false, error: 'forbidden' });
+
+      const regRaw = await redis('GET', 'system:registered_users');
+      const regData = (regRaw && typeof regRaw === 'object') ? regRaw : { users: [] };
+      const now = new Date().toISOString();
+      let verified = 0;
+
+      for (const entry of (regData.users || [])) {
+        const email = String(entry && entry.email || '').toLowerCase();
+        if (!email) continue;
+        const userRaw = await redis('GET', 'user:' + email);
+        if (!userRaw) continue;
+        const userObj = typeof userRaw === 'string' ? JSON.parse(userRaw) : userRaw;
+        if (userObj.kycState !== 'pending') continue;
+
+        userObj.kycState = 'verified';
+        if (!userObj.kycData) userObj.kycData = {};
+        userObj.kycData.reviewedAt = now;
+        userObj.kycData.reviewedBy = adminCtx.user.email;
+        userObj.kycData.rejectionReason = null;
+        userObj.updatedAt = now;
+
+        await redis('SET', 'user:' + email, JSON.stringify(userObj));
+        await saveUserProfileSnapshot(redis, userObj);
+        verified++;
+      }
+
+      await sendTelegramText([
+        'AL-MUDIR BULK KYC VERIFICATION',
+        '-------------------------------',
+        'Verified: ' + verified + ' users',
+        'Admin: ' + adminCtx.user.email,
+        'Time: ' + now
+      ]);
+
+      return res.status(200).json({ ok: true, verified: verified });
     }
 
     // ── POST action=submit (user KYC submission) ───────

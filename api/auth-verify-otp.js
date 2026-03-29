@@ -2,6 +2,8 @@
 const { redis, withDb } = require('./_lib/redis');
 const { generateSessionToken, sanitize } = require('./_lib/auth-utils');
 const { ensureUserRecord, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
+const { attachAdminFlag } = require('./_lib/admin-access');
+const { runAgent } = require('./_lib/agents');
 
 const rateLimitMap = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
@@ -79,7 +81,12 @@ module.exports = withDb(async function handler(req, res) {
     await redis('SET', 'session:' + sessionToken, JSON.stringify({ email, createdAt: new Date().toISOString() }));
     await redis('EXPIRE', 'session:' + sessionToken, 86400);
 
-    return res.status(200).json({ ok: true, token: sessionToken, profile: toSafeProfile(ensured.user) });
+    // Fire welcome email agent on first-time signup verification
+    if (purpose !== 'login') {
+      try { await runAgent({ type: 'user.verified', payload: { email, name: ensured.user.name } }); } catch { /* best-effort */ }
+    }
+
+    return res.status(200).json({ ok: true, token: sessionToken, profile: attachAdminFlag(toSafeProfile(ensured.user)) });
   } catch (error) {
     const msg = String(error && error.message ? error.message : 'server_error');
     if (msg.includes('redis_not_configured')) {

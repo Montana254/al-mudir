@@ -24,7 +24,7 @@ const CONTEXT = {
   tradingFees: '0.05% – 0.25%',
   depositFee: '0.05%',
   supportedCoins: '17 (BTC, ETH, BNB, USDT, USDC, SOL, XRP, LTC, DOGE, TRX, ADA, AVAX, DOT, LINK, MATIC, TON, XLM)',
-  paymentMethods: 'Crypto Wallet, Apple Pay, Visa/MC (via Telegram Wallet)',
+  paymentMethods: 'Crypto Wallet, Apple Pay, Visa/MC (via Trust Wallet)',
   riskDisclaimer: 'Trading involves risk. Past performance is not indicative of future results. Only invest capital you can afford to lose.'
 };
 

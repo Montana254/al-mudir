@@ -18,6 +18,23 @@ User-agent: Bingbot
 Allow: /
 Disallow: /api/
 
+# Allow DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /api/
+
+# Allow Yandex
+User-agent: Yandex
+Allow: /
+Disallow: /api/
+
+# Allow Baidu
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+
+Sitemap: https://al-mudir.org/sitemap.xml
+
 # Crawl delay (optional)
 Crawl-delay: 1
 

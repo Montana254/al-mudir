@@ -32,7 +32,7 @@ AL-MUDIR is a private wealth and fintech venture based in Dubai, specialising in
 5. **Copy Trading** — Link your Exness account to AL-MUDIR's master strategy for proportional trade replication
 6. **Portfolio Monitoring Dashboard** — Real-time performance tracking, trade history, and balance management
 7. **KYC Verification & Onboarding** — Secure identity verification for accredited investor access
-8. **Multi-Currency Deposits** — Accept crypto (17 coins), Visa, Mastercard, Apple Pay, Telegram Wallet
+8. **Multi-Currency Deposits** — Accept crypto (17 coins), Visa, Mastercard, Apple Pay, Trust Wallet
 
 ### Business Hours
 - Monday–Friday: 24 hours (markets active)
@@ -79,7 +79,7 @@ A: Your capital remains in your own individually segregated account at Exness, a
 A: As of our latest reporting: $7.8M+ in assets under management, 2.84 Sharpe ratio, and -3.2% maximum drawdown. These metrics are available through our client dashboard. Past performance does not guarantee future results.
 
 **Q8: How do I deposit funds?**  
-A: We accept deposits via crypto wallet (17 supported coins across Ethereum and BNB chains), Visa, Mastercard, Apple Pay, and Telegram Wallet. All payment gateways are operational with institutional-grade encryption.
+A: We accept deposits via crypto wallet (17 supported coins across Ethereum and BNB chains), Visa, Mastercard, Apple Pay, and Trust Wallet. All payment gateways are operational with institutional-grade encryption.
 
 **Q9: Does AL-MUDIR offer algorithmic trading?**  
 A: Yes. Our algorithmic trading bot executes across 9 institutional strategies including ICT killzone entries, liquidity sweep reversals, mean reversion, and momentum breakouts. The bot is available through the client dashboard.

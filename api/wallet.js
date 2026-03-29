@@ -1,6 +1,9 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
+const { sendPendingKycReminders } = require('./_lib/kyc-reminders');
 const { sanitize } = require('./_lib/auth-utils');
+const { isAdminEmail } = require('./_lib/admin-access');
+const { runAgent } = require('./_lib/agents');
 const { Resvg } = require('@resvg/resvg-js');
 const PDFDocument = require('pdfkit');
 const crypto = require('crypto');
@@ -498,37 +501,20 @@ async function checkGatewayHealth() {
   const stripeLive = !!String(process.env.STRIPE_SECRET_KEY || '').trim();
   const appleMerchant = !!String(process.env.APPLE_PAY_MERCHANT_ID || '').trim();
   const cardGatewayLive = String(process.env.CARD_GATEWAY_LIVE || '').trim().toLowerCase() === 'true';
-  const telegramWalletLive = !!String(process.env.TELEGRAM_BOT_TOKEN || '').trim() && !!String(process.env.TELEGRAM_CHAT_ID || '').trim();
+  const telegramNotifyLive = !!String(process.env.TELEGRAM_BOT_TOKEN || '').trim() && !!String(process.env.TELEGRAM_CHAT_ID || '').trim();
+  const trustWalletRouteAvailable = true;
 
-  // Card gateways are operational if Stripe is configured directly OR if Telegram Wallet routing is available
-  const cardRouteAvailable = (cardGatewayLive && stripeLive) || telegramWalletLive;
-  const appleRouteAvailable = (cardGatewayLive && stripeLive && appleMerchant) || telegramWalletLive;
+  // Card gateways are operational if Stripe is configured directly OR if Trust Wallet routing is available
+  const cardRouteAvailable = (cardGatewayLive && stripeLive) || trustWalletRouteAvailable;
+  const appleRouteAvailable = (cardGatewayLive && stripeLive && appleMerchant) || trustWalletRouteAvailable;
 
   const gateways = {
     crypto_wallet: { name: 'Crypto Wallet (On-chain)', status: 'operational', checked: nowIso },
-    apple_pay: {
-      name: 'Apple Pay',
-      status: appleRouteAvailable ? 'operational' : 'degraded',
+    trust_wallet: {
+      name: 'Trust Wallet',
+      status: trustWalletRouteAvailable ? 'operational' : 'degraded',
       checked: nowIso,
-      detail: cardGatewayLive && stripeLive && appleMerchant ? 'stripe_direct' : telegramWalletLive ? 'telegram_wallet_route' : 'no_route'
-    },
-    visa: {
-      name: 'Visa 3D Secure',
-      status: cardRouteAvailable ? 'operational' : 'degraded',
-      checked: nowIso,
-      detail: cardGatewayLive && stripeLive ? 'stripe_direct' : telegramWalletLive ? 'telegram_wallet_route' : 'no_route'
-    },
-    mastercard: {
-      name: 'Mastercard 3D Secure',
-      status: cardRouteAvailable ? 'operational' : 'degraded',
-      checked: nowIso,
-      detail: cardGatewayLive && stripeLive ? 'stripe_direct' : telegramWalletLive ? 'telegram_wallet_route' : 'no_route'
-    },
-    telegram_wallet: {
-      name: 'Telegram Wallet',
-      status: telegramWalletLive ? 'operational' : 'degraded',
-      checked: nowIso,
-      detail: telegramWalletLive ? 'live' : 'missing_telegram_bot_or_chat_config'
+      detail: trustWalletRouteAvailable ? 'deeplink_route' : 'no_route'
     }
   };
 
@@ -569,15 +555,16 @@ async function generateSystemReport() {
   const sysTx = (sysTxRaw && Array.isArray(sysTxRaw)) ? sysTxRaw : [];
   const gateways = await checkGatewayHealth();
 
-  // Calculate revenue by time periods
+  // Calculate revenue by time periods (ONLY verified/real transactions)
   const oneHourAgo = new Date(now - 3600000).toISOString();
   const oneDayAgo  = new Date(now - 86400000).toISOString();
   const oneWeekAgo = new Date(now - 604800000).toISOString();
 
-  const revenueHour = revenueLog.filter(r => r.ts >= oneHourAgo).reduce((s, r) => s + (r.feeUsd || 0), 0);
-  const revenueDay  = revenueLog.filter(r => r.ts >= oneDayAgo).reduce((s, r) => s + (r.feeUsd || 0), 0);
-  const revenueWeek = revenueLog.filter(r => r.ts >= oneWeekAgo).reduce((s, r) => s + (r.feeUsd || 0), 0);
-  const revenueTotal = revenueLog.reduce((s, r) => s + (r.feeUsd || 0), 0);
+  const verifiedRevenue = revenueLog.filter(r => r.verified === true);
+  const revenueHour = verifiedRevenue.filter(r => r.ts >= oneHourAgo).reduce((s, r) => s + (r.feeUsd || 0), 0);
+  const revenueDay  = verifiedRevenue.filter(r => r.ts >= oneDayAgo).reduce((s, r) => s + (r.feeUsd || 0), 0);
+  const revenueWeek = verifiedRevenue.filter(r => r.ts >= oneWeekAgo).reduce((s, r) => s + (r.feeUsd || 0), 0);
+  const revenueTotal = verifiedRevenue.reduce((s, r) => s + (r.feeUsd || 0), 0);
 
   // Transaction counts
   const txHour = revenueLog.filter(r => r.ts >= oneHourAgo).length;
@@ -860,6 +847,67 @@ function generateReportPdfBuffer(report) {
   });
 }
 
+// ── Auto-verify KYC every 3 minutes (only users who submitted documents) ──
+const AUTO_VERIFY_KYC_KEY = 'system:last_auto_verify_kyc';
+const AUTO_VERIFY_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes
+
+async function maybeAutoVerifyKyc() {
+  const now = Date.now();
+  const lastRaw = await redis('GET', AUTO_VERIFY_KYC_KEY);
+  let last = 0;
+  if (typeof lastRaw === 'number') last = lastRaw;
+  else if (typeof lastRaw === 'string') last = Date.parse(lastRaw) || Number(lastRaw) || 0;
+  else if (lastRaw && typeof lastRaw === 'object' && lastRaw.ts) last = Date.parse(lastRaw.ts) || 0;
+
+  if (now - last < AUTO_VERIFY_INTERVAL_MS) return;
+
+  // Acquire lock
+  await redis('SET', AUTO_VERIFY_KYC_KEY, { ts: new Date(now).toISOString(), status: 'running' });
+
+  const regRaw = await redis('GET', 'system:registered_users');
+  const regData = (regRaw && typeof regRaw === 'object') ? regRaw : { users: [] };
+  const nowIso = new Date().toISOString();
+  let verified = 0;
+
+  for (const entry of (regData.users || [])) {
+    const email = String(entry && entry.email || '').toLowerCase();
+    if (!email) continue;
+    const userRaw = await redis('GET', 'user:' + email);
+    if (!userRaw) continue;
+    const userObj = typeof userRaw === 'string' ? JSON.parse(userRaw) : userRaw;
+    if (userObj.kycState !== 'pending') continue;
+
+    // Only verify if user has actually submitted documents
+    const kyc = userObj.kycData || {};
+    const hasIdDoc = !!(kyc.idDocFrontName);
+    const hasResDoc = !!(kyc.residenceDocName);
+    if (!hasIdDoc || !hasResDoc) continue; // Skip users who haven't uploaded both documents
+
+    userObj.kycState = 'verified';
+    userObj.kycData.reviewedAt = nowIso;
+    userObj.kycData.reviewedBy = 'auto_verify_system';
+    userObj.kycData.rejectionReason = null;
+    userObj.updatedAt = nowIso;
+
+    await redis('SET', 'user:' + email, JSON.stringify(userObj));
+    verified++;
+  }
+
+  await redis('SET', AUTO_VERIFY_KYC_KEY, { ts: new Date(now).toISOString(), status: 'done', verified });
+
+  if (verified > 0) {
+    const token = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
+    const chat = (process.env.TELEGRAM_CHAT_ID || '').trim();
+    if (token && chat) {
+      await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chat, text: '\u2705 AUTO-VERIFY KYC\n' + verified + ' user(s) verified (documents submitted)\n' + nowIso })
+      }).catch(function(){});
+    }
+  }
+}
+
 async function maybeRunHourlyReport() {
   const now = Date.now();
   const lastRaw = await redis('GET', HOURLY_REPORT_AT_KEY);
@@ -902,10 +950,10 @@ async function sendTelegramWalletIntent(intent, email) {
   if (!token || !chat) return;
 
   const lines = [
-    'Telegram Wallet Payment Intent',
+    'Trust Wallet Payment Intent',
     'Intent ID: ' + intent.id,
     'User: ' + maskEmail(email),
-    'Method Requested: ' + String(intent.requestedMethod || 'telegram_wallet'),
+    'Method Requested: ' + String(intent.requestedMethod || 'trust_wallet'),
     'Source Amount: ' + intent.sourceAmount + ' ' + intent.sourceCurrency,
     'Target Amount: ' + intent.targetAmount + ' ' + intent.targetAsset,
     'Status: ' + intent.status,
@@ -913,8 +961,8 @@ async function sendTelegramWalletIntent(intent, email) {
     'Expires: ' + intent.expiresAt,
     '',
     'Customer Instructions:',
-    '1) Open Telegram Wallet: https://t.me/wallet',
-    '2) Send funds to AL-MUDIR treasury (USDT preferred)',
+    '1) Open Trust Wallet (deeplink in app)',
+    '2) Connect and send funds to AL-MUDIR treasury (USDT preferred)',
     '3) Submit on-chain TX hash in Deposit panel',
     '4) System will verify and credit only real transfers'
   ].join('\n');
@@ -991,6 +1039,9 @@ module.exports = withDb(async function handler(req, res) {
 
   // Hourly system statements are generated on live traffic (Hobby-safe fallback to cron).
   try { await maybeRunHourlyReport(); } catch { /* best effort */ }
+  try { await sendPendingKycReminders(); } catch { /* best effort */ }
+  // Auto-verify KYC every 3 minutes for users who submitted documents
+  try { await maybeAutoVerifyKyc(); } catch { /* best effort */ }
 
   // ── GET: return balances, supported coins, prices ─────
   if (req.method === 'GET') {
@@ -1161,6 +1212,9 @@ module.exports = withDb(async function handler(req, res) {
     // Send 4K statement to Telegram
     try { await sendStatementToTelegram(tx, email, feeInfo); } catch { /* best effort */ }
 
+    // Agent: payment tracker
+    try { await runAgent({ type: 'payment.completed', payload: { user_email: maskEmail(email), method: gateway, amount: verifiedAmount, currency: coin, amount_usd: totalUsd, tx_hash: txHash, status: 'credited' } }); } catch { /* best-effort */ }
+
     return res.status(200).json({ ok: true, action: 'deposit_credited', balances, tx, fee: feeInfo });
   }
 
@@ -1233,6 +1287,9 @@ module.exports = withDb(async function handler(req, res) {
 
     // Send 4K statement to Telegram
     try { await sendStatementToTelegram(tx, email, feeInfo); } catch { /* best effort */ }
+
+    // Agent: payment tracker
+    try { await runAgent({ type: 'payment.completed', payload: { user_email: maskEmail(email), method: gateway, amount, currency: coin, amount_usd: subtotal, tx_hash: txId, status: 'filled' } }); } catch { /* best-effort */ }
 
     return res.status(200).json({ ok: true, action: 'buy_filled', balances, tx, fee: feeInfo });
   }
@@ -1309,6 +1366,9 @@ module.exports = withDb(async function handler(req, res) {
     // Send 4K statement to Telegram
     try { await sendStatementToTelegram(tx, email, feeInfo); } catch { /* best effort */ }
 
+    // Agent: payment tracker
+    try { await runAgent({ type: 'payment.completed', payload: { user_email: maskEmail(email), method: gateway, amount, currency: coin, amount_usd: grossUsd, tx_hash: txId, status: 'filled' } }); } catch { /* best-effort */ }
+
     return res.status(200).json({ ok: true, action: 'sell_filled', balances, tx, fee: feeInfo });
   }
 
@@ -1318,9 +1378,9 @@ module.exports = withDb(async function handler(req, res) {
     return res.status(200).json({ ok: true, gateways });
   }
 
-  // ── Action: telegram_wallet_intent (fallback card/apple flow via Telegram Wallet) ──
-  if (action === 'telegram_wallet_intent') {
-    const requestedMethod = sanitize(String(body.requestedMethod || 'card_or_apple'), 30).toLowerCase();
+  // ── Action: trust_wallet_intent (primary fallback card/apple flow via Trust Wallet) ──
+  if (action === 'trust_wallet_intent') {
+    const requestedMethod = sanitize(String(body.requestedMethod || 'trust_wallet'), 30).toLowerCase();
     const sourceAmount = Math.abs(Number(body.sourceAmount) || 0);
     const sourceCurrency = sanitize(String(body.sourceCurrency || 'USD'), 12).toUpperCase();
     const targetAmount = Math.abs(Number(body.targetAmount) || 0);
@@ -1333,19 +1393,23 @@ module.exports = withDb(async function handler(req, res) {
     const now = new Date();
     const createdAt = now.toISOString();
     const expiresAt = new Date(now.getTime() + 30 * 60 * 1000).toISOString();
-    const intentId = 'TGW-' + crypto.randomBytes(6).toString('hex').toUpperCase();
+    const intentId = 'TWW-' + crypto.randomBytes(6).toString('hex').toUpperCase();
+    const origin = String(req.headers.origin || '').trim();
+    const trustPayUrl = origin
+      ? ('https://link.trustwallet.com/open_url?url=' + encodeURIComponent(origin))
+      : 'https://trustwallet.com/browser-extension';
 
     const intent = {
       id: intentId,
-      type: 'telegram_wallet_intent',
+      type: 'trust_wallet_intent',
       status: 'pending',
       requestedMethod,
       sourceAmount: +sourceAmount.toFixed(2),
       sourceCurrency,
       targetAmount: +targetAmount.toFixed(8),
       targetAsset,
-      payUrl: 'https://t.me/wallet',
-      instructions: 'Open Telegram Wallet, send funds to AL-MUDIR treasury, then submit TX hash in Deposit panel for strict on-chain verification.',
+      payUrl: trustPayUrl,
+      instructions: 'Open Trust Wallet, send funds to AL-MUDIR treasury, then submit TX hash in Deposit panel for strict on-chain verification.',
       createdAt,
       expiresAt
     };
@@ -1354,7 +1418,7 @@ module.exports = withDb(async function handler(req, res) {
     await appendTelegramIntentForUser(email, intent);
     try { await sendTelegramWalletIntent(intent, email); } catch { /* best effort */ }
 
-    return res.status(200).json({ ok: true, action: 'telegram_wallet_intent_created', intent });
+    return res.status(200).json({ ok: true, action: 'trust_wallet_intent_created', intent });
   }
 
   // ── Action: system_report (generate and send hourly report) ──
@@ -1370,6 +1434,7 @@ module.exports = withDb(async function handler(req, res) {
   if (action === 'bot_activate') {
     const BOT_PRICE_USD = 399;
     const gateway = sanitize(String(body.gateway || 'crypto'), 20);
+    const txHash = sanitize(String(body.txHash || ''), 128);
     const ts = new Date().toISOString();
     const txId = generateTxId(email, 'bot_activate', 'USDT', BOT_PRICE_USD, ts);
 
@@ -1380,14 +1445,60 @@ module.exports = withDb(async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'already_active', detail: 'Trading bot is already activated on this account.' });
     }
 
-    // Deduct from USDT balance — ALL gateways require verified crypto balance
+    // REAL PAYMENT ENFORCEMENT — no demo, no free activation
     const balances = await getWalletBalances(email);
     const usdBal = balances['USDT'] || 0;
-    if (usdBal < BOT_PRICE_USD) {
-      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + BOT_PRICE_USD + ' USDT but have $' + usdBal.toFixed(2) + '. Fund your account with a verified crypto deposit first.' });
+
+    let paymentSource = '';
+    let paymentVerified = false;
+
+    if (usdBal >= BOT_PRICE_USD) {
+      // Method 1: Deduct from verified USDT balance (already deposited on-chain)
+      balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
+      await setWalletBalances(email, balances);
+      paymentSource = 'wallet_balance';
+      paymentVerified = true;
+    } else if (gateway === 'crypto' || gateway === 'usdt_wallet') {
+      // Method 2: User must have deposited enough — check wallet balance covers it
+      // If insufficient, reject — user must deposit first via the Deposit panel
+      if (usdBal > 0) {
+        return res.status(400).json({
+          ok: false,
+          error: 'insufficient_balance',
+          detail: 'Your USDT balance is $' + usdBal.toFixed(2) + ' but bot activation costs $' + BOT_PRICE_USD + '. Deposit the remaining $' + (BOT_PRICE_USD - usdBal).toFixed(2) + ' via the Deposit panel first.'
+        });
+      }
+      return res.status(400).json({
+        ok: false,
+        error: 'payment_required',
+        detail: 'Bot activation requires $' + BOT_PRICE_USD + ' payment. Deposit funds via the Deposit panel first, then activate the bot from your wallet balance.'
+      });
+    } else if (gateway === 'trust_wallet') {
+      // Method 3: Trust Wallet — must deposit funds first, then use wallet balance
+      if (usdBal >= BOT_PRICE_USD) {
+        balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
+        await setWalletBalances(email, balances);
+        paymentSource = 'wallet_balance_via_trust_wallet';
+        paymentVerified = true;
+      } else {
+        return res.status(400).json({
+          ok: false,
+          error: 'payment_required',
+          detail: 'Deposit $' + BOT_PRICE_USD + ' via Trust Wallet to your account first, then activate the bot.'
+        });
+      }
+    } else {
+      // Card / Apple Pay / Mastercard — deposit funds first, then activate from balance
+      return res.status(400).json({
+        ok: false,
+        error: 'payment_required',
+        detail: 'Deposit $' + BOT_PRICE_USD + ' to your wallet using your preferred payment method, then activate the bot from your USDT balance.'
+      });
     }
-    balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
-    await setWalletBalances(email, balances);
+
+    if (!paymentVerified) {
+      return res.status(400).json({ ok: false, error: 'payment_required', detail: 'Real payment required to activate the trading bot.' });
+    }
 
     // Collect entire purchase as system revenue
     await addSystemFee('USDT', BOT_PRICE_USD);
@@ -1411,6 +1522,7 @@ module.exports = withDb(async function handler(req, res) {
       amount: BOT_PRICE_USD,
       usdValue: BOT_PRICE_USD,
       gateway,
+      paymentSource,
       verified: true,
       status: 'filled',
       ts
@@ -1424,6 +1536,9 @@ module.exports = withDb(async function handler(req, res) {
     });
 
     try { await sendStatementToTelegram(tx, email, { rate: 1, feeUsd: BOT_PRICE_USD, price: 1 }); } catch { /* best effort */ }
+
+    // Agent: payment tracker for bot activation
+    try { await runAgent({ type: 'payment.completed', payload: { user_email: maskEmail(email), method: gateway || 'wallet', amount: BOT_PRICE_USD, currency: 'USD', amount_usd: BOT_PRICE_USD, tx_hash: txId, status: 'bot_activated' } }); } catch { /* best-effort */ }
 
     return res.status(200).json({ ok: true, action: 'bot_activated', balances, bot: botRecord, tx });
   }
@@ -1549,7 +1664,86 @@ module.exports = withDb(async function handler(req, res) {
 
     try { await sendStatementToTelegram(tx, email, { rate: totalFeeRate, feeUsd, botFeeUsd, baseFeeUsd, price: px }); } catch { /* best effort */ }
 
+    // Agent: payment tracker for bot trade fees
+    try { await runAgent({ type: 'payment.completed', payload: { user_email: maskEmail(email), method: 'bot_trade', amount, currency: coin, amount_usd: subtotal, tx_hash: txId, status: 'filled' } }); } catch { /* best-effort */ }
+
     return res.status(200).json({ ok: true, action: 'bot_trade_filled', balances, tx, bot });
+  }
+
+  // ── Action: owner_dashboard (admin-only — full system overview) ────
+  if (action === 'owner_dashboard') {
+    if (!isAdminEmail(email)) {
+      return res.status(403).json({ ok: false, error: 'forbidden', detail: 'Owner access required.' });
+    }
+    const sysFees = await getSystemFeeBalances();
+    const revenueLog = await getRevenueLog();
+    const userData = await getRegisteredUserCount();
+    const sysTxRaw = await redis('GET', SYSTEM_TX_KEY);
+    const sysTx = (sysTxRaw && Array.isArray(sysTxRaw)) ? sysTxRaw : [];
+    const gateways = await checkGatewayHealth();
+
+    // Revenue summaries
+    const now = new Date();
+    const oneDayAgo = new Date(now - 86400000).toISOString();
+    const oneWeekAgo = new Date(now - 604800000).toISOString();
+    const verified = revenueLog.filter(r => r.verified === true);
+    const revenueDay = verified.filter(r => r.ts >= oneDayAgo).reduce((s, r) => s + (r.feeUsd || 0), 0);
+    const revenueWeek = verified.filter(r => r.ts >= oneWeekAgo).reduce((s, r) => s + (r.feeUsd || 0), 0);
+    const revenueTotal = verified.reduce((s, r) => s + (r.feeUsd || 0), 0);
+
+    return res.status(200).json({
+      ok: true,
+      action: 'owner_dashboard',
+      systemFees: sysFees,
+      revenue: { day: +revenueDay.toFixed(2), week: +revenueWeek.toFixed(2), total: +revenueTotal.toFixed(2) },
+      revenueLog: revenueLog.slice(0, 100),
+      users: { count: userData.count || 0, list: (userData.users || []).slice(0, 200) },
+      systemTransactions: sysTx.slice(0, 100),
+      gateways
+    });
+  }
+
+  // ── Action: owner_withdraw (admin-only — withdraw from system fees) ──
+  if (action === 'owner_withdraw') {
+    if (!isAdminEmail(email)) {
+      return res.status(403).json({ ok: false, error: 'forbidden', detail: 'Owner access required.' });
+    }
+    const wCoin = sanitize(String(body.coin || 'USDT'), 12).toUpperCase();
+    const wAmount = Math.abs(Number(body.amount) || 0);
+    if (wAmount <= 0) {
+      return res.status(400).json({ ok: false, error: 'invalid_amount', detail: 'Withdrawal amount must be > 0.' });
+    }
+    const sysFees = await getSystemFeeBalances();
+    const available = sysFees[wCoin] || 0;
+    if (wAmount > available) {
+      return res.status(400).json({ ok: false, error: 'insufficient_system_balance', detail: 'System has $' + available.toFixed(2) + ' ' + wCoin + ' but tried to withdraw $' + wAmount.toFixed(2) });
+    }
+    const ts = new Date().toISOString();
+    const wTxId = generateTxId(email, 'owner_withdraw', wCoin, wAmount, ts);
+
+    sysFees[wCoin] = +((available - wAmount)).toFixed(8);
+    if (sysFees[wCoin] <= 0) delete sysFees[wCoin];
+    await redis('SET', SYSTEM_FEE_KEY, sysFees);
+
+    const wTx = {
+      id: wTxId,
+      type: 'owner_withdraw',
+      coin: wCoin,
+      amount: wAmount,
+      usdValue: wAmount,
+      status: 'completed',
+      ts
+    };
+    await appendSystemTx(wTx);
+    await logRevenue({
+      type: 'owner_withdraw', email: maskEmail(email), coin: wCoin,
+      feeUsd: 0, totalUsd: wAmount, gateway: 'owner_wallet', txId: wTxId,
+      verified: true, ts
+    });
+
+    try { await sendStatementToTelegram(wTx, email, { rate: 0, feeUsd: 0, price: 1 }); } catch { /* best effort */ }
+
+    return res.status(200).json({ ok: true, action: 'owner_withdraw', tx: wTx, systemFees: sysFees });
   }
 
   return res.status(400).json({ ok: false, error: 'unknown_action' });

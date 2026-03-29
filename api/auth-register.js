@@ -3,6 +3,7 @@ const { redis, withDb } = require('./_lib/redis');
 const { sendOtpCode } = require('./_lib/email');
 const { hashPassword, generateOtp, sanitize } = require('./_lib/auth-utils');
 const { assignUniqueUserId, saveUserProfileSnapshot } = require('./_lib/user-profile');
+const { runAgent } = require('./_lib/agents');
 
 const rateLimitMap = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
@@ -102,6 +103,10 @@ module.exports = withDb(async function handler(req, res) {
       user.updatedAt = new Date().toISOString();
       await redis('SET', 'user:' + email, JSON.stringify(user));
       await saveUserProfileSnapshot(redis, user);
+
+      // Fire agents: signup monitor + security scan
+      try { await runAgent({ type: 'user.created', payload: { email, name, phone } }); } catch { /* best-effort */ }
+
       return res.status(200).json({
         ok: true,
         requiresVerification: true,

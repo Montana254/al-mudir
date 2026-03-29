@@ -5,8 +5,9 @@
   "main": "index.html",
   "scripts": {
     "test": "node wallet.test.js",
-    "check:syntax": "node --check api/telegram-alert.js && node --check api/access-verify-token.js && node --check api/auth-register.js && node --check api/auth-verify-otp.js && node --check api/auth-login.js && node --check api/auth-session.js && node --check api/auth-profile.js && node --check api/auth-resend-otp.js && node --check api/wallet.js && node --check api/kyc.js && node --check api/cron-report.js && node --check api/admin-storage-health.js && node --check api/_lib/redis.js && node --check api/_lib/email.js && node --check api/_lib/auth-utils.js && node --check api/_lib/user-profile.js && node --check api/_lib/growth-engine.js && node --check crypto-payment.js",
-    "check:system": "npm run check:syntax && npm test"
+    "check:syntax": "node --check api/telegram-alert.js && node --check api/access-verify-token.js && node --check api/auth-register.js && node --check api/auth-verify-otp.js && node --check api/auth-login.js && node --check api/auth-session.js && node --check api/auth-profile.js && node --check api/auth-resend-otp.js && node --check api/wallet.js && node --check api/kyc.js && node --check api/cron-report.js && node --check api/admin-storage-health.js && node --check api/_lib/redis.js && node --check api/_lib/email.js && node --check api/_lib/auth-utils.js && node --check api/_lib/user-profile.js && node --check api/_lib/growth-engine.js && node --check api/_lib/admin-access.js && node --check api/_lib/kyc-reminders.js && node --check crypto-payment.js",
+    "check:system": "npm run check:syntax && npm test",
+    "report:agents": "node scripts/generate-agents-progress-pdf.js"
   },
   "author": "Montana254",
   "license": "MIT",

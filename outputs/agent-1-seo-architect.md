@@ -193,7 +193,7 @@
       "name": "How do I deposit funds?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "AL-MUDIR accepts deposits via crypto wallet (on-chain transfers across 17 supported coins), Visa, Mastercard, Apple Pay, and Telegram Wallet. All transactions are processed through encrypted payment gateways."
+        "text": "AL-MUDIR accepts deposits via crypto wallet (on-chain transfers across 17 supported coins), Visa, Mastercard, Apple Pay, and Trust Wallet. All transactions are processed through encrypted payment gateways."
       }
     }
   ]
