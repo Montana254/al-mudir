@@ -1296,13 +1296,10 @@
                   <p id="tradeUsdtBalance" class="text-sm font-semibold text-white">$0.00</p>
                 </div>
 
-                <!-- Fee breakdown (hidden — shown only at 3D checkout) -->
-                <div id="tradeFeeCard" class="hidden flex items-center justify-between rounded border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
-                  <div>
-                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Trading Fee</p>
-                    <p id="tradeFeeRate" class="text-[10px] text-gray-400">—</p>
-                  </div>
-                  <p id="tradeFeeAmount" class="text-sm font-semibold text-yellow-500">$0.00</p>
+                <!-- Fee breakdown (hidden — fees charged automatically) -->
+                <div id="tradeFeeCard" class="hidden">
+                  <p id="tradeFeeRate" class="hidden">—</p>
+                  <p id="tradeFeeAmount" class="hidden">$0.00</p>
                 </div>
 
                 <button id="executeTradeBtn" class="w-full rounded bg-green-500 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">Buy BTC</button>
@@ -1622,10 +1619,7 @@
                         <input id="quickDepositAmount" type="number" min="0" step="any" placeholder="0.00" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
                       </div>
                       <div id="quickDepositSummary" class="hidden rounded border border-[var(--dash-accent)]/20 bg-[var(--dash-accent)]/5 p-3 space-y-1">
-                        <div class="flex justify-between text-[10px]">
-                          <span class="text-gray-400">Deposit Fee (0.05%)</span>
-                          <span id="quickDepositFee" class="text-yellow-500">$0.00</span>
-                        </div>
+                        <span id="quickDepositFee" class="hidden">$0.00</span>
                         <div class="flex justify-between text-[10px]">
                           <span class="text-gray-400">You'll receive</span>
                           <span id="quickDepositReceive" class="text-[var(--dash-accent)] font-semibold">—</span>
@@ -1740,6 +1734,7 @@
                   <div class="rounded border border-white/10 bg-black/20 p-3">
                     <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Linked Wallet</p>
                     <p id="profileWalletAddr" class="mt-1 text-sm font-semibold text-white truncate">Not connected</p>
+                    <button id="unlinkWalletBtn" class="hidden mt-2 rounded border border-red-500/30 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-red-400 hover:bg-red-500/10"><i class="fa-solid fa-link-slash mr-1"></i>Unlink</button>
                   </div>
                 </div>
               </div>
@@ -2088,7 +2083,7 @@
                 <span class="text-xs text-gray-400">Subtotal</span>
                 <span id="co3dSubtotal" class="text-xs text-white">—</span>
               </div>
-              <div class="border-t border-white/10 pt-2 flex items-center justify-between">
+              <div id="co3dFeeRow" class="hidden border-t border-white/10 pt-2 flex items-center justify-between">
                 <span class="text-xs text-yellow-400">Fee</span>
                 <span id="co3dFee" class="text-xs text-yellow-400">—</span>
               </div>
@@ -3242,9 +3237,11 @@
         // Update profile wallet display
         var pw = document.getElementById('profileWalletAddr');
         if (pw) pw.textContent = truncateAddress(user.linkedWallet.address);
+        var unlinkBtn = document.getElementById('unlinkWalletBtn');
+        if (unlinkBtn) unlinkBtn.classList.remove('hidden');
         // Hide connect button, show linked badge in deposit panel
-        if (connectWalletBtn) connectWalletBtn.textContent = 'Wallet Linked';
-        if (walletType) walletType.disabled = true;
+        if (connectWalletBtn) connectWalletBtn.textContent = 'Reconnect Wallet';
+        if (walletType) walletType.disabled = false;
         walletStatus.textContent = 'Wallet linked to your account.';
         walletStatus.className = 'text-center text-xs text-[var(--dash-accent)]';
         // Check if live provider connection exists
@@ -3262,6 +3259,8 @@
         dashWallet.className = 'text-[10px] font-semibold text-gray-400';
         if (connectWalletBtn) connectWalletBtn.textContent = 'Connect Wallet';
         if (walletType) walletType.disabled = false;
+        var unlinkBtn = document.getElementById('unlinkWalletBtn');
+        if (unlinkBtn) unlinkBtn.classList.add('hidden');
       }
     }
 
@@ -3362,6 +3361,7 @@
         });
         stEl.textContent = '\u2713 Wallet linked securely!';
         stEl.className = 'text-center text-[10px] text-[var(--dash-accent)]';
+        addNotification('Wallet linked \u2014 ' + truncateAddress(wallet.account), 'good');
         setTimeout(hideLinkModal, 1200);
       } catch (err) {
         stEl.textContent = 'Error linking wallet. Try again.';
@@ -4528,6 +4528,32 @@
         walletStatus.className = 'text-center text-xs text-gray-400';
       }
       walletStatus.classList.remove('hidden');
+      addNotification('Wallet session disconnected.', 'neutral');
+    });
+
+    // ── Unlink wallet from account ──
+    document.getElementById('unlinkWalletBtn').addEventListener('click', async function() {
+      if (!currentUser || !currentUser.linkedWallet) return;
+      if (!confirm('Unlink wallet from your account? You can link a new one anytime.')) return;
+      try {
+        var h = authHeaders();
+        if (!h) return;
+        var res = await fetch('/api/auth-profile', {
+          method: 'PUT', headers: h,
+          body: JSON.stringify({ linkedWallet: null })
+        });
+        if (!res.ok) throw new Error('Failed');
+        currentUser.linkedWallet = null;
+        var manager = initializePaymentManager();
+        if (manager) manager.disconnectWallet();
+        hideWalletConnectedCard();
+        restoreLinkedWallet(currentUser);
+        document.getElementById('unlinkWalletBtn').classList.add('hidden');
+        addNotification('Wallet unlinked from your account.', 'warn');
+        showStatus(paymentStatus, 'Wallet unlinked.', 'success');
+      } catch (err) {
+        showStatus(paymentStatus, 'Failed to unlink wallet.', 'error');
+      }
     });
 
     refreshWalletBtn.addEventListener('click', refreshWalletBalance);
@@ -4608,11 +4634,8 @@
       var prices = systemWalletData.prices || {};
       var p = prices[coin] || 0;
       var usdValue = amount * p;
-      var fee = usdValue * 0.0005;
-      var netUsd = usdValue - fee;
 
-      quickDepositFee.textContent = '$' + fee.toFixed(2);
-      quickDepositReceive.textContent = formatCoinAmt(coin, amount) + ' ' + coin + ' ($' + netUsd.toFixed(2) + ')';
+      quickDepositReceive.textContent = formatCoinAmt(coin, amount) + ' ' + coin + ' ($' + usdValue.toFixed(2) + ')';
       quickDepositSummary.classList.remove('hidden');
     }
 
@@ -4760,14 +4783,17 @@
         amount: formatCoinAmt(coin, amount) + ' ' + coin,
         price: '$' + p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         subtotal: '$' + usdValue.toFixed(2),
-        fee: '0.05% · $' + fee.toFixed(2),
-        total: '$' + (usdValue - fee).toFixed(2),
+        fee: 'Included',
+        total: '$' + usdValue.toFixed(2),
         method: selectedPayMethod,
         txHash: txHash
       });
     });
 
-    refreshSystemWalletBtn.addEventListener('click', loadSystemWallet);
+    refreshSystemWalletBtn.addEventListener('click', function() {
+      loadSystemWallet({ force: true });
+      addNotification('Wallet balances refreshed.', 'good');
+    });
 
     // ── Trade panel events ──
     tradeBuyTab.addEventListener('click', () => setTradeMode('buy'));
@@ -5270,7 +5296,10 @@
       co3dAmount.textContent = opts.amount;
       co3dPrice.textContent = opts.price;
       co3dSubtotal.textContent = opts.subtotal;
-      co3dFee.textContent = opts.fee;
+      // Fees are charged automatically — hide fee row from user
+      var feeRow = document.getElementById('co3dFeeRow');
+      if (feeRow) feeRow.classList.add('hidden');
+      co3dFee.textContent = opts.fee || '$0.00';
       co3dTotal.textContent = opts.total;
       co3dMethod.innerHTML = getPayMethodLabel(opts.method);
       co3dStatus.classList.add('hidden');
@@ -5307,9 +5336,9 @@
           tradeAmount.value = '';
           tradeTotal.value = '';
           var verb = ck.tradeMode === 'buy' ? 'Bought' : 'Sold';
-          var feeStr = d.fee ? ' · Fee $' + Number(d.fee.feeUsd || 0).toFixed(2) : '';
           var txIdStr = d.tx && d.tx.id ? ' · ' + d.tx.id : '';
-          showStatus(tradeStatus, verb + ' ' + ck.rawAmount + ' ' + ck.coin + ' ($' + (d.tx && d.tx.usdValue || '0') + ')' + feeStr + txIdStr, 'success');
+          showStatus(tradeStatus, verb + ' ' + ck.rawAmount + ' ' + ck.coin + ' ($' + (d.tx && d.tx.usdValue || '0') + ')' + txIdStr, 'success');
+          addNotification(verb + ' ' + ck.rawAmount + ' ' + ck.coin + ' — $' + (d.tx && d.tx.usdValue || '0'), 'good');
           trackAnalyticsEvent('trade_executed', { mode: ck.tradeMode, coin: ck.coin, amount: ck.rawAmount, usd: d.tx && d.tx.usdValue, fee: d.fee && d.fee.feeUsd, method: ck.method, txId: d.tx && d.tx.id });
           checkoutModal.classList.add('hidden');
           pendingCheckout = null;
@@ -5331,6 +5360,7 @@
           botTrades = [];
           renderBotState();
           showStatus(botPurchaseStatus, 'Trading bot activated successfully!', 'success');
+          addNotification('Trading bot activated — AI engine is live.', 'good');
           trackAnalyticsEvent('bot_activated', { gateway: ck.method, txId: d.tx && d.tx.id });
           checkoutModal.classList.add('hidden');
           pendingCheckout = null;
@@ -5348,9 +5378,9 @@
           updateTradePriceAndBalance();
           depositAmountInput.value = '';
           if (depositTxHashInput) depositTxHashInput.value = '';
-          var depFeeStr = d.fee ? ' (Fee: $' + Number(d.fee.feeUsd || 0).toFixed(2) + ')' : '';
           var depTxId = d.tx && d.tx.id ? ' · ' + d.tx.id : '';
-          showStatus(depositStatus, ck.coin + ' deposit credited.' + depFeeStr + depTxId, 'success');
+          showStatus(depositStatus, ck.coin + ' deposit credited.' + depTxId, 'success');
+          addNotification(ck.rawAmount + ' ' + ck.coin + ' deposited successfully.', 'good');
           trackAnalyticsEvent('deposit_confirmed', { coin: ck.coin, network: ck.network, amount: ck.rawAmount, fee: d.fee && d.fee.feeUsd, method: ck.method, txId: d.tx && d.tx.id, verified: d.tx && d.tx.verified });
           checkoutModal.classList.add('hidden');
           pendingCheckout = null;
@@ -5507,8 +5537,8 @@
         rawAmount: amount,
         amount: formatCoinAmt(coin, amount) + ' ' + coin,
         price: '$' + p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-        subtotal: '$' + subtotal.toFixed(2),
-        fee: (feeRate * 100).toFixed(2) + '% · $' + fee.toFixed(2),
+        subtotal: '$' + total.toFixed(2),
+        fee: 'Included',
         total: '$' + total.toFixed(2),
         method: selectedPayMethod
       });
