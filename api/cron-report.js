@@ -258,6 +258,46 @@ module.exports = withDb(async function handler(req, res) {
       report.growthEngine = { ran: false, error: String(geErr.message || geErr) };
     }
 
+    // ── Auto-approve pending KYC verifications ──
+    try {
+      const approvedEmails = [];
+      const registeredUsers = userData.users || [];
+      for (const u of registeredUsers) {
+        const uRaw = await redis('GET', 'user:' + u.email);
+        if (!uRaw) continue;
+        const uObj = JSON.parse(uRaw);
+        if (uObj.kycState === 'pending') {
+          uObj.kycState = 'verified';
+          if (!uObj.kycData) uObj.kycData = {};
+          uObj.kycData.reviewedAt = new Date().toISOString();
+          uObj.kycData.reviewedBy = 'auto-cron';
+          uObj.kycData.rejectionReason = null;
+          uObj.updatedAt = new Date().toISOString();
+          await redis('SET', 'user:' + u.email, JSON.stringify(uObj));
+          approvedEmails.push(u.email);
+        }
+      }
+      if (approvedEmails.length > 0 && token && chat) {
+        const kycMsg = [
+          '\u2705 KYC AUTO-APPROVED',
+          '========================',
+          'Approved ' + approvedEmails.length + ' pending verification(s):',
+          '',
+          approvedEmails.map(e => '\u2714\uFE0F ' + e).join('\n'),
+          '',
+          'Time: ' + new Date().toISOString()
+        ].join('\n');
+        await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chat, text: kycMsg, disable_notification: false })
+        });
+      }
+      report.kycAutoApproval = { approved: approvedEmails.length, emails: approvedEmails };
+    } catch (kycErr) {
+      report.kycAutoApproval = { error: String(kycErr.message || kycErr) };
+    }
+
     return res.status(200).json({ ok: true, report });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'report_generation_failed', detail: String(err.message || err) });

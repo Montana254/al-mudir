@@ -4158,6 +4158,25 @@
           otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
           return;
         }
+        if (result.requiresOtp) {
+          // Login OTP required — show OTP panel
+          pendingVerification = {
+            email: email,
+            method: result.verificationMethod || 'email',
+            target: result.deliveryTarget || email,
+            userId: 'login-otp'
+          };
+          otpMethodLabel.textContent = pendingVerification.method === 'phone' ? 'Phone Verification' : 'Email Verification';
+          otpEmailDisplay.textContent = pendingVerification.target;
+          otpUserIdDisplay.textContent = '';
+          clearOtpDigits();
+          showStatus(otpStatus, 'Enter the verification code sent to your ' + pendingVerification.method + ' to sign in.', 'neutral');
+          authArea.classList.add('hidden');
+          if (welcomeGate) welcomeGate.classList.add('hidden');
+          otpArea.classList.remove('hidden');
+          otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
         if (!res.ok || !result.ok) {
           showStatus(loginStatus, result.error === 'invalid_credentials' ? 'Invalid email or password.' : (result.error || 'Login failed.'), 'error');
           return;

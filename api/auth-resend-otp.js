@@ -45,10 +45,22 @@ module.exports = withDb(async function handler(req, res) {
     const ensured = await ensureUserRecord(redis, JSON.parse(userRaw));
     const user = ensured.user;
     if (ensured.changed) await redis('SET', 'user:' + email, JSON.stringify(user));
-    if (user.verified) return res.status(400).json({ ok: false, error: 'already_verified' });
+
+    // Allow OTP resend for both unverified (signup) and verified (login) users
+    // Check if there's a pending OTP — if not and user is verified, they need to login first
+    const existingOtp = await redis('GET', 'otp:' + email);
+    if (!existingOtp && user.verified) {
+      return res.status(400).json({ ok: false, error: 'no_pending_otp' });
+    }
+
+    // Determine purpose from existing OTP
+    let purpose = 'signup';
+    if (existingOtp) {
+      try { purpose = JSON.parse(existingOtp).purpose || 'signup'; } catch {}
+    }
 
     const otp = generateOtp();
-    await redis('SET', 'otp:' + email, JSON.stringify({ code: otp, exp: Date.now() + 10 * 60 * 1000 }));
+    await redis('SET', 'otp:' + email, JSON.stringify({ code: otp, exp: Date.now() + 10 * 60 * 1000, purpose: purpose }));
     await redis('EXPIRE', 'otp:' + email, 600);
     const delivery = await sendOtpCode({ email, phone: user.phone, otp, name: user.name, preferredChannel: user.otpChannel || 'email' });
     user.verificationMethod = delivery.method;

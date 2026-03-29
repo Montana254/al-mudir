@@ -59,9 +59,18 @@ module.exports = withDb(async function handler(req, res) {
 
     const user = JSON.parse(userRaw);
     const ensured = await ensureUserRecord(redis, user);
-    ensured.user.verified = true;
-    ensured.user.verifiedAt = new Date().toISOString();
-    ensured.user.updatedAt = new Date().toISOString();
+
+    const purpose = otpData.purpose || 'signup';
+
+    if (purpose === 'login') {
+      // Login OTP — user is already verified, just create session
+      ensured.user.updatedAt = new Date().toISOString();
+    } else {
+      // Signup OTP — mark account as verified
+      ensured.user.verified = true;
+      ensured.user.verifiedAt = new Date().toISOString();
+      ensured.user.updatedAt = new Date().toISOString();
+    }
 
     const sessionToken = generateSessionToken();
     await redis('SET', 'user:' + email, JSON.stringify(ensured.user));
