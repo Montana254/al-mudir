@@ -11,3 +11,4 @@ build/
 .env.prod
 .env.test
 .env.local
+.env.vercel
