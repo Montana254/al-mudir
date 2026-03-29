@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#04120f"/>
+      <stop offset="100%" stop-color="#0b1a15"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c8a84e"/>
+      <stop offset="100%" stop-color="#e6c35a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="60" y="60" width="1080" height="510" rx="16" fill="none" stroke="#c8a84e" stroke-width="1.5" opacity="0.3"/>
+  <text x="600" y="200" fill="#c8a84e" font-size="72" font-weight="700" font-family="system-ui, sans-serif" text-anchor="middle" letter-spacing="12">AL-MUDIR</text>
+  <text x="600" y="260" fill="#8b9da8" font-size="22" font-family="system-ui, sans-serif" text-anchor="middle" letter-spacing="6">PRIVATE WEALTH &amp; FINTECH VENTURES</text>
+  <line x1="400" y1="290" x2="800" y2="290" stroke="#c8a84e" stroke-width="1" opacity="0.5"/>
+  <text x="600" y="340" fill="#ffffff" font-size="28" font-weight="600" font-family="system-ui, sans-serif" text-anchor="middle">Managed Trading Accounts</text>
+  <text x="600" y="380" fill="#8b9da8" font-size="18" font-family="system-ui, sans-serif" text-anchor="middle">FX · Gold · Digital Assets · Algorithmic Trading</text>
+  <g transform="translate(200, 430)">
+    <rect width="200" height="60" rx="8" fill="#c8a84e" opacity="0.1" stroke="#c8a84e" stroke-width="0.5"/>
+    <text x="100" y="28" fill="#c8a84e" font-size="24" font-weight="700" font-family="system-ui, sans-serif" text-anchor="middle">$7.8M+</text>
+    <text x="100" y="48" fill="#8b9da8" font-size="12" font-family="system-ui, sans-serif" text-anchor="middle">AUM</text>
+  </g>
+  <g transform="translate(500, 430)">
+    <rect width="200" height="60" rx="8" fill="#c8a84e" opacity="0.1" stroke="#c8a84e" stroke-width="0.5"/>
+    <text x="100" y="28" fill="#c8a84e" font-size="24" font-weight="700" font-family="system-ui, sans-serif" text-anchor="middle">2.84</text>
+    <text x="100" y="48" fill="#8b9da8" font-size="12" font-family="system-ui, sans-serif" text-anchor="middle">Sharpe Ratio</text>
+  </g>
+  <g transform="translate(800, 430)">
+    <rect width="200" height="60" rx="8" fill="#c8a84e" opacity="0.1" stroke="#c8a84e" stroke-width="0.5"/>
+    <text x="100" y="28" fill="#c8a84e" font-size="24" font-weight="700" font-family="system-ui, sans-serif" text-anchor="middle">-3.2%</text>
+    <text x="100" y="48" fill="#8b9da8" font-size="12" font-family="system-ui, sans-serif" text-anchor="middle">Max Drawdown</text>
+  </g>
+  <text x="600" y="550" fill="#4a5568" font-size="16" font-family="system-ui, sans-serif" text-anchor="middle">Dubai · London · New York</text>
+  <text x="600" y="580" fill="#4a5568" font-size="14" font-family="system-ui, sans-serif" text-anchor="middle">al-mudir.org</text>
+</svg>

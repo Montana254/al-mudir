@@ -11,9 +11,20 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://al-mudir.org">
   <meta property="og:site_name" content="AL-MUDIR">
+  <meta property="og:image" content="https://al-mudir.org/og-image.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/svg+xml">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ar_AE">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="AL-MUDIR | Private Wealth & Fintech Ventures">
   <meta name="twitter:description" content="Institutional-grade managed trading accounts. ICT/SMC methodology. $7.8M+ AUM. Dubai.">
+  <meta name="twitter:image" content="https://al-mudir.org/og-image.svg">
+  <meta name="geo.region" content="AE-DU">
+  <meta name="geo.placename" content="Dubai">
+  <meta name="geo.position" content="25.2048;55.2708">
+  <meta name="ICBM" content="25.2048, 55.2708">
   <link rel="canonical" href="https://al-mudir.org">
   <meta name="theme-color" content="#04120f">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -5379,9 +5390,9 @@
       co3dAmount.textContent = opts.amount;
       co3dPrice.textContent = opts.price;
       co3dSubtotal.textContent = opts.subtotal;
-      // Fees are charged automatically — hide fee row from user
+      // Show fee transparently
       var feeRow = document.getElementById('co3dFeeRow');
-      if (feeRow) feeRow.classList.add('hidden');
+      if (feeRow) feeRow.classList.remove('hidden');
       co3dFee.textContent = opts.fee || '$0.00';
       co3dTotal.textContent = opts.total;
       co3dMethod.innerHTML = getPayMethodLabel(opts.method);
@@ -5575,15 +5586,38 @@
               co3dStatus.textContent = 'Apple Pay is not supported on this device.'; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return;
             }
           } else if (ck.method === 'visa' || ck.method === 'mastercard') {
-            // Card payment — validated at checkout entry, process via 3D Secure
-            var cardErr = validateCardDetails();
-            if (cardErr) { co3dStatus.textContent = cardErr; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return; }
-            co3dStatus.textContent = 'Processing 3D Secure verification...';
-            // Simulate 3D Secure challenge (in production this would redirect to card issuer)
-            await new Promise(function(resolve) { setTimeout(resolve, 2000); });
-            await notifyEvent('crypto.payment.intent', { name: currentUser.name, email: currentUser.email, amount: String(lastQuote.converted), currency: lastQuote.to, gateway: ck.method + '_3ds', verified: true, cardLast4: (document.getElementById('cardNumber').value || '').replace(/\s/g, '').slice(-4) });
-            trackAnalyticsEvent('payment_submitted', { method: ck.method, amount: lastQuote.converted, gateway: '3d_secure' });
-            showStatus(paymentStatus, ck.method.charAt(0).toUpperCase() + ck.method.slice(1) + ' payment verified via 3D Secure.', 'success');
+            // Card payment — route through Telegram Wallet for verified processing
+            co3dStatus.textContent = 'Setting up secure card payment via Telegram Wallet...';
+            try {
+              var tgCardRes = await fetch('/api/wallet', {
+                method: 'POST', headers: h,
+                body: JSON.stringify({
+                  action: 'telegram_wallet_intent',
+                  requestedMethod: ck.method,
+                  sourceAmount: Number(lastQuote.amount || 0),
+                  sourceCurrency: String(lastQuote.from || 'USD'),
+                  targetAmount: Number(lastQuote.converted || 0),
+                  targetAsset: String(lastQuote.to || 'USDT')
+                })
+              });
+              var tgCardData = await tgCardRes.json();
+              if (!tgCardRes.ok || !tgCardData.ok || !tgCardData.intent) {
+                co3dStatus.textContent = 'Card gateway setup failed. Please use crypto deposit instead.';
+                co3dStatus.className = 'text-center text-[10px] text-red-400';
+                co3dConfirm.disabled = false;
+                return;
+              }
+              var cardIntent = tgCardData.intent;
+              showStatus(paymentStatus, 'Payment intent created: ' + cardIntent.id + '. Complete payment in Telegram Wallet, then submit TX hash in Deposit panel.', 'success');
+              addNotification('Card payment routed to Telegram Wallet — complete payment and submit TX hash.', 'info');
+              trackAnalyticsEvent('card_telegram_intent', { method: ck.method, intentId: cardIntent.id, amount: lastQuote.converted });
+              try { window.open(cardIntent.payUrl || 'https://t.me/wallet', '_blank', 'noopener'); } catch (_) {}
+            } catch (_) {
+              co3dStatus.textContent = 'Payment failed. Please use crypto deposit.';
+              co3dStatus.className = 'text-center text-[10px] text-red-400';
+              co3dConfirm.disabled = false;
+              return;
+            }
           }
           checkoutModal.classList.add('hidden');
           pendingCheckout = null;
@@ -5620,8 +5654,9 @@
         rawAmount: amount,
         amount: formatCoinAmt(coin, amount) + ' ' + coin,
         price: '$' + p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-        subtotal: '$' + total.toFixed(2),
-        fee: 'Included',
+        subtotal: '$' + subtotal.toFixed(2),
+        feeRate: feeRate,
+        fee: '$' + fee.toFixed(2) + ' (' + (feeRate * 100).toFixed(2) + '%)',
         total: '$' + total.toFixed(2),
         method: selectedPayMethod
       });

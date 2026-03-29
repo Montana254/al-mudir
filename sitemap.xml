@@ -1,57 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:mobile="http://www.mobile.googlebot.com/schemas/mobile-sitemaps/1.0"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
   <!-- Home Page -->
   <url>
     <loc>https://al-mudir.org</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-
-  <!-- About Section -->
-  <url>
-    <loc>https://al-mudir.org/#about</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Portfolio Section -->
-  <url>
-    <loc>https://al-mudir.org/#metrics</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Trading Terminal -->
-  <url>
-    <loc>https://al-mudir.org/#charts</loc>
-    <lastmod>2026-03-28</lastmod>
+    <lastmod>2026-03-29</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- Contact Section -->
-  <url>
-    <loc>https://al-mudir.org/#contact</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Crypto Payment -->
-  <url>
-    <loc>https://al-mudir.org/#contact-crypto</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://al-mudir.org/og-image.svg</image:loc>
+      <image:title>AL-MUDIR - Private Wealth and Fintech Ventures</image:title>
+      <image:caption>Institutional-grade managed trading accounts. FX, Gold, Digital Assets. Dubai, London, New York.</image:caption>
+    </image:image>
   </url>
 
 </urlset>

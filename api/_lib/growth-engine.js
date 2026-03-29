@@ -6,7 +6,7 @@
 // Sends agent reports to Telegram with content updates
 // ────────────────────────────────────────────────────────
 
-const AGENT_VERSION = '1.0.0';
+const AGENT_VERSION = '2.0.0';
 
 // ── Agent Context ─────────────────────────────────────
 const CONTEXT = {
@@ -20,6 +20,11 @@ const CONTEXT = {
   markets: 'FX, XAUUSD, Digital Assets',
   domicile: 'Dubai, London, New York',
   broker: 'Exness (CySEC, FCA, FSCA, FSA)',
+  botPrice: '$399',
+  tradingFees: '0.05% – 0.25%',
+  depositFee: '0.05%',
+  supportedCoins: '17 (BTC, ETH, BNB, USDT, USDC, SOL, XRP, LTC, DOGE, TRX, ADA, AVAX, DOT, LINK, MATIC, TON, XLM)',
+  paymentMethods: 'Crypto Wallet, Apple Pay, Visa/MC (via Telegram Wallet)',
   riskDisclaimer: 'Trading involves risk. Past performance is not indicative of future results. Only invest capital you can afford to lose.'
 };
 
@@ -41,8 +46,28 @@ const TWITTER_POSTS = [
   { id: 'T4', content: `"What's your win rate?"\n\nWrong question.\n\nThe right question: "What's your ratio of average win to average loss?"\n\nA 40% win rate with 3:1 R:R is more profitable than 70% with 0.5:1.\n\nMath > feelings.` },
   { id: 'T5', content: `A managed account where your capital stays in YOUR account. No commingling. No lock-ups. Real-time trade visibility.\n\nThat's how it should work. That's how AL-MUDIR works.` },
   { id: 'T6', content: `$7.5 trillion trades daily in FX.\n\nIt's the most liquid market on Earth. And yet most retail traders lose money.\n\nThe difference? Institutional methodology vs. retail indicators.\n\n${CONTEXT.domain}` },
-  { id: 'T7', content: `The Sharpe ratio everyone ignores:\n\n→ Below 1.0: Mediocre\n→ 1.0-2.0: Solid\n→ Above 2.0: Institutional grade\n\nAL-MUDIR: ${CONTEXT.sharpe}\n\nRisk-adjusted returns matter more than raw returns.` }
+  { id: 'T7', content: `The Sharpe ratio everyone ignores:\n\n→ Below 1.0: Mediocre\n→ 1.0-2.0: Solid\n→ Above 2.0: Institutional grade\n\nAL-MUDIR: ${CONTEXT.sharpe}\n\nRisk-adjusted returns matter more than raw returns.` },
+  { id: 'T8', content: `17 crypto assets. 14 blockchain networks. One dashboard.\n\nDeposit, trade, and manage your portfolio with institutional security. On-chain verification for every transaction.\n\n${CONTEXT.domain}` },
+  { id: 'T9', content: `Our trading bot doesn't guess. It calculates.\n\nMulti-timeframe analysis × ICT methodology × automated execution.\n\n24/7. No emotions. Pure algorithm.\n\n${CONTEXT.domain}` },
+  { id: 'T10', content: `Risk management is not a feature. It's the foundation.\n\nEvery position at AL-MUDIR is:\n→ Correlation-adjusted\n→ Fixed fractional\n→ Drawdown-limited\n→ Stop-loss enforced\n\nCapital first. Always.` },
+  { id: 'T11', content: `Why do 90% of retail traders lose?\n\nBecause they use lagging indicators while institutions use order flow.\n\nSmart Money Concepts changed the game. Time to upgrade your methodology.\n\n${CONTEXT.domain}` },
+  { id: 'T12', content: `Dubai. London. New York.\n\nThree financial capitals. One synchronised trading operation.\n\nWhen one market sleeps, another wakes. That's the edge of global coverage.\n\n${CONTEXT.domain}` }
 ];
+
+// ── Outreach Pitch Templates (for direct client engagement) ──
+const PITCH_TEMPLATES = {
+  linkedin_connection: `Hi [NAME],\n\nI noticed your interest in [TOPIC]. At AL-MUDIR, we manage ${CONTEXT.aum} in assets using ICT methodology — the same approach institutional desks use.\n\nWould you be open to a brief conversation about managed trading accounts?\n\nBest,\nAL-MUDIR Team\n${CONTEXT.domain}`,
+  
+  instagram_dm: `Hey [NAME]! Saw your post about [TOPIC]. We're AL-MUDIR — a managed trading fund using institutional methods (${CONTEXT.sharpe} Sharpe ratio). Check us out: ${CONTEXT.domain}`,
+  
+  whatsapp_intro: `Hi [NAME], this is the AL-MUDIR team. We offer managed trading accounts with institutional-grade methodology.\n\nKey highlights:\n→ ${CONTEXT.aum} AUM\n→ ${CONTEXT.sharpe} Sharpe ratio\n→ ${CONTEXT.maxDrawdown} max drawdown\n→ Segregated accounts at regulated broker\n\nWould you like to learn more? ${CONTEXT.domain}`,
+  
+  email_cold: `Subject: Institutional Trading Methodology — Now Accessible\n\nHi [NAME],\n\nMost retail traders lose because they use the wrong methodology. Institutions trade differently — they read liquidity, not indicators.\n\nAL-MUDIR bridges that gap.\n\nWe manage ${CONTEXT.aum} using ICT/Smart Money Concepts with a ${CONTEXT.sharpe} Sharpe ratio and ${CONTEXT.maxDrawdown} max drawdown.\n\nYour capital stays in your own account. We have trading authority only — never withdrawal authority.\n\nLearn more: ${CONTEXT.domain}\n\n${CONTEXT.riskDisclaimer}`,
+  
+  telegram_group: `🏛 AL-MUDIR — Institutional Trading\n\n${CONTEXT.aum} AUM | ${CONTEXT.sharpe} Sharpe | ${CONTEXT.maxDrawdown} Max DD\n\nManaged accounts · Trading bot · 17 crypto assets\nDubai · London · New York\n\n${CONTEXT.domain}`,
+
+  referral_ask: `Hi [NAME], if you know anyone interested in managed forex/crypto trading accounts, I'd appreciate the introduction. AL-MUDIR offers institutional methodology (${CONTEXT.sharpe} Sharpe ratio) with full capital segregation. Commission applies for successful referrals. ${CONTEXT.domain}`
+};
 
 // ── Telegram Messaging ────────────────────────────────
 async function sendTelegram(text) {
@@ -125,41 +150,100 @@ function runGbpAgent() {
 function runContentAgent() {
   const now = new Date();
   const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 1)) / 86400000);
+  const hour = now.getUTCHours();
 
   // Rotate through posts based on day
   const linkedinIndex = dayOfYear % LINKEDIN_POSTS.length;
   const twitterIndex = dayOfYear % TWITTER_POSTS.length;
+
+  // Determine optimal posting windows (UTC)
+  const postingWindows = {
+    dubai: { start: 5, end: 7, label: 'Dubai morning (9-11 AM GST)' },
+    london: { start: 8, end: 10, label: 'London morning (8-10 AM GMT)' },
+    newYork: { start: 13, end: 15, label: 'New York morning (8-10 AM EST)' },
+    asia: { start: 0, end: 2, label: 'Asia morning (8-10 AM SGT)' }
+  };
+  const activeWindows = Object.entries(postingWindows).filter(([, w]) => hour >= w.start && hour <= w.end).map(([k, w]) => w.label);
 
   return {
     agent: 'Content & Social',
     status: 'operational',
     timestamp: now.toISOString(),
     todaysContent: {
-      linkedin: { postId: LINKEDIN_POSTS[linkedinIndex].id, preview: LINKEDIN_POSTS[linkedinIndex].content.substring(0, 80) + '...' },
-      twitter: { postId: TWITTER_POSTS[twitterIndex].id, preview: TWITTER_POSTS[twitterIndex].content.substring(0, 80) + '...' },
-      instagram: dayOfYear % 3 === 0 ? 'Post day (every 3rd day)' : 'Engagement day'
+      linkedin: { postId: LINKEDIN_POSTS[linkedinIndex].id, fullContent: LINKEDIN_POSTS[linkedinIndex].content, preview: LINKEDIN_POSTS[linkedinIndex].content.substring(0, 80) + '...' },
+      twitter: { postId: TWITTER_POSTS[twitterIndex].id, fullContent: TWITTER_POSTS[twitterIndex].content, preview: TWITTER_POSTS[twitterIndex].content.substring(0, 80) + '...' },
+      instagram: dayOfYear % 3 === 0 ? 'Post day (every 3rd day)' : 'Engagement day — comment/like/share'
     },
-    contentBank: { linkedin: LINKEDIN_POSTS.length + 14, twitter: TWITTER_POSTS.length + 14, instagram: 7 },
+    postingWindows: activeWindows.length > 0 ? activeWindows : ['Off-peak — schedule for next window'],
+    contentBank: { linkedin: LINKEDIN_POSTS.length, twitter: TWITTER_POSTS.length, instagram: 7, pitchTemplates: Object.keys(PITCH_TEMPLATES).length },
+    outreachPitches: PITCH_TEMPLATES,
     tone: 'institutional, confident, authoritative',
-    ctaLinks: [CONTEXT.domain, CONTEXT.affiliate]
+    ctaLinks: [CONTEXT.domain, CONTEXT.affiliate],
+    hashtagSets: {
+      primary: '#ForexTrading #ManagedAccounts #ICTTrading #SmartMoney #Dubai #WealthManagement',
+      crypto: '#Crypto #Bitcoin #Ethereum #DeFi #Web3 #CryptoTrading #Blockchain',
+      finance: '#FinTech #InvestmentManagement #HedgeFund #Trading #ForexSignals #XAUUSD',
+      regional: '#DubaiFinance #UAEInvestment #LondonFinance #WallStreet #AsiaTrading'
+    },
+    platformTargets: {
+      linkedin: { dailyPosts: 1, dailyComments: 10, dailyConnections: 25, groups: ['Forex Traders', 'Crypto Investors', 'Dubai Finance', 'Wealth Management'] },
+      twitter: { dailyPosts: 3, dailyReplies: 20, dailyRetweets: 10, spaces: 'Join 2 trading spaces per week' },
+      instagram: { dailyStories: 3, dailyReels: 1, dailyComments: 15 },
+      telegram: { dailyMessages: 5, groupsToJoin: ['Crypto Trading', 'Forex Signals', 'Dubai Investors', 'Copy Trading'] },
+      reddit: { dailyComments: 5, subs: ['r/Forex', 'r/CryptoCurrency', 'r/Daytrading', 'r/AlgoTrading', 'r/Dubai'] },
+      youtube: { weeklyVideos: 1, format: 'Market analysis + methodology education' }
+    }
   };
 }
 
 // ── Agent 4: Lead Scoring Engine ─────────────────────
 function runLeadAgent() {
-  const now = new Date().toISOString();
+  const now = new Date();
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 1)) / 86400000);
+
   return {
     agent: 'Lead Qualification',
     status: 'operational',
-    timestamp: now,
-    scoringRubric: { maxScore: 100, tiers: ['hot(70-100)', 'warm(45-69)', 'cool(25-44)', 'cold(0-24)'] },
-    outreachSequences: {
-      linkedin: { touches: 3, cadenceDays: 7, status: 'active' },
-      instagram: { touches: 3, cadenceDays: 7, status: 'active' },
-      whatsapp: { touches: 5, warmOnly: true, status: 'active' }
+    timestamp: now.toISOString(),
+    scoringRubric: {
+      maxScore: 100,
+      tiers: ['hot(70-100)', 'warm(45-69)', 'cool(25-44)', 'cold(0-24)'],
+      factors: {
+        hasCapital: 30,
+        interestedInForex: 20,
+        interestedInCrypto: 15,
+        inTargetRegion: 15,
+        engagedWithContent: 10,
+        referredByExisting: 10
+      }
     },
-    complianceRules: 'No guaranteed returns, risk disclaimers mandatory, opt-outs respected immediately',
-    dailyLimits: { linkedinConnections: 25, linkedinDms: 20, instagramDms: 15 }
+    outreachSequences: {
+      linkedin: { touches: 5, cadenceDays: 3, status: 'active', template: 'Day 1: Connect → Day 4: Value post → Day 7: DM pitch → Day 10: Case study → Day 13: Close' },
+      instagram: { touches: 4, cadenceDays: 3, status: 'active', template: 'Day 1: Follow + like → Day 4: Story reply → Day 7: DM pitch → Day 10: Offer' },
+      whatsapp: { touches: 3, warmOnly: true, status: 'active', template: 'Day 1: Intro → Day 3: Value share → Day 7: Direct pitch' },
+      telegram: { touches: 3, cadenceDays: 5, status: 'active', template: 'Day 1: Group join → Day 6: Value post → Day 11: DM pitch' },
+      email: { touches: 4, cadenceDays: 7, status: 'active', template: 'Day 1: Cold email → Day 8: Follow-up → Day 15: Case study → Day 22: Final offer' }
+    },
+    complianceRules: 'No guaranteed returns, risk disclaimers mandatory, opt-outs respected immediately, no unsolicited financial advice',
+    dailyLimits: { linkedinConnections: 25, linkedinDms: 20, instagramDms: 15, telegramDms: 20, emailsOut: 50 },
+    targetAudiences: [
+      { segment: 'HNW Individuals', minCapital: '$50K', regions: ['UAE', 'UK', 'US', 'Singapore', 'Saudi Arabia', 'Qatar'], channels: ['LinkedIn', 'WhatsApp'] },
+      { segment: 'Retail Traders', minCapital: '$1K', regions: ['Global'], channels: ['Twitter', 'Instagram', 'Telegram', 'Reddit'] },
+      { segment: 'Crypto Investors', minCapital: '$5K', regions: ['Global'], channels: ['Twitter', 'Telegram', 'Discord'] },
+      { segment: 'Forex Community', minCapital: '$2K', regions: ['Global'], channels: ['Instagram', 'Telegram', 'YouTube'] }
+    ],
+    dailyPlaybook: {
+      morning: '1. Post LinkedIn content → 2. Send 10 connection requests → 3. Engage in 3 LinkedIn groups',
+      midday: '4. Post 2 tweets → 5. Reply to 10 trading tweets → 6. Post Instagram story',
+      afternoon: '7. Send 10 Telegram DMs → 8. Post in 3 Telegram groups → 9. Comment on 5 Reddit posts',
+      evening: '10. Review lead scores → 11. Follow up warm leads → 12. Schedule tomorrow\'s content'
+    },
+    revenueTargets: {
+      day1: { botActivations: 3, tradingVolume: '$50K', depositVolume: '$20K', targetRevenue: '$1,500' },
+      day2: { botActivations: 5, tradingVolume: '$100K', depositVolume: '$40K', targetRevenue: '$3,000' },
+      day3: { botActivations: 10, tradingVolume: '$200K', depositVolume: '$80K', targetRevenue: '$5,500' },
+      total3Day: '$10,000+'
+    }
   };
 }
 
@@ -238,40 +322,51 @@ async function runAllAgents() {
 function formatAgentReport(report) {
   const agents = report.agents;
   const statusIcon = (s) => s === 'operational' ? '🟢' : '🟡';
+  const content = agents.content;
+  const lead = agents.lead;
 
-  return `<b>🏛 AL-MUDIR Growth Engine — Daily Agent Report</b>
+  // Build the daily action plan
+  const playbook = lead.dailyPlaybook || {};
+  const targets = lead.revenueTargets || {};
+
+  return `<b>🏛 AL-MUDIR Growth Engine v${report.version}</b>
 <code>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</code>
-⏱ Executed: ${report.executedAt}
-⚡ Runtime: ${report.executionMs}ms
-📦 Version: ${report.version}
+⏱ ${report.executedAt}
+⚡ ${report.executionMs}ms
+
+<b>📊 REVENUE TARGETS (3-DAY)</b>
+Day 1: ${targets.day1 ? targets.day1.targetRevenue : '$1,500'} (${targets.day1 ? targets.day1.botActivations : 3} bot activations)
+Day 2: ${targets.day2 ? targets.day2.targetRevenue : '$3,000'} (${targets.day2 ? targets.day2.botActivations : 5} bot activations)
+Day 3: ${targets.day3 ? targets.day3.targetRevenue : '$5,500'} (${targets.day3 ? targets.day3.botActivations : 10} bot activations)
+📎 Total Target: <b>${targets.total3Day || '$10,000+'}</b>
 
 <b>AGENT STATUS</b>
-${statusIcon(agents.seo.status)} SEO Architect — ${agents.seo.status}
-   Content Calendar: Week ${agents.seo.contentCalendar.week}/12
-   Focus: "${agents.seo.currentFocus}"
+${statusIcon(agents.seo.status)} SEO — Week ${agents.seo.contentCalendar.week}/12 "${agents.seo.currentFocus}"
+${statusIcon(agents.gbp.status)} GBP — ${agents.gbp.gbpListing.status}
+${statusIcon(agents.content.status)} Content — LinkedIn: ${content.todaysContent.linkedin.postId} | Twitter: ${content.todaysContent.twitter.postId}
+${statusIcon(agents.lead.status)} Leads — Limits: ${lead.dailyLimits.linkedinConnections} LI / ${lead.dailyLimits.instagramDms} IG / ${lead.dailyLimits.telegramDms} TG
+${statusIcon(agents.analytics.status)} Analytics — Phase ${agents.analytics.roadmap.phase} Day ${agents.analytics.roadmap.daysElapsed}/90
 
-${statusIcon(agents.gbp.status)} GBP Manager — ${agents.gbp.status}
-   Listing: ${agents.gbp.gbpListing.status}
-   Citations: ${agents.gbp.citationList.total} ready
+<b>📋 TODAY'S PLAYBOOK</b>
+🌅 ${playbook.morning || 'Post content + connections'}
+☀️ ${playbook.midday || 'Tweets + engagement'}
+🌇 ${playbook.afternoon || 'DMs + community'}
+🌙 ${playbook.evening || 'Lead follow-up + planning'}
 
-${statusIcon(agents.content.status)} Content & Social — ${agents.content.status}
-   Today's LinkedIn: ${agents.content.todaysContent.linkedin.postId}
-   Today's Twitter: ${agents.content.todaysContent.twitter.postId}
-   Instagram: ${agents.content.todaysContent.instagram}
+<b>📝 LINKEDIN POST (copy-paste)</b>
+<code>${(content.todaysContent.linkedin.fullContent || '').substring(0, 600)}</code>
 
-${statusIcon(agents.lead.status)} Lead Qualification — ${agents.lead.status}
-   Sequences: LinkedIn ✓ Instagram ✓ WhatsApp ✓
-   Daily Limits: ${agents.lead.dailyLimits.linkedinConnections} connections
+<b>🐦 TWITTER POST (copy-paste)</b>
+<code>${(content.todaysContent.twitter.fullContent || '').substring(0, 280)}</code>
 
-${statusIcon(agents.analytics.status)} Analytics Reporter — ${agents.analytics.status}
-   ${agents.analytics.reportDay}
-   Gateways: ${agents.analytics.gateways.operational}/${agents.analytics.gateways.total} operational
-   Roadmap: Phase ${agents.analytics.roadmap.phase} (${agents.analytics.roadmap.phaseName})
-   Day ${agents.analytics.roadmap.daysElapsed}/90
+<b>#️⃣ HASHTAGS</b>
+${content.hashtagSets ? content.hashtagSets.primary + '\n' + content.hashtagSets.crypto : '#ForexTrading #Crypto'}
 
-<b>SYSTEM</b>
-All Agents: ${report.allOperational ? '✅ OPERATIONAL' : '⚠️ CHECK REQUIRED'}
-Next Run: ${report.nextRun}
+<b>💬 DM PITCH TEMPLATE</b>
+<code>${(content.outreachPitches ? content.outreachPitches.instagram_dm : '').substring(0, 300)}</code>
+
+Gateways: ${agents.analytics.gateways.operational}/${agents.analytics.gateways.total} ✓
+${report.allOperational ? '✅ ALL SYSTEMS GO' : '⚠️ CHECK REQUIRED'}
 
 <i>${CONTEXT.riskDisclaimer}</i>`;
 }
