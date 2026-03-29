@@ -31,22 +31,24 @@ function buildOtpHtml(otp, name) {
 }
 
 // Fallback: send OTP as a Telegram notification to the admin
+// Admin must forward the code to the user (interim until Resend/SMTP is configured)
 async function sendOtpViaTelegram(to, otp, name) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!botToken || !chatId) throw new Error('email_not_configured: no email provider and Telegram fallback unavailable');
 
-  const text = '\uD83D\uDD10 OTP Verification Request\n\n'
-    + 'Name: ' + esc(name) + '\n'
-    + 'Email: ' + esc(to) + '\n'
-    + 'OTP Code: ' + otp + '\n\n'
-    + 'This code expires in 10 minutes.\n'
-    + 'Share this code with the user to complete their account verification.';
+  const text = '\uD83D\uDD10 OTP Verification — FORWARD TO USER\n\n'
+    + '\uD83D\uDC64 Name: ' + esc(name) + '\n'
+    + '\uD83D\uDCE7 Email: ' + esc(to) + '\n'
+    + '\uD83D\uDD22 OTP Code: <b>' + otp + '</b>\n\n'
+    + '\u23F0 Expires in 10 minutes.\n'
+    + '\n\u26A0\uFE0F No email provider configured. Set RESEND_API_KEY on Vercel to enable direct email delivery.\n'
+    + 'Run: bash setup-email.sh <your-resend-key>';
 
   const r = await fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text: text })
+    body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'HTML' })
   });
   if (!r.ok) throw new Error('telegram_otp_send_failed');
   return r.json();
