@@ -300,8 +300,34 @@ function escSvg(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// ── TX hash reuse prevention ────────────────────────────
+const USED_TX_PREFIX = 'used_tx:';
+async function isUsedTxHash(hash) {
+  const key = USED_TX_PREFIX + String(hash).toLowerCase().trim();
+  const r = await redis('GET', key);
+  return !!r;
+}
+async function markTxHashUsed(hash, email, ts) {
+  const key = USED_TX_PREFIX + String(hash).toLowerCase().trim();
+  await redis('SET', key, { email, ts, markedAt: new Date().toISOString() });
+}
+
+// ── Amount conversion helper (BigInt hex → decimal) ─────
+function hexToDecimal(hexStr, decimals) {
+  try {
+    const big = BigInt(hexStr || '0x0');
+    const s = big.toString();
+    if (s === '0') return 0;
+    if (s.length <= decimals) {
+      return parseFloat('0.' + s.padStart(decimals, '0'));
+    }
+    return parseFloat(s.slice(0, s.length - decimals) + '.' + s.slice(s.length - decimals));
+  } catch { return 0; }
+}
+
 // ── On-chain transaction verification ───────────────────
 // Verify that a deposit transaction actually exists on-chain before crediting
+// Returns: { verified, hash, recipientMatch, onChainAmount, ... }
 const BLOCKCHAIN_EXPLORER_APIS = {
   bitcoin:  'https://mempool.space/api/tx/',
   erc20:    'https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=',
@@ -322,7 +348,21 @@ async function verifyOnChainTx(network, txHash) {
       const r = await fetch(base + encodeURIComponent(cleanHash), { signal: AbortSignal.timeout(8000) });
       const d = await r.json();
       if (d.result && d.result.hash) {
-        return { verified: true, hash: d.result.hash, from: d.result.from, to: d.result.to, value: d.result.value, blockNumber: d.result.blockNumber };
+        const treasuryAddr = (TREASURY_ADDRESSES[network] || '').toLowerCase();
+        const input = d.result.input || '';
+        let recipient = (d.result.to || '').toLowerCase();
+        let rawAmountHex = d.result.value || '0x0';
+        let isTokenTransfer = false;
+
+        // Detect ERC-20 transfer(address,uint256) calls
+        if (input.length >= 138 && input.toLowerCase().startsWith('0xa9059cbb')) {
+          recipient = ('0x' + input.slice(34, 74)).toLowerCase();
+          rawAmountHex = '0x' + input.slice(74, 138);
+          isTokenTransfer = true;
+        }
+
+        const recipientMatch = recipient === treasuryAddr;
+        return { verified: true, hash: d.result.hash, from: d.result.from, to: d.result.to, value: d.result.value, blockNumber: d.result.blockNumber, recipient, rawAmountHex, isTokenTransfer, recipientMatch };
       }
       return { verified: false, reason: 'tx_not_found' };
     }
@@ -330,14 +370,42 @@ async function verifyOnChainTx(network, txHash) {
       const r = await fetch(BLOCKCHAIN_EXPLORER_APIS.bitcoin + encodeURIComponent(cleanHash), { signal: AbortSignal.timeout(8000) });
       if (r.status === 200) {
         const d = await r.json();
-        if (d.txid) return { verified: true, hash: d.txid, confirmations: d.status && d.status.confirmed ? 'confirmed' : 'unconfirmed' };
+        if (d.txid) {
+          const treasuryAddr = TREASURY_ADDRESSES.bitcoin;
+          let onChainAmount = 0;
+          let recipientMatch = false;
+          if (d.vout && Array.isArray(d.vout)) {
+            for (const out of d.vout) {
+              if (out.scriptpubkey_address === treasuryAddr) {
+                onChainAmount += (out.value || 0);
+                recipientMatch = true;
+              }
+            }
+          }
+          onChainAmount = +(onChainAmount / 1e8).toFixed(8); // satoshis → BTC
+          return { verified: true, hash: d.txid, confirmations: d.status && d.status.confirmed ? 'confirmed' : 'unconfirmed', recipientMatch, onChainAmount };
+        }
       }
       return { verified: false, reason: 'tx_not_found' };
     }
     if (network === 'trc20') {
       const r = await fetch(BLOCKCHAIN_EXPLORER_APIS.trc20 + encodeURIComponent(cleanHash), { signal: AbortSignal.timeout(8000) });
       const d = await r.json();
-      if (d.id || d.hash) return { verified: true, hash: d.id || d.hash };
+      if (d.id || d.hash) {
+        const treasuryAddr = TREASURY_ADDRESSES.trc20;
+        let recipient = null;
+        let onChainAmount = 0;
+        if (d.contractData) {
+          recipient = d.contractData.to_address || d.contractData.owner_address || null;
+          const rawAmt = Number(d.contractData.amount || 0);
+          onChainAmount = +(rawAmt / 1e6).toFixed(6); // TRC20 tokens use 6 decimals
+        } else if (d.toAddress) {
+          recipient = d.toAddress;
+          onChainAmount = +(Number(d.amount || 0) / 1e6).toFixed(6);
+        }
+        const recipientMatch = !!(recipient && recipient === treasuryAddr);
+        return { verified: true, hash: d.id || d.hash, recipientMatch, onChainAmount, recipient };
+      }
       return { verified: false, reason: 'tx_not_found' };
     }
     if (network === 'solana') {
@@ -348,7 +416,26 @@ async function verifyOnChainTx(network, txHash) {
         signal: AbortSignal.timeout(8000)
       });
       const d = await r.json();
-      if (d.result) return { verified: true, hash: cleanHash, slot: d.result.slot };
+      if (d.result) {
+        const treasuryAddr = TREASURY_ADDRESSES.solana;
+        let recipientMatch = false;
+        let onChainAmount = 0;
+        // Parse Solana transaction for recipient and amount
+        try {
+          const keys = d.result.transaction && d.result.transaction.message && d.result.transaction.message.accountKeys;
+          const pre = d.result.meta && d.result.meta.preBalances;
+          const post = d.result.meta && d.result.meta.postBalances;
+          if (keys && pre && post) {
+            for (let i = 0; i < keys.length; i++) {
+              if (keys[i] === treasuryAddr && post[i] > pre[i]) {
+                onChainAmount = +((post[i] - pre[i]) / 1e9).toFixed(9); // lamports → SOL
+                recipientMatch = true;
+              }
+            }
+          }
+        } catch { /* parsing failed, recipientMatch stays false */ }
+        return { verified: true, hash: cleanHash, slot: d.result.slot, recipientMatch, onChainAmount };
+      }
       return { verified: false, reason: 'tx_not_found' };
     }
     // For networks without an explorer API, mark as pending manual review
@@ -970,12 +1057,41 @@ module.exports = withDb(async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'tx_not_verified', detail: 'Transaction is not verifiably confirmed on-chain. Deposit not credited.', verification: onChainResult });
     }
 
-    // Calculate deposit processing fee
+    // ── SECURITY: TX hash reuse prevention ──
+    if (await isUsedTxHash(txHash)) {
+      return res.status(400).json({ ok: false, error: 'tx_already_used', detail: 'This transaction hash has already been used for a deposit. Each on-chain TX can only be credited once.' });
+    }
+
+    // ── SECURITY: Recipient must match treasury address ──
+    if (onChainResult.recipientMatch !== true) {
+      return res.status(400).json({ ok: false, error: 'recipient_mismatch', detail: 'Transaction recipient does not match the AL-MUDIR treasury address for ' + network + '. Deposit rejected.' });
+    }
+
+    // ── SECURITY: Use on-chain verified amount (never trust client-claimed amount) ──
+    let verifiedAmount;
+    if (['erc20', 'bep20', 'polygon', 'avax-c'].includes(network)) {
+      if (onChainResult.isTokenTransfer) {
+        // ERC-20 token: USDT/USDC use 6 decimals, others 18
+        const decimals = (coin === 'USDT' || coin === 'USDC') ? 6 : 18;
+        verifiedAmount = hexToDecimal(onChainResult.rawAmountHex, decimals);
+      } else {
+        // Native coin (ETH, BNB, AVAX, MATIC): 18 decimals
+        verifiedAmount = hexToDecimal(onChainResult.rawAmountHex, 18);
+      }
+    } else {
+      // Bitcoin, TRC20, Solana — already converted in verifyOnChainTx
+      verifiedAmount = onChainResult.onChainAmount || 0;
+    }
+    if (!verifiedAmount || verifiedAmount <= 0) {
+      return res.status(400).json({ ok: false, error: 'zero_on_chain_amount', detail: 'On-chain transaction amount is zero or could not be parsed. Deposit rejected.' });
+    }
+
+    // Calculate deposit processing fee using VERIFIED on-chain amount
     const feeRate = DEPOSIT_FEE_RATE;
-    const feeCoinAmt = +(amount * feeRate).toFixed(8);
-    const netAmount  = +(amount - feeCoinAmt).toFixed(8);
+    const feeCoinAmt = +(verifiedAmount * feeRate).toFixed(8);
+    const netAmount  = +(verifiedAmount - feeCoinAmt).toFixed(8);
     const feeUsd     = +(feeCoinAmt * price).toFixed(2);
-    const totalUsd   = +(amount * price).toFixed(2);
+    const totalUsd   = +(verifiedAmount * price).toFixed(2);
 
     // Credit user (net of fee)
     const balances = await getWalletBalances(email);
@@ -1005,7 +1121,8 @@ module.exports = withDb(async function handler(req, res) {
       type: 'deposit',
       coin,
       network,
-      amount,
+      amount: verifiedAmount,
+      claimedAmount: amount,
       netAmount,
       usdValue: totalUsd,
       feeRate,
@@ -1014,11 +1131,16 @@ module.exports = withDb(async function handler(req, res) {
       address: TREASURY_ADDRESSES[network],
       txHash: txHash || null,
       verified: onChainResult.verified,
+      recipientVerified: onChainResult.recipientMatch,
+      amountSource: 'on-chain',
       gateway,
       status: 'credited',
       ts
     };
     await appendWalletTx(email, tx);
+
+    // Mark TX hash as used to prevent double-deposit
+    await markTxHashUsed(txHash, email, ts);
 
     // System fee transaction record
     await appendSystemTx({
@@ -1258,20 +1380,14 @@ module.exports = withDb(async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'already_active', detail: 'Trading bot is already activated on this account.' });
     }
 
-    // Deduct from balance or accept external payment
+    // Deduct from USDT balance — ALL gateways require verified crypto balance
     const balances = await getWalletBalances(email);
-    const isExternalGateway = gateway === 'visa' || gateway === 'mastercard' || gateway === 'apple';
-    if (isExternalGateway) {
-      // External card/Apple Pay — payment collected externally, no balance deduction
-    } else {
-      // Crypto — deduct from USDT balance
-      const usdBal = balances['USDT'] || 0;
-      if (usdBal < BOT_PRICE_USD) {
-        return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + BOT_PRICE_USD + ' USDT but have $' + usdBal.toFixed(2) + '. Fund your account first.' });
-      }
-      balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
-      await setWalletBalances(email, balances);
+    const usdBal = balances['USDT'] || 0;
+    if (usdBal < BOT_PRICE_USD) {
+      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + BOT_PRICE_USD + ' USDT but have $' + usdBal.toFixed(2) + '. Fund your account with a verified crypto deposit first.' });
     }
+    balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
+    await setWalletBalances(email, balances);
 
     // Collect entire purchase as system revenue
     await addSystemFee('USDT', BOT_PRICE_USD);
