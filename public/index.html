@@ -2803,15 +2803,18 @@
     const GATEWAY_CHECK_MS = 60000;
 
     const MARKET_SNAPSHOT = [
-      { symbol: 'XAUUSD', price: 2321.45, change: 0.84 },
-      { symbol: 'BTCUSDT', price: 67350.10, change: 1.62 },
-      { symbol: 'ETHUSDT', price: 3512.90, change: -0.57 },
-      { symbol: 'BNBUSDT', price: 611.30, change: 0.38 },
-      { symbol: 'EURUSD', price: 1.0912, change: -0.12 },
-      { symbol: 'USDJPY', price: 151.24, change: 0.21 },
-      { symbol: 'NAS100', price: 18980.40, change: 0.42 },
-      { symbol: 'USOIL', price: 82.17, change: -0.28 }
+      { symbol: 'BTCUSDT', price: 0, change: 0 },
+      { symbol: 'ETHUSDT', price: 0, change: 0 },
+      { symbol: 'BNBUSDT', price: 0, change: 0 },
+      { symbol: 'SOLUSDT', price: 0, change: 0 },
+      { symbol: 'XRPUSDT', price: 0, change: 0 },
+      { symbol: 'ADAUSDT', price: 0, change: 0 },
+      { symbol: 'DOGEUSDT', price: 0, change: 0 },
+      { symbol: 'EURUSD', price: 0, change: 0 },
+      { symbol: 'USDJPY', price: 0, change: 0 }
     ];
+    let marketPricesLastFetch = 0;
+    const MARKET_PRICES_INTERVAL = 15000; // 15s polling
 
     const SIGNAL_SETUPS = [
       { symbol: 'XAUUSD', side: 'LONG', entry: '2318.20', sl: '2309.80', tp: '2335.60', rr: '2.07', confidence: 88 },
@@ -3004,7 +3007,13 @@
 
     function renderTickerTape() {
       if (!tickerLaneTop || !tickerLaneBottom) return;
-      const content = MARKET_SNAPSHOT.map(function(entry) {
+      const active = MARKET_SNAPSHOT.filter(function(e) { return e.price > 0; });
+      if (!active.length) {
+        tickerLaneTop.innerHTML = '<span class="ticker-item"><strong class="text-gray-400">Loading market data…</strong></span>';
+        tickerLaneBottom.innerHTML = tickerLaneTop.innerHTML;
+        return;
+      }
+      const content = active.map(function(entry) {
         const sign = entry.change >= 0 ? '+' : '';
         const cls = entry.change >= 0 ? 'up' : 'down';
         return '<span class="ticker-item"><strong class="text-white">' + entry.symbol + '</strong><span>' + formatPrice(entry.symbol, entry.price) + '</span><span class="' + cls + '">' + sign + entry.change.toFixed(2) + '%</span></span>';
@@ -3013,12 +3022,32 @@
       tickerLaneBottom.innerHTML = content + '<span class="text-gray-600">●</span>' + content;
     }
 
+    async function fetchMarketPrices() {
+      try {
+        const r = await fetch('/api/prices');
+        const d = await r.json();
+        if (!d.ok || !d.market) return;
+        marketPricesLastFetch = d.ts || Date.now();
+        // Update MARKET_SNAPSHOT with real data
+        d.market.forEach(function(item) {
+          const existing = MARKET_SNAPSHOT.find(function(e) { return e.symbol === item.symbol; });
+          if (existing) {
+            existing.price = item.price;
+            existing.change = item.change;
+          }
+        });
+        // Also sync into systemWalletData.prices for any logged-out display
+        if (d.prices) {
+          for (const [sym, px] of Object.entries(d.prices)) {
+            if (!systemWalletData.prices) systemWalletData.prices = {};
+            systemWalletData.prices[sym] = px;
+          }
+        }
+      } catch { /* network error — keep last known prices */ }
+    }
+
     function tickMarketSnapshot() {
-      MARKET_SNAPSHOT.forEach(function(entry) {
-        const drift = (Math.random() - 0.5) * (entry.symbol.includes('USD') && entry.price > 100 ? 0.6 : 0.08);
-        entry.price = Math.max(0.0001, entry.price + drift);
-        entry.change = Math.max(-4.99, Math.min(4.99, entry.change + (Math.random() - 0.5) * 0.16));
-      });
+      // Prices are updated by fetchMarketPrices polling — just re-render
       renderTickerTape();
       renderMarketBoard();
     }
@@ -3046,14 +3075,16 @@
 
     function renderOrderBook() {
       if (!orderBookAsks || !orderBookBids) return;
-      const mid = MARKET_SNAPSHOT[0] ? MARKET_SNAPSHOT[0].price : 2320;
+      const btcEntry = MARKET_SNAPSHOT.find(function(e) { return e.symbol === 'BTCUSDT'; });
+      const mid = btcEntry && btcEntry.price > 0 ? btcEntry.price : 67500;
+      const spread = mid * 0.0001; // 1 basis point spread
       const asks = [];
       const bids = [];
       for (let i = 0; i < 8; i += 1) {
-        const askPx = (mid + 0.15 + i * 0.18 + Math.random() * 0.05).toFixed(2);
-        const bidPx = (mid - 0.15 - i * 0.18 - Math.random() * 0.05).toFixed(2);
-        asks.push({ price: askPx, size: (0.2 + Math.random() * 1.9).toFixed(3), depth: Math.round(15 + Math.random() * 78) });
-        bids.push({ price: bidPx, size: (0.2 + Math.random() * 1.9).toFixed(3), depth: Math.round(15 + Math.random() * 78) });
+        const askPx = (mid + spread + i * spread * 1.2 + Math.random() * spread * 0.3).toFixed(2);
+        const bidPx = (mid - spread - i * spread * 1.2 - Math.random() * spread * 0.3).toFixed(2);
+        asks.push({ price: askPx, size: (0.01 + Math.random() * 0.5).toFixed(4), depth: Math.round(15 + Math.random() * 78) });
+        bids.push({ price: bidPx, size: (0.01 + Math.random() * 0.5).toFixed(4), depth: Math.round(15 + Math.random() * 78) });
       }
       orderBookAsks.innerHTML = asks.map(function(a) {
         return '<div class="book-row ask" style="--depth:' + a.depth + '%"><span class="text-red-300">' + a.price + '</span><span class="text-gray-300">' + a.size + '</span></div>';
@@ -3193,13 +3224,21 @@
     function renderMarketBoard() {
       if (!marketBoardBody) return;
       marketBoardBody.innerHTML = '';
-      MARKET_SNAPSHOT.forEach((entry) => {
+      const active = MARKET_SNAPSHOT.filter(function(e) { return e.price > 0; });
+      if (!active.length) {
+        marketBoardBody.innerHTML = '<div class="px-3 py-3 text-xs text-gray-500 text-center">Fetching live prices…</div>';
+        return;
+      }
+      // Staleness indicator
+      const stale = marketPricesLastFetch > 0 && (Date.now() - marketPricesLastFetch > 60000);
+      active.forEach((entry) => {
         const row = document.createElement('div');
         row.className = 'market-row grid grid-cols-[1.2fr_0.9fr_0.8fr_0.7fr] items-center px-3 py-2';
         const trend = entry.change >= 0 ? 'UP' : 'DOWN';
         const trendClass = entry.change >= 0 ? 'tag-up' : 'tag-down';
+        const staleDot = stale ? '<span class="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-yellow-500" title="Price may be delayed"></span>' : '<span class="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500" title="Live"></span>';
         row.innerHTML = ''
-          + '<span class="font-semibold text-white">' + entry.symbol + '</span>'
+          + '<span class="font-semibold text-white">' + entry.symbol + staleDot + '</span>'
           + '<span class="text-gray-300">' + formatPrice(entry.symbol, entry.price) + '</span>'
           + '<span class="' + (entry.change >= 0 ? 'text-green-300' : 'text-red-300') + '">' + (entry.change >= 0 ? '+' : '') + entry.change.toFixed(2) + '%</span>'
           + '<span class="inline-flex w-fit rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.12em] ' + trendClass + '">' + trend + '</span>';
@@ -3290,35 +3329,24 @@
 
     function tickDashboardNumbers() {
       if (!currentUser) return;
-      MARKET_SNAPSHOT.forEach((entry) => {
-        const drift = (Math.random() - 0.5) * 0.8;
-        entry.change = Math.max(-4.5, Math.min(4.5, entry.change + drift * 0.15));
-        entry.price = Math.max(0.0001, entry.price * (1 + drift / 1000));
-      });
-
+      // Prices are updated by fetchMarketPrices — just refresh display
       if (portfolioValueEl) {
         updateHomeTotalBalance();
-      }
-
-      if (kpiPnl) {
-        const pnl = 280 + Math.random() * 320;
-        kpiPnl.textContent = '+$' + pnl.toFixed(2);
-      }
-      if (kpiExposure) {
-        kpiExposure.textContent = (55 + Math.random() * 25).toFixed(0) + '%';
-      }
-      if (kpiWinRate) {
-        kpiWinRate.textContent = (58 + Math.random() * 12).toFixed(1) + '%';
       }
 
       renderMarketBoard();
     }
 
+    let marketPricesTimer = null;
+
     function initProDashboardWidgets() {
-      renderMarketBoard();
-      renderTickerTape();
+      // Fetch real prices immediately, then poll
+      fetchMarketPrices().then(function() {
+        renderMarketBoard();
+        renderTickerTape();
+        renderOrderBook();
+      });
       renderSignalCards(dashboardSignalsGrid);
-      renderOrderBook();
       renderSecuritySessions();
       renderActivity();
       setPositionsMode(currentPositionsMode);
@@ -3326,9 +3354,11 @@
       if (dashboardPulseTimer) clearInterval(dashboardPulseTimer);
       if (tickerTimer) clearInterval(tickerTimer);
       if (orderBookTimer) clearInterval(orderBookTimer);
+      if (marketPricesTimer) clearInterval(marketPricesTimer);
       dashboardPulseTimer = setInterval(tickDashboardNumbers, 6000);
       tickerTimer = setInterval(tickMarketSnapshot, 2500);
       orderBookTimer = setInterval(renderOrderBook, 1700);
+      marketPricesTimer = setInterval(fetchMarketPrices, MARKET_PRICES_INTERVAL);
     }
 
     function getSession() {
@@ -7414,6 +7444,9 @@
     bindNotificationsPanel();
     initTheme();
     renderNotifications();
+    // Fetch real-time market prices immediately, then every 15s
+    fetchMarketPrices().then(function() { renderTickerTape(); renderMarketBoard(); });
+    setInterval(fetchMarketPrices, MARKET_PRICES_INTERVAL);
     renderTickerTape();
     renderSignalCards(dashboardSignalsGrid);
     renderOrderBook();
