@@ -1726,12 +1726,63 @@
                 <div class="rounded border border-white/10 bg-black/20 p-4 space-y-4">
                   <!-- Tab headers -->
                   <div class="flex gap-0 border-b border-white/10">
-                    <button id="quickDepositTab" class="flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-[var(--dash-accent)] border-b-2 border-[var(--dash-accent)] font-semibold"><i class="fa-solid fa-bolt mr-1"></i>Quick Deposit</button>
-                    <button id="manualDepositTab" class="flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-gray-400 border-b-2 border-transparent hover:text-gray-300"><i class="fa-solid fa-paste mr-1"></i>Manual Deposit</button>
+                    <button id="instantDepositTab" class="flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-[var(--dash-accent)] border-b-2 border-[var(--dash-accent)] font-semibold"><i class="fa-solid fa-credit-card mr-1"></i>Instant Deposit</button>
+                    <button id="quickDepositTab" class="flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-gray-400 border-b-2 border-transparent hover:text-gray-300"><i class="fa-solid fa-bolt mr-1"></i>Crypto Deposit</button>
+                    <button id="manualDepositTab" class="flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-gray-400 border-b-2 border-transparent hover:text-gray-300"><i class="fa-solid fa-paste mr-1"></i>Manual</button>
+                  </div>
+
+                  <!-- ── Instant Deposit (Apple Pay / GPay / Card → direct_deposit) ── -->
+                  <div id="instantDepositPanel" class="space-y-4">
+                    <p class="text-[10px] text-gray-500"><i class="fa-solid fa-shield-halved mr-1 text-blue-400"></i>Deposit funds using Apple Pay, Google Pay, or debit/credit card. Credited instantly after payment verification.</p>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Payment Method</p>
+                        <select id="fiatDepositMethod" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                          <option value="apple_pay" class="text-black"> Apple Pay</option>
+                          <option value="gpay" class="text-black"> Google Pay</option>
+                          <option value="visa" class="text-black"> Visa / Debit Card</option>
+                          <option value="mastercard" class="text-black"> Mastercard</option>
+                        </select>
+                      </div>
+                      <div>
+                        <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Credit To</p>
+                        <select id="fiatDepositCoin" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                          <option value="USDT" class="text-black">USDT</option>
+                          <option value="USDC" class="text-black">USDC</option>
+                          <option value="BTC" class="text-black">BTC</option>
+                          <option value="ETH" class="text-black">ETH</option>
+                          <option value="BNB" class="text-black">BNB</option>
+                          <option value="SOL" class="text-black">SOL</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Amount (USD)</p>
+                      <input id="fiatDepositAmount" type="number" min="1" max="100000" step="0.01" placeholder="0.00" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                      <div class="grid grid-cols-5 gap-2 mt-2">
+                        <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="50">$50</button>
+                        <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="100">$100</button>
+                        <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="250">$250</button>
+                        <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="500">$500</button>
+                        <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="1000">$1K</button>
+                      </div>
+                    </div>
+                    <div id="fiatDepositFeeCard" class="hidden rounded border border-[var(--dash-accent)]/20 bg-[var(--dash-accent)]/5 p-3 space-y-1">
+                      <div class="flex justify-between text-[10px]">
+                        <span class="text-gray-400">Deposit Fee (0.05%)</span>
+                        <span id="fiatDepositFeeAmt" class="text-gray-300">$0.00</span>
+                      </div>
+                      <div class="flex justify-between text-[10px] font-semibold">
+                        <span class="text-gray-300">You'll Receive</span>
+                        <span id="fiatDepositReceive" class="text-[var(--dash-accent)]">—</span>
+                      </div>
+                    </div>
+                    <button id="fiatDepositBtn" class="w-full rounded bg-gradient-to-r from-blue-600 to-indigo-500 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:opacity-90 flex items-center justify-center gap-2"><i class="fa-solid fa-bolt"></i>Deposit Now</button>
+                    <p id="fiatDepositStatus" class="hidden text-center text-xs"></p>
                   </div>
 
                   <!-- ── Quick Deposit (one-click via connected wallet) ── -->
-                  <div id="quickDepositPanel" class="space-y-4">
+                  <div id="quickDepositPanel" class="hidden space-y-4">
                     <!-- Wallet not connected state -->
                     <div id="quickDepositNoWallet" class="rounded border border-dashed border-white/20 p-6 text-center space-y-2">
                       <i class="fa-solid fa-wallet text-2xl text-gray-600"></i>
@@ -1900,59 +1951,6 @@
 
                   <button id="withdrawSubmitBtn" class="w-full rounded bg-gradient-to-r from-red-600 to-orange-500 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:opacity-90 flex items-center justify-center gap-2"><i class="fa-solid fa-arrow-right-from-bracket"></i>Submit Withdrawal</button>
                   <p id="withdrawStatus" class="hidden text-center text-xs"></p>
-                </div>
-
-                <!-- ══════════ Fiat Deposit (Apple Pay / GPay / Card) ══════════ -->
-                <div class="rounded border border-white/10 bg-black/20 p-4 space-y-4">
-                  <div class="flex items-center justify-between">
-                    <p class="text-[10px] uppercase tracking-[0.18em] text-gray-400"><i class="fa-solid fa-credit-card mr-1"></i>Instant Deposit</p>
-                    <span class="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-blue-400">Fiat</span>
-                  </div>
-                  <p class="text-[10px] text-gray-500">Deposit funds directly using Apple Pay, Google Pay, or debit/credit card. Credited instantly to your wallet.</p>
-                  <div class="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Payment Method</p>
-                      <select id="fiatDepositMethod" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
-                        <option value="apple_pay" class="text-black"> Apple Pay</option>
-                        <option value="gpay" class="text-black"> Google Pay</option>
-                        <option value="visa" class="text-black"> Visa / Debit Card</option>
-                        <option value="mastercard" class="text-black"> Mastercard</option>
-                      </select>
-                    </div>
-                    <div>
-                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Credit To</p>
-                      <select id="fiatDepositCoin" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
-                        <option value="USDT" class="text-black">USDT</option>
-                        <option value="USDC" class="text-black">USDC</option>
-                        <option value="BTC" class="text-black">BTC</option>
-                        <option value="ETH" class="text-black">ETH</option>
-                        <option value="BNB" class="text-black">BNB</option>
-                        <option value="SOL" class="text-black">SOL</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Amount (USD)</p>
-                    <input id="fiatDepositAmount" type="number" min="1" max="100000" step="0.01" placeholder="0.00" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
-                    <div class="grid grid-cols-4 gap-2 mt-2">
-                      <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="50">$50</button>
-                      <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="100">$100</button>
-                      <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="500">$500</button>
-                      <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="1000">$1K</button>
-                    </div>
-                  </div>
-                  <div id="fiatDepositFeeCard" class="hidden rounded border border-[var(--dash-accent)]/20 bg-[var(--dash-accent)]/5 p-3 space-y-1">
-                    <div class="flex justify-between text-[10px]">
-                      <span class="text-gray-400">Deposit Fee (0.05%)</span>
-                      <span id="fiatDepositFeeAmt" class="text-gray-300">$0.00</span>
-                    </div>
-                    <div class="flex justify-between text-[10px] font-semibold">
-                      <span class="text-gray-300">You'll Receive</span>
-                      <span id="fiatDepositReceive" class="text-[var(--dash-accent)]">—</span>
-                    </div>
-                  </div>
-                  <button id="fiatDepositBtn" class="w-full rounded bg-gradient-to-r from-blue-600 to-indigo-500 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:opacity-90 flex items-center justify-center gap-2"><i class="fa-solid fa-bolt"></i>Deposit Now</button>
-                  <p id="fiatDepositStatus" class="hidden text-center text-xs"></p>
                 </div>
 
                 <div id="walletFallbackCard" class="hidden rounded border border-white/10 bg-[#0f1317] p-4 space-y-4">
@@ -2688,6 +2686,8 @@
     const refreshSystemWalletBtn = document.getElementById('refreshSystemWalletBtn');
 
     // ── Quick Deposit refs ──
+    const instantDepositTab = document.getElementById('instantDepositTab');
+    const instantDepositPanel = document.getElementById('instantDepositPanel');
     const quickDepositTab = document.getElementById('quickDepositTab');
     const manualDepositTab = document.getElementById('manualDepositTab');
     const quickDepositPanel = document.getElementById('quickDepositPanel');
@@ -5530,20 +5530,23 @@
     depositCoinSelect.addEventListener('change', updateDepositNetworks);
     depositNetworkSelect.addEventListener('change', updateDepositAddress);
 
-    // ── Quick Deposit tab switching ──
-    quickDepositTab.addEventListener('click', function() {
-      quickDepositTab.className = 'flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-[var(--dash-accent)] border-b-2 border-[var(--dash-accent)] font-semibold';
-      manualDepositTab.className = 'flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-gray-400 border-b-2 border-transparent hover:text-gray-300';
-      quickDepositPanel.classList.remove('hidden');
-      manualDepositPanel.classList.add('hidden');
-      syncQuickDepositState();
-    });
-    manualDepositTab.addEventListener('click', function() {
-      manualDepositTab.className = 'flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-[var(--dash-accent)] border-b-2 border-[var(--dash-accent)] font-semibold';
-      quickDepositTab.className = 'flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-gray-400 border-b-2 border-transparent hover:text-gray-300';
-      manualDepositPanel.classList.remove('hidden');
-      quickDepositPanel.classList.add('hidden');
-    });
+    // ── Deposit tab switching (3 tabs: Instant / Crypto / Manual) ──
+    var TAB_ACTIVE  = 'flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-[var(--dash-accent)] border-b-2 border-[var(--dash-accent)] font-semibold';
+    var TAB_INACTIVE = 'flex-1 pb-2 text-[10px] uppercase tracking-[0.18em] text-gray-400 border-b-2 border-transparent hover:text-gray-300';
+
+    function switchDepositTab(active) {
+      instantDepositTab.className = active === 'instant' ? TAB_ACTIVE : TAB_INACTIVE;
+      quickDepositTab.className   = active === 'quick'   ? TAB_ACTIVE : TAB_INACTIVE;
+      manualDepositTab.className  = active === 'manual'  ? TAB_ACTIVE : TAB_INACTIVE;
+      instantDepositPanel.classList.toggle('hidden', active !== 'instant');
+      quickDepositPanel.classList.toggle('hidden', active !== 'quick');
+      manualDepositPanel.classList.toggle('hidden', active !== 'manual');
+      if (active === 'quick') syncQuickDepositState();
+    }
+
+    instantDepositTab.addEventListener('click', function() { switchDepositTab('instant'); });
+    quickDepositTab.addEventListener('click', function() { switchDepositTab('quick'); });
+    manualDepositTab.addEventListener('click', function() { switchDepositTab('manual'); });
 
     // Quick deposit state: show form when wallet connected, else show prompt
     var quickDepositCoins = [];
@@ -6662,7 +6665,7 @@
           if (!h) { co3dStatus.textContent = 'Session expired.'; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return; }
           var r = await fetch('/api/wallet', {
             method: 'POST', headers: h,
-            body: JSON.stringify({ action: ck.tradeMode, coin: ck.coin, amount: ck.rawAmount, gateway: ck.method })
+            body: JSON.stringify({ action: ck.tradeMode, coin: ck.coin, amount: ck.rawAmount, gateway: 'wallet_balance' })
           });
           var d = await r.json();
           if (!r.ok || !d.ok) { co3dStatus.textContent = d.detail || d.error || 'Trade failed.'; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return; }
@@ -6693,7 +6696,7 @@
           co3dStatus.textContent = 'Activating trading bot...';
           var r = await fetch('/api/wallet', {
             method: 'POST', headers: h,
-            body: JSON.stringify({ action: 'bot_activate', gateway: ck.method })
+            body: JSON.stringify({ action: 'bot_activate', gateway: 'wallet_balance' })
           });
           var d = await r.json();
           if (!r.ok || !d.ok) { co3dStatus.textContent = d.detail || d.error || 'Activation failed.'; co3dStatus.className = 'text-center text-[10px] text-red-400'; co3dConfirm.disabled = false; return; }

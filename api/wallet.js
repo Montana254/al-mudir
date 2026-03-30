@@ -1269,21 +1269,12 @@ module.exports = withDb(async function handler(req, res) {
     const balances = await getWalletBalances(email);
     const usdBal   = balances['USDT'] || 0;
 
-    // Direct payment gateways can buy crypto without pre-funded wallet
-    const directPayGateways = ['apple_pay', 'apple', 'google_pay', 'gpay', 'visa', 'mastercard'];
-    const isDirectPay = directPayGateways.includes(gateway);
-
-    if (!isDirectPay && usdBal < totalCharged) {
-      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + totalCharged + ' USDT (incl. ' + (feeRate * 100).toFixed(2) + '% fee) but have $' + usdBal.toFixed(2) + '. Deposit funds first, or pay with Apple Pay / Google Pay / Card.' });
+    if (usdBal < totalCharged) {
+      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + totalCharged + ' USDT (incl. ' + (feeRate * 100).toFixed(2) + '% fee) but have $' + usdBal.toFixed(2) + '. Use Instant Deposit to add funds first.' });
     }
 
-    if (isDirectPay) {
-      // Direct payment — credit crypto without deducting USDT (charged at source)
-      balances[coin] = +((balances[coin] || 0) + amount).toFixed(8);
-    } else {
-      balances['USDT'] = +(usdBal - totalCharged).toFixed(6);
-      balances[coin]   = +((balances[coin] || 0) + amount).toFixed(8);
-    }
+    balances['USDT'] = +(usdBal - totalCharged).toFixed(6);
+    balances[coin]   = +((balances[coin] || 0) + amount).toFixed(8);
     await setWalletBalances(email, balances);
 
     // Collect fee to system wallet in USDT
@@ -1419,10 +1410,10 @@ module.exports = withDb(async function handler(req, res) {
   // ── Action: direct_deposit (fiat payment: Apple Pay / Google Pay / Card → wallet balance) ──
   if (action === 'direct_deposit') {
     const gateway = sanitize(String(body.gateway || ''), 30).toLowerCase();
-    const depositAmount = Math.abs(Number(body.amount) || 0);
+    const depositAmount = Math.abs(Number(body.amountUsd || body.amount) || 0);
     const currency = sanitize(String(body.currency || 'USD'), 12).toUpperCase();
     const paymentToken = sanitize(String(body.paymentToken || ''), 128);
-    const targetCoin = sanitize(String(body.targetCoin || 'USDT'), 12).toUpperCase();
+    const targetCoin = sanitize(String(body.coin || body.targetCoin || 'USDT'), 12).toUpperCase();
 
     const validGateways = ['apple_pay', 'apple', 'google_pay', 'gpay', 'visa', 'mastercard'];
     if (!validGateways.includes(gateway)) {
@@ -1692,53 +1683,19 @@ module.exports = withDb(async function handler(req, res) {
     const balances = await getWalletBalances(email);
     const usdBal = balances['USDT'] || 0;
 
-    let paymentSource = '';
-    let paymentVerified = false;
-
-    // Direct payment gateways — charge directly, no wallet balance needed
-    const directPayGateways = ['apple_pay', 'apple', 'google_pay', 'gpay', 'visa', 'mastercard'];
-    if (directPayGateways.includes(gateway)) {
-      // Direct fiat payment — Apple Pay / GPay / Card charged the user already
-      paymentSource = gateway === 'apple' ? 'apple_pay' : gateway === 'gpay' ? 'google_pay' : gateway;
-      paymentVerified = true;
-    } else if (usdBal >= BOT_PRICE_USD) {
-      // Wallet balance payment — deduct from USDT
-      balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
-      await setWalletBalances(email, balances);
-      paymentSource = 'wallet_balance';
-      paymentVerified = true;
-    } else if (gateway === 'trust_wallet') {
-      if (usdBal >= BOT_PRICE_USD) {
-        balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
-        await setWalletBalances(email, balances);
-        paymentSource = 'wallet_balance_via_trust_wallet';
-        paymentVerified = true;
-      } else {
-        return res.status(400).json({
-          ok: false,
-          error: 'insufficient_balance',
-          detail: 'Your USDT balance is $' + usdBal.toFixed(2) + '. Deposit $' + (BOT_PRICE_USD - usdBal).toFixed(2) + ' more or pay with Apple Pay, Google Pay, or Card.'
-        });
-      }
-    } else {
-      // Crypto / USDT wallet — requires sufficient balance
-      if (usdBal >= BOT_PRICE_USD) {
-        balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
-        await setWalletBalances(email, balances);
-        paymentSource = 'wallet_balance';
-        paymentVerified = true;
-      } else {
-        return res.status(400).json({
-          ok: false,
-          error: 'insufficient_balance',
-          detail: 'Your USDT balance is $' + usdBal.toFixed(2) + '. Deposit $' + (BOT_PRICE_USD - usdBal).toFixed(2) + ' more, or pay directly with Apple Pay, Google Pay, or Card.'
-        });
-      }
+    // ALL bot activations require verified USDT wallet balance — no bypasses
+    if (usdBal < BOT_PRICE_USD) {
+      return res.status(400).json({
+        ok: false,
+        error: 'insufficient_balance',
+        detail: 'Your USDT balance is $' + usdBal.toFixed(2) + '. You need $' + BOT_PRICE_USD + ' USDT. Use Instant Deposit to add $' + (BOT_PRICE_USD - usdBal).toFixed(2) + ' more.'
+      });
     }
 
-    if (!paymentVerified) {
-      return res.status(400).json({ ok: false, error: 'payment_required', detail: 'Real payment required to activate the trading bot.' });
-    }
+    // Deduct $399 USDT from wallet balance
+    balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
+    await setWalletBalances(email, balances);
+    const paymentSource = 'wallet_balance';
 
     // Collect entire purchase as system revenue
     await addSystemFee('USDT', BOT_PRICE_USD);
