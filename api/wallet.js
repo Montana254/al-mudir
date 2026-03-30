@@ -1118,13 +1118,84 @@ module.exports = withDb(async function handler(req, res) {
     return res.status(200).json({ ok: true, ts: Date.now(), market, prices, changes });
   }
 
-  // ── Public endpoint: flight deals search (no auth required) ──
+  // ── Public endpoint: airport autocomplete + flight deals search ──
   if (req.method === 'POST') {
     try {
       const peekBody = typeof req.body === 'object' ? req.body : {};
+
+      // Airport search for autocomplete
+      if (peekBody.action === 'search_airports') {
+        const q = sanitize(String(peekBody.query || '')).toUpperCase().trim();
+        if (q.length < 2) return res.status(200).json({ ok: true, results: [] });
+        const AIRPORT_DB = {
+          JFK:{city:'New York',country:'US'},LAX:{city:'Los Angeles',country:'US'},ORD:{city:'Chicago',country:'US'},
+          MIA:{city:'Miami',country:'US'},SFO:{city:'San Francisco',country:'US'},ATL:{city:'Atlanta',country:'US'},
+          DEN:{city:'Denver',country:'US'},SEA:{city:'Seattle',country:'US'},BOS:{city:'Boston',country:'US'},
+          DFW:{city:'Dallas',country:'US'},IAH:{city:'Houston',country:'US'},MSP:{city:'Minneapolis',country:'US'},
+          DTW:{city:'Detroit',country:'US'},PHX:{city:'Phoenix',country:'US'},EWR:{city:'Newark',country:'US'},
+          CLT:{city:'Charlotte',country:'US'},MCO:{city:'Orlando',country:'US'},LAS:{city:'Las Vegas',country:'US'},
+          PHL:{city:'Philadelphia',country:'US'},IAD:{city:'Washington DC',country:'US'},
+          YYZ:{city:'Toronto',country:'Canada'},YVR:{city:'Vancouver',country:'Canada'},
+          YUL:{city:'Montreal',country:'Canada'},YOW:{city:'Ottawa',country:'Canada'},
+          MEX:{city:'Mexico City',country:'Mexico'},CUN:{city:'Cancun',country:'Mexico'},GDL:{city:'Guadalajara',country:'Mexico'},
+          LHR:{city:'London',country:'UK'},CDG:{city:'Paris',country:'France'},FRA:{city:'Frankfurt',country:'Germany'},
+          AMS:{city:'Amsterdam',country:'Netherlands'},IST:{city:'Istanbul',country:'Turkey'},
+          MAD:{city:'Madrid',country:'Spain'},BCN:{city:'Barcelona',country:'Spain'},FCO:{city:'Rome',country:'Italy'},
+          MUC:{city:'Munich',country:'Germany'},ZRH:{city:'Zurich',country:'Switzerland'},
+          VIE:{city:'Vienna',country:'Austria'},CPH:{city:'Copenhagen',country:'Denmark'},
+          OSL:{city:'Oslo',country:'Norway'},ARN:{city:'Stockholm',country:'Sweden'},HEL:{city:'Helsinki',country:'Finland'},
+          LIS:{city:'Lisbon',country:'Portugal'},ATH:{city:'Athens',country:'Greece'},WAW:{city:'Warsaw',country:'Poland'},
+          PRG:{city:'Prague',country:'Czech Republic'},BUD:{city:'Budapest',country:'Hungary'},
+          DUB:{city:'Dublin',country:'Ireland'},BRU:{city:'Brussels',country:'Belgium'},
+          MXP:{city:'Milan',country:'Italy'},GVA:{city:'Geneva',country:'Switzerland'},EDI:{city:'Edinburgh',country:'UK'},
+          DXB:{city:'Dubai',country:'UAE'},DOH:{city:'Doha',country:'Qatar'},AUH:{city:'Abu Dhabi',country:'UAE'},
+          RUH:{city:'Riyadh',country:'Saudi Arabia'},JED:{city:'Jeddah',country:'Saudi Arabia'},
+          AMM:{city:'Amman',country:'Jordan'},KWI:{city:'Kuwait City',country:'Kuwait'},
+          BAH:{city:'Bahrain',country:'Bahrain'},MCT:{city:'Muscat',country:'Oman'},TLV:{city:'Tel Aviv',country:'Israel'},
+          NBO:{city:'Nairobi',country:'Kenya'},ADD:{city:'Addis Ababa',country:'Ethiopia'},
+          CPT:{city:'Cape Town',country:'South Africa'},JNB:{city:'Johannesburg',country:'South Africa'},
+          ACC:{city:'Accra',country:'Ghana'},LOS:{city:'Lagos',country:'Nigeria'},
+          DAR:{city:'Dar es Salaam',country:'Tanzania'},KGL:{city:'Kigali',country:'Rwanda'},
+          EBB:{city:'Entebbe',country:'Uganda'},MBA:{city:'Mombasa',country:'Kenya'},
+          CMN:{city:'Casablanca',country:'Morocco'},CAI:{city:'Cairo',country:'Egypt'},
+          TUN:{city:'Tunis',country:'Tunisia'},MPM:{city:'Maputo',country:'Mozambique'},
+          WDH:{city:'Windhoek',country:'Namibia'},LUN:{city:'Lusaka',country:'Zambia'},
+          ABJ:{city:'Abidjan',country:'Ivory Coast'},DKR:{city:'Dakar',country:'Senegal'},
+          ALG:{city:'Algiers',country:'Algeria'},ABV:{city:'Abuja',country:'Nigeria'},
+          HRE:{city:'Harare',country:'Zimbabwe'},GBE:{city:'Gaborone',country:'Botswana'},
+          MRU:{city:'Mauritius',country:'Mauritius'},TNR:{city:'Antananarivo',country:'Madagascar'},
+          SIN:{city:'Singapore',country:'Singapore'},HND:{city:'Tokyo',country:'Japan'},
+          NRT:{city:'Tokyo Narita',country:'Japan'},BKK:{city:'Bangkok',country:'Thailand'},
+          HKG:{city:'Hong Kong',country:'Hong Kong'},DEL:{city:'Delhi',country:'India'},
+          BOM:{city:'Mumbai',country:'India'},PEK:{city:'Beijing',country:'China'},
+          PVG:{city:'Shanghai',country:'China'},ICN:{city:'Seoul',country:'South Korea'},
+          KUL:{city:'Kuala Lumpur',country:'Malaysia'},CGK:{city:'Jakarta',country:'Indonesia'},
+          MNL:{city:'Manila',country:'Philippines'},SGN:{city:'Ho Chi Minh City',country:'Vietnam'},
+          HAN:{city:'Hanoi',country:'Vietnam'},CMB:{city:'Colombo',country:'Sri Lanka'},
+          DAC:{city:'Dhaka',country:'Bangladesh'},KTM:{city:'Kathmandu',country:'Nepal'},
+          TPE:{city:'Taipei',country:'Taiwan'},
+          SYD:{city:'Sydney',country:'Australia'},MEL:{city:'Melbourne',country:'Australia'},
+          BNE:{city:'Brisbane',country:'Australia'},AKL:{city:'Auckland',country:'New Zealand'},
+          PER:{city:'Perth',country:'Australia'},
+          GRU:{city:'Sao Paulo',country:'Brazil'},GIG:{city:'Rio de Janeiro',country:'Brazil'},
+          EZE:{city:'Buenos Aires',country:'Argentina'},SCL:{city:'Santiago',country:'Chile'},
+          BOG:{city:'Bogota',country:'Colombia'},LIM:{city:'Lima',country:'Peru'},
+          PTY:{city:'Panama City',country:'Panama'},UIO:{city:'Quito',country:'Ecuador'},
+          MVD:{city:'Montevideo',country:'Uruguay'},CCS:{city:'Caracas',country:'Venezuela'},
+          MBJ:{city:'Montego Bay',country:'Jamaica'},NAS:{city:'Nassau',country:'Bahamas'},
+          SJU:{city:'San Juan',country:'Puerto Rico'},PUJ:{city:'Punta Cana',country:'Dominican Republic'},
+          KIN:{city:'Kingston',country:'Jamaica'}
+        };
+        const results = Object.entries(AIRPORT_DB)
+          .filter(([code, info]) => code.includes(q) || info.city.toUpperCase().includes(q) || info.country.toUpperCase().includes(q))
+          .slice(0, 10)
+          .map(([code, info]) => ({ code, city: info.city, country: info.country, label: info.city + ' (' + code + '), ' + info.country }));
+        return res.status(200).json({ ok: true, results });
+      }
+
       if (peekBody.action === 'flight_deals') {
-        const origin = sanitize(String(peekBody.origin || 'JFK').toUpperCase()).slice(0, 3);
-        const destination = sanitize(String(peekBody.destination || '').toUpperCase()).slice(0, 3);
+        const rawOrigin = sanitize(String(peekBody.origin || 'JFK').toUpperCase()).slice(0, 60);
+        const rawDest = sanitize(String(peekBody.destination || '').toUpperCase()).slice(0, 60);
         const departDate = sanitize(String(peekBody.depart_date || ''));
         const returnDate = sanitize(String(peekBody.return_date || ''));
         const passengers = Math.min(Math.max(parseInt(peekBody.passengers) || 1, 1), 9);
@@ -1146,19 +1217,113 @@ module.exports = withDb(async function handler(req, res) {
           { code: 'ET', name: 'Ethiopian Airlines', prefix: 'ET' },
           { code: 'WB', name: 'RwandAir', prefix: 'WB' },
           { code: 'KL', name: 'KLM Royal Dutch', prefix: 'KL' },
-          { code: 'QF', name: 'Qantas', prefix: 'QF' }
+          { code: 'QF', name: 'Qantas', prefix: 'QF' },
+          { code: 'LA', name: 'LATAM Airlines', prefix: 'LA' },
+          { code: 'AV', name: 'Avianca', prefix: 'AV' },
+          { code: 'CM', name: 'Copa Airlines', prefix: 'CM' },
+          { code: 'AC', name: 'Air Canada', prefix: 'AC' },
+          { code: 'AM', name: 'Aeromexico', prefix: 'AM' },
+          { code: 'SA', name: 'South African Airways', prefix: 'SA' },
+          { code: 'MS', name: 'EgyptAir', prefix: 'MS' },
+          { code: 'RJ', name: 'Royal Jordanian', prefix: 'RJ' },
+          { code: 'AI', name: 'Air India', prefix: 'AI' },
+          { code: 'CX', name: 'Cathay Pacific', prefix: 'CX' },
+          { code: 'NZ', name: 'Air New Zealand', prefix: 'NZ' },
+          { code: 'JL', name: 'Japan Airlines', prefix: 'JL' },
+          { code: 'OZ', name: 'Asiana Airlines', prefix: 'OZ' },
+          { code: 'MH', name: 'Malaysia Airlines', prefix: 'MH' },
+          { code: 'GA', name: 'Garuda Indonesia', prefix: 'GA' }
         ];
 
+        // IATA → City, Country
         const CITIES = {
+          // North America
           JFK: 'New York', LAX: 'Los Angeles', ORD: 'Chicago', MIA: 'Miami', SFO: 'San Francisco',
-          LHR: 'London', CDG: 'Paris', DXB: 'Dubai', NBO: 'Nairobi', ADD: 'Addis Ababa',
-          CPT: 'Cape Town', JNB: 'Johannesburg', ACC: 'Accra', LOS: 'Lagos', DAR: 'Dar es Salaam',
-          KGL: 'Kigali', EBB: 'Entebbe', MBA: 'Mombasa', SIN: 'Singapore', HND: 'Tokyo',
-          SYD: 'Sydney', DOH: 'Doha', IST: 'Istanbul', FRA: 'Frankfurt', AMS: 'Amsterdam',
           ATL: 'Atlanta', DEN: 'Denver', SEA: 'Seattle', BOS: 'Boston', DFW: 'Dallas',
-          HKG: 'Hong Kong', BKK: 'Bangkok', DEL: 'Delhi', BOM: 'Mumbai', CMN: 'Casablanca',
-          CAI: 'Cairo', TUN: 'Tunis', MPM: 'Maputo', WDH: 'Windhoek', LUN: 'Lusaka'
+          IAH: 'Houston', MSP: 'Minneapolis', DTW: 'Detroit', PHX: 'Phoenix', EWR: 'Newark',
+          CLT: 'Charlotte', MCO: 'Orlando', LAS: 'Las Vegas', PHL: 'Philadelphia', IAD: 'Washington DC',
+          YYZ: 'Toronto', YVR: 'Vancouver', YUL: 'Montreal', YOW: 'Ottawa', MEX: 'Mexico City',
+          CUN: 'Cancun', GDL: 'Guadalajara',
+          // Europe
+          LHR: 'London', CDG: 'Paris', FRA: 'Frankfurt', AMS: 'Amsterdam', IST: 'Istanbul',
+          MAD: 'Madrid', BCN: 'Barcelona', FCO: 'Rome', MUC: 'Munich', ZRH: 'Zurich',
+          VIE: 'Vienna', CPH: 'Copenhagen', OSL: 'Oslo', ARN: 'Stockholm', HEL: 'Helsinki',
+          LIS: 'Lisbon', ATH: 'Athens', WAW: 'Warsaw', PRG: 'Prague', BUD: 'Budapest',
+          DUB: 'Dublin', BRU: 'Brussels', MXP: 'Milan', GVA: 'Geneva', EDI: 'Edinburgh',
+          // Middle East
+          DXB: 'Dubai', DOH: 'Doha', AUH: 'Abu Dhabi', RUH: 'Riyadh', JED: 'Jeddah',
+          AMM: 'Amman', KWI: 'Kuwait City', BAH: 'Bahrain', MCT: 'Muscat', TLV: 'Tel Aviv',
+          // Africa
+          NBO: 'Nairobi', ADD: 'Addis Ababa', CPT: 'Cape Town', JNB: 'Johannesburg',
+          ACC: 'Accra', LOS: 'Lagos', DAR: 'Dar es Salaam', KGL: 'Kigali', EBB: 'Entebbe',
+          MBA: 'Mombasa', CMN: 'Casablanca', CAI: 'Cairo', TUN: 'Tunis', MPM: 'Maputo',
+          WDH: 'Windhoek', LUN: 'Lusaka', ABJ: 'Abidjan', DKR: 'Dakar', ALG: 'Algiers',
+          ABV: 'Abuja', HRE: 'Harare', GBE: 'Gaborone', MRU: 'Mauritius', TNR: 'Antananarivo',
+          // Asia
+          SIN: 'Singapore', HND: 'Tokyo', NRT: 'Tokyo Narita', BKK: 'Bangkok', HKG: 'Hong Kong',
+          DEL: 'Delhi', BOM: 'Mumbai', PEK: 'Beijing', PVG: 'Shanghai', ICN: 'Seoul',
+          KUL: 'Kuala Lumpur', CGK: 'Jakarta', MNL: 'Manila', SGN: 'Ho Chi Minh City',
+          HAN: 'Hanoi', CMB: 'Colombo', DAC: 'Dhaka', KTM: 'Kathmandu', TPE: 'Taipei',
+          // Oceania
+          SYD: 'Sydney', MEL: 'Melbourne', BNE: 'Brisbane', AKL: 'Auckland', PER: 'Perth',
+          // South America
+          GRU: 'Sao Paulo', GIG: 'Rio de Janeiro', EZE: 'Buenos Aires', SCL: 'Santiago',
+          BOG: 'Bogota', LIM: 'Lima', PTY: 'Panama City', UIO: 'Quito', MVD: 'Montevideo',
+          CCS: 'Caracas',
+          // Caribbean
+          MBJ: 'Montego Bay', NAS: 'Nassau', SJU: 'San Juan', PUJ: 'Punta Cana', KIN: 'Kingston'
         };
+
+        // Country mapping for name-based search
+        const COUNTRY_MAP = {
+          JFK:'US',LAX:'US',ORD:'US',MIA:'US',SFO:'US',ATL:'US',DEN:'US',SEA:'US',BOS:'US',
+          DFW:'US',IAH:'US',MSP:'US',DTW:'US',PHX:'US',EWR:'US',CLT:'US',MCO:'US',LAS:'US',
+          PHL:'US',IAD:'US',
+          YYZ:'Canada',YVR:'Canada',YUL:'Canada',YOW:'Canada',
+          MEX:'Mexico',CUN:'Mexico',GDL:'Mexico',
+          LHR:'UK',CDG:'France',FRA:'Germany',AMS:'Netherlands',IST:'Turkey',MAD:'Spain',
+          BCN:'Spain',FCO:'Italy',MUC:'Germany',ZRH:'Switzerland',VIE:'Austria',CPH:'Denmark',
+          OSL:'Norway',ARN:'Sweden',HEL:'Finland',LIS:'Portugal',ATH:'Greece',WAW:'Poland',
+          PRG:'Czech Republic',BUD:'Hungary',DUB:'Ireland',BRU:'Belgium',MXP:'Italy',
+          GVA:'Switzerland',EDI:'UK',
+          DXB:'UAE',DOH:'Qatar',AUH:'UAE',RUH:'Saudi Arabia',JED:'Saudi Arabia',AMM:'Jordan',
+          KWI:'Kuwait',BAH:'Bahrain',MCT:'Oman',TLV:'Israel',
+          NBO:'Kenya',ADD:'Ethiopia',CPT:'South Africa',JNB:'South Africa',ACC:'Ghana',
+          LOS:'Nigeria',DAR:'Tanzania',KGL:'Rwanda',EBB:'Uganda',MBA:'Kenya',CMN:'Morocco',
+          CAI:'Egypt',TUN:'Tunisia',MPM:'Mozambique',WDH:'Namibia',LUN:'Zambia',ABJ:'Ivory Coast',
+          DKR:'Senegal',ALG:'Algeria',ABV:'Nigeria',HRE:'Zimbabwe',GBE:'Botswana',
+          MRU:'Mauritius',TNR:'Madagascar',
+          SIN:'Singapore',HND:'Japan',NRT:'Japan',BKK:'Thailand',HKG:'Hong Kong',DEL:'India',
+          BOM:'India',PEK:'China',PVG:'China',ICN:'South Korea',KUL:'Malaysia',CGK:'Indonesia',
+          MNL:'Philippines',SGN:'Vietnam',HAN:'Vietnam',CMB:'Sri Lanka',DAC:'Bangladesh',
+          KTM:'Nepal',TPE:'Taiwan',
+          SYD:'Australia',MEL:'Australia',BNE:'Australia',AKL:'New Zealand',PER:'Australia',
+          GRU:'Brazil',GIG:'Brazil',EZE:'Argentina',SCL:'Chile',BOG:'Colombia',LIM:'Peru',
+          PTY:'Panama',UIO:'Ecuador',MVD:'Uruguay',CCS:'Venezuela',
+          MBJ:'Jamaica',NAS:'Bahamas',SJU:'Puerto Rico',PUJ:'Dominican Republic',KIN:'Jamaica'
+        };
+
+        // Resolve city/country name → IATA code
+        function resolveCode(raw) {
+          if (!raw) return '';
+          const s = raw.trim().toUpperCase();
+          if (s.length <= 3 && CITIES[s]) return s;
+          // Search by city name
+          const byCity = Object.entries(CITIES).find(([c, n]) => n.toUpperCase() === s);
+          if (byCity) return byCity[0];
+          // Partial city match
+          const partial = Object.entries(CITIES).find(([c, n]) => n.toUpperCase().includes(s) || s.includes(n.toUpperCase()));
+          if (partial) return partial[0];
+          // Search by country name
+          const byCountry = Object.entries(COUNTRY_MAP).filter(([c, co]) => co.toUpperCase() === s || co.toUpperCase().includes(s));
+          if (byCountry.length > 0) return byCountry[0][0]; // Return first airport in country
+          // Fallback: might be IATA code not in our DB
+          if (s.length === 3 && /^[A-Z]{3}$/.test(s)) return s;
+          return '';
+        }
+
+        const origin = resolveCode(rawOrigin) || 'JFK';
+        const destination = resolveCode(rawDest);
 
         // Base prices (one-way USD) for route categories
         const ROUTE_PRICES = {
@@ -1167,39 +1332,59 @@ module.exports = withDb(async function handler(req, res) {
           us_africa: [580, 650, 720, 810, 899, 990],
           us_asia: [490, 560, 650, 730, 820, 950],
           us_middle_east: [420, 510, 590, 680, 780],
+          us_latam: [250, 320, 390, 450, 520, 610],
           africa_internal: [150, 210, 280, 340, 410],
           europe_africa: [310, 380, 440, 520, 610],
           europe_internal: [80, 110, 150, 190, 250],
-          asia_other: [350, 420, 510, 600, 720],
+          europe_asia: [380, 450, 530, 620, 720],
+          asia_internal: [120, 180, 250, 320, 400],
+          asia_oceania: [280, 360, 440, 520, 610],
+          latam_internal: [120, 180, 250, 330, 420],
+          latam_europe: [450, 530, 620, 720, 850],
+          mideast_asia: [280, 350, 420, 510, 600],
           default: [250, 340, 450, 560, 680]
         };
 
-        const US = ['JFK','LAX','ORD','MIA','SFO','ATL','DEN','SEA','BOS','DFW'];
-        const EUROPE = ['LHR','CDG','FRA','AMS','IST'];
-        const AFRICA = ['NBO','ADD','CPT','JNB','ACC','LOS','DAR','KGL','EBB','MBA','CMN','CAI','TUN','MPM','WDH','LUN'];
-        const ASIA = ['SIN','HND','SYD','BKK','HKG','DEL','BOM'];
-        const MIDEAST = ['DXB','DOH'];
+        const US = ['JFK','LAX','ORD','MIA','SFO','ATL','DEN','SEA','BOS','DFW','IAH','MSP','DTW','PHX','EWR','CLT','MCO','LAS','PHL','IAD','YYZ','YVR','YUL','YOW','MEX','CUN','GDL'];
+        const EUROPE = ['LHR','CDG','FRA','AMS','IST','MAD','BCN','FCO','MUC','ZRH','VIE','CPH','OSL','ARN','HEL','LIS','ATH','WAW','PRG','BUD','DUB','BRU','MXP','GVA','EDI'];
+        const AFRICA = ['NBO','ADD','CPT','JNB','ACC','LOS','DAR','KGL','EBB','MBA','CMN','CAI','TUN','MPM','WDH','LUN','ABJ','DKR','ALG','ABV','HRE','GBE','MRU','TNR'];
+        const ASIA = ['SIN','HND','NRT','BKK','HKG','DEL','BOM','PEK','PVG','ICN','KUL','CGK','MNL','SGN','HAN','CMB','DAC','KTM','TPE'];
+        const OCEANIA = ['SYD','MEL','BNE','AKL','PER'];
+        const MIDEAST = ['DXB','DOH','AUH','RUH','JED','AMM','KWI','BAH','MCT','TLV'];
+        const LATAM = ['GRU','GIG','EZE','SCL','BOG','LIM','PTY','UIO','MVD','CCS','MBJ','NAS','SJU','PUJ','KIN'];
 
         function getRegion(code) {
           if (US.includes(code)) return 'us';
           if (EUROPE.includes(code)) return 'europe';
           if (AFRICA.includes(code)) return 'africa';
           if (ASIA.includes(code)) return 'asia';
+          if (OCEANIA.includes(code)) return 'oceania';
           if (MIDEAST.includes(code)) return 'mideast';
+          if (LATAM.includes(code)) return 'latam';
           return 'other';
         }
 
         function getRouteCategory(orig, dest) {
           const r1 = getRegion(orig), r2 = getRegion(dest);
-          if (r1 === 'us' && r2 === 'us') return 'domestic_us';
-          if ((r1 === 'us' && r2 === 'europe') || (r1 === 'europe' && r2 === 'us')) return 'us_europe';
-          if ((r1 === 'us' && r2 === 'africa') || (r1 === 'africa' && r2 === 'us')) return 'us_africa';
-          if ((r1 === 'us' && r2 === 'asia') || (r1 === 'asia' && r2 === 'us')) return 'us_asia';
-          if ((r1 === 'us' && r2 === 'mideast') || (r1 === 'mideast' && r2 === 'us')) return 'us_middle_east';
-          if (r1 === 'africa' && r2 === 'africa') return 'africa_internal';
-          if ((r1 === 'europe' && r2 === 'africa') || (r1 === 'africa' && r2 === 'europe')) return 'europe_africa';
-          if (r1 === 'europe' && r2 === 'europe') return 'europe_internal';
-          if (r1 === 'asia' || r2 === 'asia') return 'asia_other';
+          if (r1 === r2) {
+            if (r1 === 'us') return 'domestic_us';
+            if (r1 === 'europe') return 'europe_internal';
+            if (r1 === 'africa') return 'africa_internal';
+            if (r1 === 'asia') return 'asia_internal';
+            if (r1 === 'latam') return 'latam_internal';
+            return 'default';
+          }
+          const pair = [r1, r2].sort().join('_');
+          if (pair === 'europe_us') return 'us_europe';
+          if (pair === 'africa_us') return 'us_africa';
+          if (pair === 'asia_us') return 'us_asia';
+          if (pair === 'mideast_us') return 'us_middle_east';
+          if (pair === 'latam_us') return 'us_latam';
+          if (pair === 'africa_europe') return 'europe_africa';
+          if (pair === 'asia_europe') return 'europe_asia';
+          if (pair === 'europe_latam') return 'latam_europe';
+          if (pair === 'asia_oceania') return 'asia_oceania';
+          if (pair === 'asia_mideast') return 'mideast_asia';
           return 'default';
         }
 
@@ -1210,15 +1395,19 @@ module.exports = withDb(async function handler(req, res) {
 
         function getDuration(cat) {
           const dur = { domestic_us: [150,300], us_europe: [420,540], us_africa: [780,1080],
-            us_asia: [720,960], us_middle_east: [660,840], africa_internal: [90,300],
-            europe_africa: [360,600], europe_internal: [90,210], asia_other: [240,480], default: [240,600] };
+            us_asia: [720,960], us_middle_east: [660,840], us_latam: [300,540],
+            africa_internal: [90,300], europe_africa: [360,600], europe_internal: [90,210],
+            europe_asia: [540,780], asia_internal: [120,360], asia_oceania: [420,600],
+            latam_internal: [120,360], latam_europe: [600,840], mideast_asia: [300,480],
+            default: [240,600] };
           const [lo, hi] = dur[cat] || dur.default;
           return lo + Math.floor(Math.random() * (hi - lo));
         }
 
         function getTransfers(cat) {
           const direct = { domestic_us: 0.7, europe_internal: 0.6, africa_internal: 0.3,
-            us_europe: 0.4, us_africa: 0.1, us_asia: 0.2, default: 0.3 };
+            asia_internal: 0.5, latam_internal: 0.4, us_europe: 0.4, us_africa: 0.1,
+            us_asia: 0.2, us_latam: 0.5, asia_oceania: 0.4, default: 0.3 };
           const chance = direct[cat] || direct.default;
           if (Math.random() < chance) return 0;
           return Math.random() < 0.6 ? 1 : 2;
@@ -1229,11 +1418,19 @@ module.exports = withDb(async function handler(req, res) {
           let destCodes = [];
           if (destination && CITIES[destination]) {
             destCodes = [destination];
-          } else if (destination) {
-            // Search city names partially
-            destCodes = Object.entries(CITIES)
-              .filter(([c, n]) => c !== origin && (c.includes(destination) || n.toUpperCase().includes(destination)))
-              .map(([c]) => c).slice(0, 5);
+          } else if (rawDest) {
+            // Search by country name (return all airports in that country)
+            const countryMatch = Object.entries(COUNTRY_MAP)
+              .filter(([c, co]) => c !== origin && (co.toUpperCase() === rawDest || co.toUpperCase().includes(rawDest) || rawDest.includes(co.toUpperCase())))
+              .map(([c]) => c);
+            if (countryMatch.length > 0) {
+              destCodes = countryMatch.slice(0, 8);
+            } else {
+              // Search city names partially
+              destCodes = Object.entries(CITIES)
+                .filter(([c, n]) => c !== origin && (c.includes(rawDest) || n.toUpperCase().includes(rawDest) || rawDest.includes(n.toUpperCase())))
+                .map(([c]) => c).slice(0, 5);
+            }
           }
           if (destCodes.length === 0) {
             // Popular destinations from this origin
