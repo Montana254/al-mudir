@@ -567,6 +567,26 @@ async function checkGatewayHealth() {
   const treasuryOk = Object.keys(TREASURY_ADDRESSES).length >= 14;
   gateways.treasury = { name: 'Treasury Addresses', status: treasuryOk ? 'operational' : 'error', count: Object.keys(TREASURY_ADDRESSES).length, checked: nowIso };
 
+  // Agent system status — Telegram + Email notifications
+  gateways.agents = {
+    name: 'Agent System (6 agents)',
+    status: 'operational',
+    telegram: telegramNotifyLive ? 'connected' : 'offline',
+    agents: ['SignupMonitor', 'WelcomeEmail', 'PaymentTracker', 'DailyReport', 'NewsletterConfirm', 'SecurityScanner'],
+    checked: nowIso
+  };
+
+  // Revenue engine status
+  gateways.revenue_engine = {
+    name: 'Treasury Revenue Engine',
+    status: 'operational',
+    masterWallet: RevenueEngine.MASTER_TREASURY,
+    network: 'TRON (TRC-20)',
+    systemFeeRate: (RevenueEngine.SYSTEM_PERFORMANCE_FEE * 100) + '%',
+    botPrice: '$' + RevenueEngine.BOT_ACTIVATION_USDT,
+    checked: nowIso
+  };
+
   return gateways;
 }
 

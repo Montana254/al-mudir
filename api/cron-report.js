@@ -1,6 +1,7 @@
 'use strict';
 const { redis, withDb } = require('./_lib/redis');
 const { sendPendingKycReminders, sendTelegramMessage } = require('./_lib/kyc-reminders');
+const { runAgent } = require('./_lib/agents');
 
 const FULL_REPORT_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
@@ -266,6 +267,18 @@ module.exports = withDb(async function handler(req, res) {
       }
     } catch (geErr) {
       report.growthEngine = { ran: false, error: String(geErr.message || geErr) };
+    }
+
+    // ── Agent Orchestrator: daily.report event ──
+    try {
+      if (shouldRunFull) {
+        await runAgent({ type: 'daily.report', payload: report });
+        report.agentOrchestrator = { ran: true };
+      } else {
+        report.agentOrchestrator = { ran: false, reason: 'awaiting_next_full_cycle' };
+      }
+    } catch (agentErr) {
+      report.agentOrchestrator = { ran: false, error: String(agentErr.message || agentErr) };
     }
 
     // ── Remind admin about pending KYC submissions ──

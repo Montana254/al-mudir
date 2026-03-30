@@ -1,8 +1,14 @@
-const CACHE_NAME = 'al-mudir-v1';
+const CACHE_NAME = 'al-mudir-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/crypto-payment.js',
+  '/agents.js',
+  '/privacy',
+  '/terms',
+  '/cookies',
+  '/risk-disclosure'
 ];
 
 // Install event - cache assets
@@ -33,41 +39,46 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network-first for API, stale-while-revalidate for assets
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
     return;
   }
 
+  const url = new URL(event.request.url);
+
+  // API requests: always go to network, never cache
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  // Static assets: stale-while-revalidate
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-
-      return fetch(event.request).then((response) => {
-        // Don't cache non-successful responses
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+    caches.match(event.request).then((cached) => {
+      const networkFetch = fetch(event.request).then((response) => {
+        if (response && response.status === 200) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
         return response;
       }).catch(() => {
-        // Return a generic offline page or response
-        return new Response('Offline - Please check your connection', {
+        // Offline — return cached version or offline fallback
+        if (cached) return cached;
+        if (event.request.destination === 'document') {
+          return caches.match('/index.html');
+        }
+        return new Response('Offline', {
           status: 503,
           statusText: 'Service Unavailable',
-          headers: new Headers({
-            'Content-Type': 'text/plain'
-          })
+          headers: new Headers({ 'Content-Type': 'text/plain' })
         });
       });
+
+      // Return cached immediately, revalidate in background
+      return cached || networkFetch;
     })
   );
 });
