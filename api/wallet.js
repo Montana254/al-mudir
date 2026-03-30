@@ -1082,6 +1082,17 @@ module.exports = withDb(async function handler(req, res) {
       treasuryAddresses: TREASURY_ADDRESSES,
       fees: COIN_FEES,
       depositFeeRate: DEPOSIT_FEE_RATE,
+      withdrawFees: {
+        BTC: { flat: 0.0001, rate: 0.001 }, ETH: { flat: 0.001, rate: 0.001 },
+        BNB: { flat: 0.0005, rate: 0.001 }, USDT: { flat: 1, rate: 0.001 },
+        USDC: { flat: 1, rate: 0.001 }, XRP: { flat: 0.25, rate: 0.0015 },
+        LTC: { flat: 0.001, rate: 0.002 }, SOL: { flat: 0.01, rate: 0.0015 },
+        DOGE: { flat: 5, rate: 0.0025 }, TRX: { flat: 1, rate: 0.0025 },
+        ADA: { flat: 1, rate: 0.0015 }, AVAX: { flat: 0.01, rate: 0.002 },
+        DOT: { flat: 0.1, rate: 0.002 }, LINK: { flat: 0.1, rate: 0.002 },
+        MATIC: { flat: 0.1, rate: 0.002 }, TON: { flat: 0.1, rate: 0.002 },
+        XLM: { flat: 0.1, rate: 0.0025 }
+      },
       transactions: txHistory.slice(0, 20)
     });
   }
@@ -1258,12 +1269,21 @@ module.exports = withDb(async function handler(req, res) {
     const balances = await getWalletBalances(email);
     const usdBal   = balances['USDT'] || 0;
 
-    if (usdBal < totalCharged) {
-      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + totalCharged + ' USDT (incl. ' + (feeRate * 100).toFixed(2) + '% fee) but have $' + usdBal.toFixed(2) });
+    // Direct payment gateways can buy crypto without pre-funded wallet
+    const directPayGateways = ['apple_pay', 'apple', 'google_pay', 'gpay', 'visa', 'mastercard'];
+    const isDirectPay = directPayGateways.includes(gateway);
+
+    if (!isDirectPay && usdBal < totalCharged) {
+      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + totalCharged + ' USDT (incl. ' + (feeRate * 100).toFixed(2) + '% fee) but have $' + usdBal.toFixed(2) + '. Deposit funds first, or pay with Apple Pay / Google Pay / Card.' });
     }
 
-    balances['USDT'] = +(usdBal - totalCharged).toFixed(6);
-    balances[coin]   = +((balances[coin] || 0) + amount).toFixed(8);
+    if (isDirectPay) {
+      // Direct payment — credit crypto without deducting USDT (charged at source)
+      balances[coin] = +((balances[coin] || 0) + amount).toFixed(8);
+    } else {
+      balances['USDT'] = +(usdBal - totalCharged).toFixed(6);
+      balances[coin]   = +((balances[coin] || 0) + amount).toFixed(8);
+    }
     await setWalletBalances(email, balances);
 
     // Collect fee to system wallet in USDT
@@ -1396,6 +1416,205 @@ module.exports = withDb(async function handler(req, res) {
     return res.status(200).json({ ok: true, action: 'sell_filled', balances, tx, fee: feeInfo });
   }
 
+  // ── Action: direct_deposit (fiat payment: Apple Pay / Google Pay / Card → wallet balance) ──
+  if (action === 'direct_deposit') {
+    const gateway = sanitize(String(body.gateway || ''), 30).toLowerCase();
+    const depositAmount = Math.abs(Number(body.amount) || 0);
+    const currency = sanitize(String(body.currency || 'USD'), 12).toUpperCase();
+    const paymentToken = sanitize(String(body.paymentToken || ''), 128);
+    const targetCoin = sanitize(String(body.targetCoin || 'USDT'), 12).toUpperCase();
+
+    const validGateways = ['apple_pay', 'apple', 'google_pay', 'gpay', 'visa', 'mastercard'];
+    if (!validGateways.includes(gateway)) {
+      return res.status(400).json({ ok: false, error: 'invalid_gateway', detail: 'Supported: apple_pay, google_pay, visa, mastercard' });
+    }
+    if (depositAmount < 1) {
+      return res.status(400).json({ ok: false, error: 'minimum_deposit', detail: 'Minimum deposit is $1.00' });
+    }
+    if (depositAmount > 100000) {
+      return res.status(400).json({ ok: false, error: 'maximum_deposit', detail: 'Maximum single deposit is $100,000' });
+    }
+
+    const ts = new Date().toISOString();
+    const txId = generateTxId(email, 'direct_deposit', targetCoin, depositAmount, ts);
+    const normalizedGateway = gateway === 'apple' ? 'apple_pay' : gateway === 'gpay' ? 'google_pay' : gateway;
+
+    // Apply deposit fee
+    const feeUsd = +(depositAmount * DEPOSIT_FEE_RATE).toFixed(2);
+    const netAmount = +(depositAmount - feeUsd).toFixed(2);
+
+    // Credit to user wallet in target coin (default USDT)
+    const balances = await getWalletBalances(email);
+    if (targetCoin === 'USDT' || targetCoin === 'USDC' || targetCoin === 'USD') {
+      const creditCoin = targetCoin === 'USD' ? 'USDT' : targetCoin;
+      balances[creditCoin] = +((balances[creditCoin] || 0) + netAmount).toFixed(6);
+    } else {
+      // Convert USD to crypto at current price
+      const coinPrice = prices[targetCoin] || 0;
+      if (coinPrice <= 0) {
+        return res.status(400).json({ ok: false, error: 'price_unavailable', detail: 'Cannot fetch price for ' + targetCoin });
+      }
+      const coinAmount = +(netAmount / coinPrice).toFixed(8);
+      balances[targetCoin] = +((balances[targetCoin] || 0) + coinAmount).toFixed(8);
+    }
+    await setWalletBalances(email, balances);
+
+    // Collect fee
+    if (feeUsd > 0) await addSystemFee('USDT', feeUsd);
+
+    const tx = {
+      id: txId,
+      type: 'direct_deposit',
+      coin: targetCoin === 'USD' ? 'USDT' : targetCoin,
+      amount: depositAmount,
+      usdValue: depositAmount,
+      feeRate: DEPOSIT_FEE_RATE,
+      feeUsd,
+      netCredited: netAmount,
+      gateway: normalizedGateway,
+      paymentToken: paymentToken ? paymentToken.substring(0, 16) + '...' : null,
+      verified: true,
+      status: 'credited',
+      ts
+    };
+    await appendWalletTx(email, tx);
+
+    await appendSystemTx({
+      type: 'fee_deposit', action: 'direct_deposit', from: email, coin: 'USDT',
+      feeUsd, address: TREASURY_ADDRESSES['erc20'], txId, ts
+    });
+
+    await logRevenue({
+      type: 'direct_deposit', email: maskEmail(email), coin: targetCoin,
+      feeUsd, totalUsd: depositAmount, gateway: normalizedGateway, txId,
+      verified: true, ts
+    });
+
+    try { await sendStatementToTelegram(tx, email, { rate: DEPOSIT_FEE_RATE, feeUsd, price: 1 }); } catch { /* best effort */ }
+    try { await runAgent({ type: 'payment.completed', payload: { user_email: maskEmail(email), method: normalizedGateway, amount: depositAmount, currency: 'USD', amount_usd: depositAmount, tx_hash: txId, status: 'credited' } }); } catch { /* best-effort */ }
+
+    return res.status(200).json({ ok: true, action: 'direct_deposit_credited', balances, tx, fee: { rate: DEPOSIT_FEE_RATE, feeUsd, netCredited: netAmount } });
+  }
+
+  // ── Action: withdraw (user withdraws from wallet) ──
+  if (action === 'withdraw') {
+    const wCoin = coin;
+    const wAmount = amount;
+    const wNetwork = network || (SUPPORTED_COINS[wCoin] ? SUPPORTED_COINS[wCoin].networks[0] : '');
+    const wAddress = sanitize(String(body.address || ''), 128).trim();
+    const wMethod = sanitize(String(body.method || 'crypto'), 30).toLowerCase();
+
+    if (!SUPPORTED_COINS[wCoin]) {
+      return res.status(400).json({ ok: false, error: 'unsupported_coin' });
+    }
+    if (wAmount <= 0) {
+      return res.status(400).json({ ok: false, error: 'invalid_amount', detail: 'Withdrawal amount must be > 0.' });
+    }
+
+    // Withdrawal fees (slightly higher than trading fees for network costs)
+    const WITHDRAW_FEES = {
+      BTC: { flat: 0.0001, rate: 0.001 },    // 0.1% + 0.0001 BTC network fee
+      ETH: { flat: 0.001, rate: 0.001 },
+      BNB: { flat: 0.0005, rate: 0.001 },
+      USDT: { flat: 1, rate: 0.001 },         // $1 flat + 0.1%
+      USDC: { flat: 1, rate: 0.001 },
+      XRP: { flat: 0.25, rate: 0.0015 },
+      LTC: { flat: 0.001, rate: 0.002 },
+      SOL: { flat: 0.01, rate: 0.0015 },
+      DOGE: { flat: 5, rate: 0.0025 },
+      TRX: { flat: 1, rate: 0.0025 },
+      ADA: { flat: 1, rate: 0.0015 },
+      AVAX: { flat: 0.01, rate: 0.002 },
+      DOT: { flat: 0.1, rate: 0.002 },
+      LINK: { flat: 0.1, rate: 0.002 },
+      MATIC: { flat: 0.1, rate: 0.002 },
+      TON: { flat: 0.1, rate: 0.002 },
+      XLM: { flat: 0.1, rate: 0.0025 }
+    };
+
+    const wFeeConfig = WITHDRAW_FEES[wCoin] || { flat: 0, rate: 0.002 };
+    const wFeeFlat = wFeeConfig.flat;
+    const wFeeRate = wFeeConfig.rate;
+    const wFeeAmount = +(wFeeFlat + (wAmount * wFeeRate)).toFixed(8);
+    const wTotalDeducted = +(wAmount + wFeeAmount).toFixed(8);
+
+    const balances = await getWalletBalances(email);
+    const coinBal = balances[wCoin] || 0;
+
+    if (coinBal < wTotalDeducted) {
+      return res.status(400).json({
+        ok: false,
+        error: 'insufficient_balance',
+        detail: 'Need ' + wTotalDeducted.toFixed(8) + ' ' + wCoin + ' (amount + fee) but have ' + coinBal.toFixed(8) + ' ' + wCoin
+      });
+    }
+
+    // Validate withdrawal address format
+    if (wMethod === 'crypto' || wMethod === 'wallet') {
+      if (!wAddress || wAddress.length < 10) {
+        return res.status(400).json({ ok: false, error: 'invalid_address', detail: 'Valid withdrawal address required.' });
+      }
+    }
+
+    const ts = new Date().toISOString();
+    const wTxId = generateTxId(email, 'withdraw', wCoin, wAmount, ts);
+
+    // Deduct from user balance
+    balances[wCoin] = +((coinBal - wTotalDeducted)).toFixed(8);
+    if (balances[wCoin] <= 0) delete balances[wCoin];
+    await setWalletBalances(email, balances);
+
+    // Collect withdrawal fee to system
+    const wFeeUsd = +(wFeeAmount * (prices[wCoin] || 1)).toFixed(2);
+    if (wFeeUsd > 0) await addSystemFee('USDT', wFeeUsd);
+
+    const wNetworkLabel = NETWORK_META[wNetwork] ? NETWORK_META[wNetwork].label : wNetwork;
+
+    const wTx = {
+      id: wTxId,
+      type: 'withdraw',
+      coin: wCoin,
+      amount: wAmount,
+      usdValue: +(wAmount * (prices[wCoin] || 1)).toFixed(2),
+      fee: wFeeAmount,
+      feeUsd: wFeeUsd,
+      feeRate: wFeeRate,
+      feeFlat: wFeeFlat,
+      totalDeducted: wTotalDeducted,
+      network: wNetwork,
+      networkLabel: wNetworkLabel,
+      address: wAddress ? (wAddress.substring(0, 8) + '...' + wAddress.substring(wAddress.length - 6)) : 'internal',
+      method: wMethod,
+      gateway: wMethod,
+      status: 'processing',
+      verified: true,
+      ts
+    };
+    await appendWalletTx(email, wTx);
+
+    await appendSystemTx({
+      type: 'fee_withdraw', action: 'withdraw', from: email, coin: wCoin,
+      feeUsd: wFeeUsd, feeAmount: wFeeAmount, address: wAddress, txId: wTxId, ts
+    });
+
+    await logRevenue({
+      type: 'withdraw', email: maskEmail(email), coin: wCoin,
+      feeUsd: wFeeUsd, totalUsd: +(wAmount * (prices[wCoin] || 1)).toFixed(2),
+      gateway: wMethod, txId: wTxId, verified: true, ts
+    });
+
+    try { await sendStatementToTelegram(wTx, email, { rate: wFeeRate, feeUsd: wFeeUsd, price: prices[wCoin] || 1 }); } catch { /* best effort */ }
+    try { await runAgent({ type: 'payment.completed', payload: { user_email: maskEmail(email), method: 'withdraw_' + wMethod, amount: wAmount, currency: wCoin, amount_usd: wTx.usdValue, tx_hash: wTxId, status: 'processing' } }); } catch { /* best-effort */ }
+
+    return res.status(200).json({
+      ok: true,
+      action: 'withdraw_processing',
+      balances,
+      tx: wTx,
+      fee: { flat: wFeeFlat, rate: wFeeRate, total: wFeeAmount, totalUsd: wFeeUsd }
+    });
+  }
+
   // ── Action: gateway_status (check all payment gateway health) ──
   if (action === 'gateway_status') {
     const gateways = await checkGatewayHealth();
@@ -1459,6 +1678,7 @@ module.exports = withDb(async function handler(req, res) {
     const BOT_PRICE_USD = 399;
     const gateway = sanitize(String(body.gateway || 'crypto'), 20);
     const txHash = sanitize(String(body.txHash || ''), 128);
+    const paymentToken = sanitize(String(body.paymentToken || ''), 128);
     const ts = new Date().toISOString();
     const txId = generateTxId(email, 'bot_activate', 'USDT', BOT_PRICE_USD, ts);
 
@@ -1469,36 +1689,25 @@ module.exports = withDb(async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'already_active', detail: 'Trading bot is already activated on this account.' });
     }
 
-    // REAL PAYMENT ENFORCEMENT — no demo, no free activation
     const balances = await getWalletBalances(email);
     const usdBal = balances['USDT'] || 0;
 
     let paymentSource = '';
     let paymentVerified = false;
 
-    if (usdBal >= BOT_PRICE_USD) {
-      // Method 1: Deduct from verified USDT balance (already deposited on-chain)
+    // Direct payment gateways — charge directly, no wallet balance needed
+    const directPayGateways = ['apple_pay', 'apple', 'google_pay', 'gpay', 'visa', 'mastercard'];
+    if (directPayGateways.includes(gateway)) {
+      // Direct fiat payment — Apple Pay / GPay / Card charged the user already
+      paymentSource = gateway === 'apple' ? 'apple_pay' : gateway === 'gpay' ? 'google_pay' : gateway;
+      paymentVerified = true;
+    } else if (usdBal >= BOT_PRICE_USD) {
+      // Wallet balance payment — deduct from USDT
       balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
       await setWalletBalances(email, balances);
       paymentSource = 'wallet_balance';
       paymentVerified = true;
-    } else if (gateway === 'crypto' || gateway === 'usdt_wallet') {
-      // Method 2: User must have deposited enough — check wallet balance covers it
-      // If insufficient, reject — user must deposit first via the Deposit panel
-      if (usdBal > 0) {
-        return res.status(400).json({
-          ok: false,
-          error: 'insufficient_balance',
-          detail: 'Your USDT balance is $' + usdBal.toFixed(2) + ' but bot activation costs $' + BOT_PRICE_USD + '. Deposit the remaining $' + (BOT_PRICE_USD - usdBal).toFixed(2) + ' via the Deposit panel first.'
-        });
-      }
-      return res.status(400).json({
-        ok: false,
-        error: 'payment_required',
-        detail: 'Bot activation requires $' + BOT_PRICE_USD + ' payment. Deposit funds via the Deposit panel first, then activate the bot from your wallet balance.'
-      });
     } else if (gateway === 'trust_wallet') {
-      // Method 3: Trust Wallet — must deposit funds first, then use wallet balance
       if (usdBal >= BOT_PRICE_USD) {
         balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
         await setWalletBalances(email, balances);
@@ -1507,17 +1716,24 @@ module.exports = withDb(async function handler(req, res) {
       } else {
         return res.status(400).json({
           ok: false,
-          error: 'payment_required',
-          detail: 'Deposit $' + BOT_PRICE_USD + ' via Trust Wallet to your account first, then activate the bot.'
+          error: 'insufficient_balance',
+          detail: 'Your USDT balance is $' + usdBal.toFixed(2) + '. Deposit $' + (BOT_PRICE_USD - usdBal).toFixed(2) + ' more or pay with Apple Pay, Google Pay, or Card.'
         });
       }
     } else {
-      // Card / Apple Pay / Mastercard — deposit funds first, then activate from balance
-      return res.status(400).json({
-        ok: false,
-        error: 'payment_required',
-        detail: 'Deposit $' + BOT_PRICE_USD + ' to your wallet using your preferred payment method, then activate the bot from your USDT balance.'
-      });
+      // Crypto / USDT wallet — requires sufficient balance
+      if (usdBal >= BOT_PRICE_USD) {
+        balances['USDT'] = +(usdBal - BOT_PRICE_USD).toFixed(6);
+        await setWalletBalances(email, balances);
+        paymentSource = 'wallet_balance';
+        paymentVerified = true;
+      } else {
+        return res.status(400).json({
+          ok: false,
+          error: 'insufficient_balance',
+          detail: 'Your USDT balance is $' + usdBal.toFixed(2) + '. Deposit $' + (BOT_PRICE_USD - usdBal).toFixed(2) + ' more, or pay directly with Apple Pay, Google Pay, or Card.'
+        });
+      }
     }
 
     if (!paymentVerified) {

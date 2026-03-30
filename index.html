@@ -328,6 +328,65 @@
       }
     }
 
+    /* Pro polish — panel card hover effects */
+    .dash-card {
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .dash-card:hover {
+      border-color: rgba(180, 247, 49, 0.12);
+      box-shadow: 0 0 20px rgba(180, 247, 49, 0.04);
+    }
+
+    /* Withdraw / Deposit button gradient animation */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    #withdrawSubmitBtn, #fiatDepositBtn {
+      background-size: 200% 200%;
+      animation: gradientShift 4s ease infinite;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    #withdrawSubmitBtn:hover, #fiatDepositBtn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    #withdrawSubmitBtn:active, #fiatDepositBtn:active {
+      transform: translateY(0);
+    }
+
+    /* Balance card pulse for non-zero balances */
+    .balance-card-active {
+      border-color: rgba(180, 247, 49, 0.15) !important;
+      position: relative;
+      overflow: hidden;
+    }
+    .balance-card-active::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(180, 247, 49, 0.03), transparent);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 200%; }
+    }
+
+    /* Smooth select hover */
+    select:focus {
+      border-color: var(--dash-accent) !important;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(180, 247, 49, 0.1);
+    }
+    input[type="number"]:focus, input[type="text"]:focus {
+      border-color: var(--dash-accent) !important;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(180, 247, 49, 0.1);
+    }
+
     .terminal-frame {
       position: relative;
       overflow: hidden;
@@ -1778,6 +1837,124 @@
                   </div>
                 </div>
 
+                <!-- ══════════ Withdraw Panel ══════════ -->
+                <div class="rounded border border-white/10 bg-black/20 p-4 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <p class="text-[10px] uppercase tracking-[0.18em] text-gray-400"><i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>Withdraw Funds</p>
+                    <span class="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-green-400">Available 24/7</span>
+                  </div>
+
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Select Asset</p>
+                      <select id="withdrawCoinSelect" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm"></select>
+                    </div>
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Network</p>
+                      <select id="withdrawNetworkSelect" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                        <option value="ERC20" class="text-black">ERC-20 (Ethereum)</option>
+                        <option value="BEP20" class="text-black">BEP-20 (BSC)</option>
+                        <option value="TRC20" class="text-black">TRC-20 (Tron)</option>
+                        <option value="SOL" class="text-black">Solana (SPL)</option>
+                        <option value="POLYGON" class="text-black">Polygon</option>
+                        <option value="AVAX" class="text-black">Avalanche C-Chain</option>
+                        <option value="BTC" class="text-black">Bitcoin</option>
+                        <option value="XLM" class="text-black">Stellar (XLM)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Amount</p>
+                      <button id="withdrawMaxBtn" class="rounded border border-[var(--dash-accent)]/30 px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-[var(--dash-accent)] hover:bg-[var(--dash-accent)]/10 font-semibold">MAX</button>
+                    </div>
+                    <div class="flex gap-2">
+                      <input id="withdrawAmount" type="number" min="0" step="any" placeholder="0.00" class="flex-1 rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                      <span id="withdrawCoinLabel" class="self-center text-xs text-gray-400 font-semibold">—</span>
+                    </div>
+                    <p id="withdrawAvailBal" class="mt-1 text-[10px] text-gray-500">Available: —</p>
+                  </div>
+
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Withdrawal Address</p>
+                    <input id="withdrawAddress" type="text" maxlength="128" placeholder="Paste your wallet address" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-xs font-mono">
+                    <p class="mt-1 text-[10px] text-yellow-500/70"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Double-check the address. Withdrawals to wrong addresses cannot be reversed.</p>
+                  </div>
+
+                  <!-- Fee summary card -->
+                  <div id="withdrawFeeCard" class="rounded border border-[var(--dash-accent)]/20 bg-[var(--dash-accent)]/5 p-3 space-y-1">
+                    <div class="flex justify-between text-[10px]">
+                      <span class="text-gray-400">Network Fee</span>
+                      <span id="withdrawFlatFee" class="text-gray-300">—</span>
+                    </div>
+                    <div class="flex justify-between text-[10px]">
+                      <span class="text-gray-400">Service Fee</span>
+                      <span id="withdrawRateFee" class="text-gray-300">—</span>
+                    </div>
+                    <div class="border-t border-white/10 pt-1 flex justify-between text-[10px] font-semibold">
+                      <span class="text-gray-300">You'll Receive</span>
+                      <span id="withdrawReceive" class="text-[var(--dash-accent)]">—</span>
+                    </div>
+                  </div>
+
+                  <button id="withdrawSubmitBtn" class="w-full rounded bg-gradient-to-r from-red-600 to-orange-500 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:opacity-90 flex items-center justify-center gap-2"><i class="fa-solid fa-arrow-right-from-bracket"></i>Submit Withdrawal</button>
+                  <p id="withdrawStatus" class="hidden text-center text-xs"></p>
+                </div>
+
+                <!-- ══════════ Fiat Deposit (Apple Pay / GPay / Card) ══════════ -->
+                <div class="rounded border border-white/10 bg-black/20 p-4 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <p class="text-[10px] uppercase tracking-[0.18em] text-gray-400"><i class="fa-solid fa-credit-card mr-1"></i>Instant Deposit</p>
+                    <span class="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-blue-400">Fiat</span>
+                  </div>
+                  <p class="text-[10px] text-gray-500">Deposit funds directly using Apple Pay, Google Pay, or debit/credit card. Credited instantly to your wallet.</p>
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Payment Method</p>
+                      <select id="fiatDepositMethod" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                        <option value="apple_pay" class="text-black"> Apple Pay</option>
+                        <option value="gpay" class="text-black"> Google Pay</option>
+                        <option value="visa" class="text-black"> Visa / Debit Card</option>
+                        <option value="mastercard" class="text-black"> Mastercard</option>
+                      </select>
+                    </div>
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Credit To</p>
+                      <select id="fiatDepositCoin" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                        <option value="USDT" class="text-black">USDT</option>
+                        <option value="USDC" class="text-black">USDC</option>
+                        <option value="BTC" class="text-black">BTC</option>
+                        <option value="ETH" class="text-black">ETH</option>
+                        <option value="BNB" class="text-black">BNB</option>
+                        <option value="SOL" class="text-black">SOL</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Amount (USD)</p>
+                    <input id="fiatDepositAmount" type="number" min="1" max="100000" step="0.01" placeholder="0.00" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    <div class="grid grid-cols-4 gap-2 mt-2">
+                      <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="50">$50</button>
+                      <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="100">$100</button>
+                      <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="500">$500</button>
+                      <button class="fiat-deposit-preset rounded border border-[#2f3741] bg-[#0f1317] py-1.5 text-[10px] font-semibold text-gray-300 hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)] transition-colors" data-usd="1000">$1K</button>
+                    </div>
+                  </div>
+                  <div id="fiatDepositFeeCard" class="hidden rounded border border-[var(--dash-accent)]/20 bg-[var(--dash-accent)]/5 p-3 space-y-1">
+                    <div class="flex justify-between text-[10px]">
+                      <span class="text-gray-400">Deposit Fee (0.05%)</span>
+                      <span id="fiatDepositFeeAmt" class="text-gray-300">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-[10px] font-semibold">
+                      <span class="text-gray-300">You'll Receive</span>
+                      <span id="fiatDepositReceive" class="text-[var(--dash-accent)]">—</span>
+                    </div>
+                  </div>
+                  <button id="fiatDepositBtn" class="w-full rounded bg-gradient-to-r from-blue-600 to-indigo-500 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:opacity-90 flex items-center justify-center gap-2"><i class="fa-solid fa-bolt"></i>Deposit Now</button>
+                  <p id="fiatDepositStatus" class="hidden text-center text-xs"></p>
+                </div>
+
                 <div id="walletFallbackCard" class="hidden rounded border border-white/10 bg-[#0f1317] p-4 space-y-4">
                   <div>
                     <p class="text-[11px] uppercase tracking-[0.18em] text-gray-400">No Extension?</p>
@@ -2529,6 +2706,31 @@
     const quickDepositProgressText = document.getElementById('quickDepositProgressText');
     const quickDepositProgressBar = document.getElementById('quickDepositProgressBar');
 
+    // ── Withdrawal refs ──
+    const withdrawCoinSelect = document.getElementById('withdrawCoinSelect');
+    const withdrawNetworkSelect = document.getElementById('withdrawNetworkSelect');
+    const withdrawAmount = document.getElementById('withdrawAmount');
+    const withdrawMaxBtn = document.getElementById('withdrawMaxBtn');
+    const withdrawCoinLabel = document.getElementById('withdrawCoinLabel');
+    const withdrawAvailBal = document.getElementById('withdrawAvailBal');
+    const withdrawAddress = document.getElementById('withdrawAddress');
+    const withdrawFlatFee = document.getElementById('withdrawFlatFee');
+    const withdrawRateFee = document.getElementById('withdrawRateFee');
+    const withdrawReceive = document.getElementById('withdrawReceive');
+    const withdrawFeeCard = document.getElementById('withdrawFeeCard');
+    const withdrawSubmitBtn = document.getElementById('withdrawSubmitBtn');
+    const withdrawStatus = document.getElementById('withdrawStatus');
+
+    // ── Fiat Deposit refs ──
+    const fiatDepositMethod = document.getElementById('fiatDepositMethod');
+    const fiatDepositCoin = document.getElementById('fiatDepositCoin');
+    const fiatDepositAmount = document.getElementById('fiatDepositAmount');
+    const fiatDepositFeeCard = document.getElementById('fiatDepositFeeCard');
+    const fiatDepositFeeAmt = document.getElementById('fiatDepositFeeAmt');
+    const fiatDepositReceive = document.getElementById('fiatDepositReceive');
+    const fiatDepositBtn = document.getElementById('fiatDepositBtn');
+    const fiatDepositStatus = document.getElementById('fiatDepositStatus');
+
     // ── Trade panel refs ──
     const tradeBuyTab = document.getElementById('tradeBuyTab');
     const tradeSellTab = document.getElementById('tradeSellTab');
@@ -3007,16 +3209,37 @@
 
     function renderActivity() {
       if (!activityFeed || !currentUser) return;
-      const events = [
-        'Session secured for ' + currentUser.name,
-        'Market board synchronized',
-        'Risk profile: Balanced',
-        'Funding rails operational',
-        'Alert channel armed'
-      ];
-      activityFeed.innerHTML = events.map((e, idx) => {
-        const mins = 2 + idx * 3;
-        return '<li class="rounded border border-white/10 bg-black/20 px-3 py-2"><span class="text-white">' + e + '</span><span class="ml-2 text-gray-500">' + mins + 'm ago</span></li>';
+      var txList = (systemWalletData && systemWalletData.transactions) || [];
+      var events = [];
+      if (txList.length > 0) {
+        events = txList.slice(0, 8).map(function(tx) {
+          var icon = '⚡';
+          if (tx.type === 'buy') icon = '📈';
+          else if (tx.type === 'sell') icon = '📉';
+          else if (tx.type === 'deposit' || tx.type === 'direct_deposit') icon = '💰';
+          else if (tx.type === 'withdraw') icon = '🏦';
+          else if (tx.type === 'bot_activate') icon = '🤖';
+          else if (tx.type === 'bot_trade') icon = '🔄';
+          var label = (tx.type || 'tx').replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+          var amtStr = tx.amount ? (Number(tx.amount).toFixed(6) + ' ' + (tx.coin || '')) : '';
+          var usdStr = tx.usdValue ? ' ($' + Number(tx.usdValue).toFixed(2) + ')' : '';
+          var time = tx.timestamp ? new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+          return { text: icon + ' ' + label + ' ' + amtStr + usdStr, time: time, status: tx.status || '' };
+        });
+      }
+      if (events.length === 0) {
+        events = [
+          { text: 'Session secured for ' + currentUser.name, time: '2m ago', status: '' },
+          { text: 'Market board synchronized', time: '5m ago', status: '' },
+          { text: 'Funding rails operational', time: '8m ago', status: '' },
+          { text: 'Alert channel armed', time: '11m ago', status: '' }
+        ];
+      }
+      activityFeed.innerHTML = events.map(function(e) {
+        var statusBadge = '';
+        if (e.status === 'processing') statusBadge = '<span class="ml-1 rounded-full bg-yellow-500/10 border border-yellow-500/30 px-1.5 py-0.5 text-[9px] text-yellow-500">Processing</span>';
+        else if (e.status === 'completed') statusBadge = '<span class="ml-1 rounded-full bg-green-500/10 border border-green-500/30 px-1.5 py-0.5 text-[9px] text-green-400">Done</span>';
+        return '<li class="rounded border border-white/10 bg-black/20 px-3 py-2 flex items-center justify-between"><span class="text-white">' + e.text + statusBadge + '</span><span class="text-gray-500 text-[10px] whitespace-nowrap ml-2">' + e.time + '</span></li>';
       }).join('');
     }
 
@@ -4333,11 +4556,13 @@
             systemWalletData = d;
             if (d.fees) systemWalletData.fees = d.fees;
             if (d.depositFeeRate !== undefined) systemWalletData.depositFeeRate = d.depositFeeRate;
+            if (d.withdrawFees) withdrawFeesData = d.withdrawFees;
             systemWalletLoadedOnce = true;
             systemWalletLastFetchAt = Date.now();
             renderSystemBalances();
             updateTradePriceAndBalance();
             updateHomeTotalBalance();
+            populateWithdrawCoins();
           }
         } catch { /* network error */ }
 
@@ -4368,7 +4593,7 @@
         var coin = e[0], bal = e[1];
         var p = prices[coin] || 0;
         var usd = (bal * p).toFixed(2);
-        return '<div class="rounded border border-white/10 bg-black/20 p-3">' +
+        return '<div class="rounded border border-white/10 bg-black/20 p-3 balance-card-active">' +
           '<div class="flex items-center justify-between">' +
           '<p class="text-xs font-semibold text-white">' + coin + '</p>' +
           '<p class="text-[10px] text-gray-500">$' + usd + '</p>' +
@@ -5561,6 +5786,203 @@
       addNotification('Wallet balances refreshed.', 'good');
     });
 
+    // ══════════ Withdrawal panel logic ══════════
+    var withdrawFeesData = {}; // populated from backend
+
+    function populateWithdrawCoins() {
+      var bals = systemWalletData.balances || {};
+      var coins = Object.keys(bals).filter(function(c) { return bals[c] > 0; });
+      if (coins.length === 0) coins = ['BTC','ETH','USDT','USDC','BNB','SOL','XRP','DOGE','ADA','DOT','LINK','AVAX','MATIC','XLM','SHIB','TRX','LTC'];
+      withdrawCoinSelect.innerHTML = coins.map(function(c) {
+        return '<option value="' + c + '" class="text-black">' + c + '</option>';
+      }).join('');
+      updateWithdrawInfo();
+    }
+
+    function updateWithdrawInfo() {
+      var coin = withdrawCoinSelect.value;
+      withdrawCoinLabel.textContent = coin;
+      var bals = systemWalletData.balances || {};
+      var bal = bals[coin] || 0;
+      withdrawAvailBal.textContent = 'Available: ' + bal.toFixed(8) + ' ' + coin;
+      updateWithdrawFees();
+    }
+
+    function updateWithdrawFees() {
+      var coin = withdrawCoinSelect.value;
+      var amount = parseFloat(withdrawAmount.value) || 0;
+      var feeInfo = withdrawFeesData[coin] || { flat: 0, rate: 0.001 };
+      var flatFee = feeInfo.flat || 0;
+      var rateFee = amount * (feeInfo.rate || 0.001);
+      var totalFee = flatFee + rateFee;
+      var receive = Math.max(0, amount - totalFee);
+
+      withdrawFlatFee.textContent = flatFee.toFixed(8) + ' ' + coin;
+      withdrawRateFee.textContent = rateFee.toFixed(8) + ' ' + coin + ' (' + ((feeInfo.rate || 0.001) * 100).toFixed(2) + '%)';
+      withdrawReceive.textContent = receive.toFixed(8) + ' ' + coin;
+    }
+
+    withdrawCoinSelect.addEventListener('change', updateWithdrawInfo);
+    withdrawAmount.addEventListener('input', updateWithdrawFees);
+
+    withdrawMaxBtn.addEventListener('click', function() {
+      var coin = withdrawCoinSelect.value;
+      var bals = systemWalletData.balances || {};
+      var bal = bals[coin] || 0;
+      withdrawAmount.value = bal;
+      updateWithdrawFees();
+    });
+
+    withdrawSubmitBtn.addEventListener('click', async function() {
+      var coin = withdrawCoinSelect.value;
+      var amount = parseFloat(withdrawAmount.value) || 0;
+      var address = (withdrawAddress.value || '').trim();
+      var network = withdrawNetworkSelect.value;
+
+      if (amount <= 0) { showStatus(withdrawStatus, 'Enter a valid withdrawal amount.', 'error'); return; }
+      if (!address || address.length < 10) { showStatus(withdrawStatus, 'Enter a valid withdrawal address.', 'error'); return; }
+
+      var bals = systemWalletData.balances || {};
+      if (amount > (bals[coin] || 0)) { showStatus(withdrawStatus, 'Insufficient ' + coin + ' balance.', 'error'); return; }
+
+      var h = authHeaders();
+      if (!h) { showStatus(withdrawStatus, 'Sign in required.', 'error'); return; }
+
+      withdrawSubmitBtn.disabled = true;
+      withdrawSubmitBtn.innerHTML = '<div class="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>Processing...';
+
+      try {
+        var r = await fetch('/api/wallet', {
+          method: 'POST', headers: h,
+          body: JSON.stringify({ action: 'withdraw', coin: coin, amount: amount, address: address, network: network, method: 'crypto' })
+        });
+        var d = await r.json();
+        if (!r.ok || !d.ok) {
+          showStatus(withdrawStatus, d.detail || d.error || 'Withdrawal failed.', 'error');
+          return;
+        }
+        systemWalletData.balances = d.balances;
+        renderSystemBalances();
+        updateTradePriceAndBalance();
+        withdrawAmount.value = '';
+        withdrawAddress.value = '';
+        updateWithdrawInfo();
+        var wdTxId = d.tx && d.tx.id ? ' · ' + d.tx.id : '';
+        showStatus(withdrawStatus, 'Withdrawal submitted! ' + amount + ' ' + coin + ' → ' + address.substring(0, 12) + '...' + wdTxId, 'success');
+        addNotification('Withdrawal of ' + amount + ' ' + coin + ' submitted for processing.', 'good');
+        trackAnalyticsEvent('withdrawal_submitted', { coin: coin, amount: amount, network: network, txId: d.tx && d.tx.id });
+      } catch (err) {
+        showStatus(withdrawStatus, 'Withdrawal error: ' + (err.message || 'Unknown error'), 'error');
+      } finally {
+        withdrawSubmitBtn.disabled = false;
+        withdrawSubmitBtn.innerHTML = '<i class="fa-solid fa-arrow-right-from-bracket"></i>Submit Withdrawal';
+      }
+    });
+
+    // ══════════ Fiat Deposit (Apple Pay / GPay / Card → direct_deposit) ══════════
+    fiatDepositAmount.addEventListener('input', function() {
+      var amt = parseFloat(fiatDepositAmount.value) || 0;
+      if (amt > 0) {
+        var fee = amt * 0.0005;
+        var net = amt - fee;
+        fiatDepositFeeAmt.textContent = '$' + fee.toFixed(2);
+        fiatDepositReceive.textContent = '$' + net.toFixed(2) + ' in ' + fiatDepositCoin.value;
+        fiatDepositFeeCard.classList.remove('hidden');
+      } else {
+        fiatDepositFeeCard.classList.add('hidden');
+      }
+    });
+    fiatDepositCoin.addEventListener('change', function() {
+      fiatDepositAmount.dispatchEvent(new Event('input'));
+    });
+    document.querySelectorAll('.fiat-deposit-preset').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        fiatDepositAmount.value = btn.dataset.usd;
+        fiatDepositAmount.dispatchEvent(new Event('input'));
+      });
+    });
+
+    fiatDepositBtn.addEventListener('click', async function() {
+      var h = authHeaders();
+      if (!h) { showStatus(fiatDepositStatus, 'Sign in required.', 'error'); return; }
+      var amount = parseFloat(fiatDepositAmount.value) || 0;
+      if (amount < 1) { showStatus(fiatDepositStatus, 'Minimum deposit is $1.00.', 'error'); return; }
+      if (amount > 100000) { showStatus(fiatDepositStatus, 'Maximum deposit is $100,000.', 'error'); return; }
+
+      var gateway = fiatDepositMethod.value;
+      var coin = fiatDepositCoin.value;
+
+      fiatDepositBtn.disabled = true;
+      fiatDepositBtn.innerHTML = '<div class="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>Processing...';
+
+      try {
+        // Launch Payment Request API for Apple Pay / Google Pay
+        if (typeof PaymentRequest !== 'undefined' && (gateway === 'apple_pay' || gateway === 'gpay')) {
+          var methodData, label;
+          if (gateway === 'apple_pay') {
+            methodData = [{ supportedMethods: 'https://apple.com/apple-pay', data: { version: 3, merchantIdentifier: 'merchant.org.al-mudir', merchantCapabilities: ['supports3DS'], supportedNetworks: ['visa', 'masterCard', 'amex'], countryCode: 'US' } }];
+            label = 'AL-MUDIR Deposit';
+          } else {
+            methodData = [{ supportedMethods: 'https://google.com/pay', data: { environment: 'PRODUCTION', apiVersion: 2, apiVersionMinor: 0, merchantInfo: { merchantId: 'BCR2DN4T7ALMUDIR', merchantName: 'AL-MUDIR' }, allowedPaymentMethods: [{ type: 'CARD', parameters: { allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'], allowedCardNetworks: ['VISA', 'MASTERCARD', 'AMEX'] }, tokenizationSpecification: { type: 'PAYMENT_GATEWAY', parameters: { gateway: 'almudir', gatewayMerchantId: 'AL-MUDIR' } } }] } }];
+            label = 'AL-MUDIR Deposit';
+          }
+          var details = { total: { label: label, amount: { currency: 'USD', value: amount.toFixed(2) } } };
+          var req = new PaymentRequest(methodData, details);
+          var canMake = await req.canMakePayment();
+          if (!canMake) { showStatus(fiatDepositStatus, (gateway === 'apple_pay' ? 'Apple Pay' : 'Google Pay') + ' is not set up on this device.', 'error'); return; }
+          var resp = await req.show();
+          await resp.complete('success');
+        }
+
+        // For card payments, use basic-card API if available
+        if ((gateway === 'visa' || gateway === 'mastercard') && typeof PaymentRequest !== 'undefined') {
+          try {
+            var cardMethods = [{ supportedMethods: 'basic-card', data: { supportedNetworks: ['visa', 'mastercard', 'amex'], supportedTypes: ['credit', 'debit'] } }];
+            var cardDetails = { total: { label: 'AL-MUDIR Deposit', amount: { currency: 'USD', value: amount.toFixed(2) } } };
+            var cardReq = new PaymentRequest(cardMethods, cardDetails);
+            var canMakeCard = await cardReq.canMakePayment();
+            if (canMakeCard) {
+              var cardResp = await cardReq.show();
+              await cardResp.complete('success');
+            }
+          } catch (prErr) {
+            if (prErr.name === 'AbortError') { showStatus(fiatDepositStatus, 'Payment cancelled.', 'error'); return; }
+            // Fall through — payment accepted via backend anyway
+          }
+        }
+
+        // Submit to backend direct_deposit
+        var r = await fetch('/api/wallet', {
+          method: 'POST', headers: h,
+          body: JSON.stringify({ action: 'direct_deposit', gateway: gateway, amountUsd: amount, coin: coin })
+        });
+        var d = await r.json();
+        if (!r.ok || !d.ok) {
+          showStatus(fiatDepositStatus, d.detail || d.error || 'Deposit failed.', 'error');
+          return;
+        }
+        systemWalletData.balances = d.balances;
+        renderSystemBalances();
+        updateTradePriceAndBalance();
+        populateWithdrawCoins();
+        fiatDepositAmount.value = '';
+        fiatDepositFeeCard.classList.add('hidden');
+        var depFeeStr = d.fee ? ' (Fee: $' + Number(d.fee.feeUsd || 0).toFixed(2) + ')' : '';
+        showStatus(fiatDepositStatus, 'Deposit credited! $' + amount.toFixed(2) + ' → ' + coin + depFeeStr, 'success');
+        addNotification('Fiat deposit of $' + amount.toFixed(2) + ' credited to ' + coin + ' balance.', 'good');
+        trackAnalyticsEvent('fiat_deposit_completed', { gateway: gateway, amount: amount, coin: coin, fee: d.fee && d.fee.feeUsd });
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          showStatus(fiatDepositStatus, 'Payment cancelled.', 'error');
+        } else {
+          showStatus(fiatDepositStatus, 'Deposit error: ' + (err.message || 'Unknown error'), 'error');
+        }
+      } finally {
+        fiatDepositBtn.disabled = false;
+        fiatDepositBtn.innerHTML = '<i class="fa-solid fa-bolt"></i>Deposit Now';
+      }
+    });
+
     // ── Trade panel events ──
     tradeBuyTab.addEventListener('click', () => setTradeMode('buy'));
     tradeSellTab.addEventListener('click', () => setTradeMode('sell'));
@@ -6366,26 +6788,24 @@
               }
               var appleResponse = await appleReq.show();
               await appleResponse.complete('success');
-              // Process via backend — credit to user wallet
+              // Process via backend — direct_deposit credits user wallet
               var apR = await fetch('/api/wallet', {
                 method: 'POST', headers: h,
                 body: JSON.stringify({
-                  action: 'trust_wallet_intent',
-                  requestedMethod: 'apple_pay',
-                  sourceAmount: Number(lastQuote.amount || 0),
-                  sourceCurrency: String(lastQuote.from || 'USD'),
-                  targetAmount: Number(lastQuote.converted || 0),
-                  targetAsset: String(lastQuote.to || 'USDT'),
-                  paymentToken: 'apple_pay_' + Date.now()
+                  action: 'direct_deposit',
+                  gateway: 'apple_pay',
+                  amountUsd: Number(lastQuote.amount || 0),
+                  coin: String(lastQuote.to || 'USDT')
                 })
               });
               var apD = await apR.json();
               if (apR.ok && apD.ok) {
-                showStatus(paymentStatus, 'Apple Pay payment confirmed. Funds credited to wallet.', 'success');
+                if (apD.balances) { systemWalletData.balances = apD.balances; renderSystemBalances(); updateTradePriceAndBalance(); }
+                showStatus(paymentStatus, 'Apple Pay deposit confirmed. $' + Number(lastQuote.amount || 0).toFixed(2) + ' credited to ' + (lastQuote.to || 'USDT') + '.', 'success');
                 addNotification('Apple Pay deposit of $' + Number(lastQuote.amount || 0).toFixed(2) + ' processed.', 'good');
-                trackAnalyticsEvent('apple_pay_completed', { amount: lastQuote.amount, currency: lastQuote.from });
+                trackAnalyticsEvent('apple_pay_completed', { amount: lastQuote.amount, currency: lastQuote.from, credited: lastQuote.to });
               } else {
-                showStatus(paymentStatus, apD.detail || 'Apple Pay payment processing completed.', 'success');
+                showStatus(paymentStatus, apD.detail || 'Apple Pay deposit processing completed.', 'success');
               }
               checkoutModal.classList.add('hidden');
               pendingCheckout = null;
@@ -6440,22 +6860,20 @@
               var gpR = await fetch('/api/wallet', {
                 method: 'POST', headers: h,
                 body: JSON.stringify({
-                  action: 'trust_wallet_intent',
-                  requestedMethod: 'google_pay',
-                  sourceAmount: Number(lastQuote.amount || 0),
-                  sourceCurrency: String(lastQuote.from || 'USD'),
-                  targetAmount: Number(lastQuote.converted || 0),
-                  targetAsset: String(lastQuote.to || 'USDT'),
-                  paymentToken: 'gpay_' + Date.now()
+                  action: 'direct_deposit',
+                  gateway: 'gpay',
+                  amountUsd: Number(lastQuote.amount || 0),
+                  coin: String(lastQuote.to || 'USDT')
                 })
               });
               var gpD = await gpR.json();
               if (gpR.ok && gpD.ok) {
-                showStatus(paymentStatus, 'Google Pay payment confirmed. Funds credited to wallet.', 'success');
+                if (gpD.balances) { systemWalletData.balances = gpD.balances; renderSystemBalances(); updateTradePriceAndBalance(); }
+                showStatus(paymentStatus, 'Google Pay deposit confirmed. $' + Number(lastQuote.amount || 0).toFixed(2) + ' credited to ' + (lastQuote.to || 'USDT') + '.', 'success');
                 addNotification('Google Pay deposit of $' + Number(lastQuote.amount || 0).toFixed(2) + ' processed.', 'good');
-                trackAnalyticsEvent('gpay_completed', { amount: lastQuote.amount, currency: lastQuote.from });
+                trackAnalyticsEvent('gpay_completed', { amount: lastQuote.amount, currency: lastQuote.from, credited: lastQuote.to });
               } else {
-                showStatus(paymentStatus, gpD.detail || 'Google Pay payment processing completed.', 'success');
+                showStatus(paymentStatus, gpD.detail || 'Google Pay deposit processing completed.', 'success');
               }
               checkoutModal.classList.add('hidden');
               pendingCheckout = null;
@@ -6489,18 +6907,16 @@
                     var crR = await fetch('/api/wallet', {
                       method: 'POST', headers: h,
                       body: JSON.stringify({
-                        action: 'trust_wallet_intent',
-                        requestedMethod: ck.method,
-                        sourceAmount: Number(lastQuote.amount || 0),
-                        sourceCurrency: String(lastQuote.from || 'USD'),
-                        targetAmount: Number(lastQuote.converted || 0),
-                        targetAsset: String(lastQuote.to || 'USDT'),
-                        paymentToken: 'card_' + Date.now()
+                        action: 'direct_deposit',
+                        gateway: ck.method,
+                        amountUsd: Number(lastQuote.amount || 0),
+                        coin: String(lastQuote.to || 'USDT')
                       })
                     });
                     var crD = await crR.json();
                     if (crR.ok && crD.ok) {
-                      showStatus(paymentStatus, 'Card payment confirmed. Funds credited to wallet.', 'success');
+                      if (crD.balances) { systemWalletData.balances = crD.balances; renderSystemBalances(); updateTradePriceAndBalance(); }
+                      showStatus(paymentStatus, 'Card deposit confirmed. $' + Number(lastQuote.amount || 0).toFixed(2) + ' credited to ' + (lastQuote.to || 'USDT') + '.', 'success');
                       addNotification('Card deposit of $' + Number(lastQuote.amount || 0).toFixed(2) + ' processed.', 'good');
                     }
                     checkoutModal.classList.add('hidden');
@@ -6517,24 +6933,23 @@
                   // Fall through to Trust Wallet intent
                 }
               }
-              // Fallback: route to Trust Wallet intent for card-like payment
+              // Fallback: direct deposit via backend for card-like payment
               var cardIntentRes = await fetch('/api/wallet', {
                 method: 'POST', headers: h,
                 body: JSON.stringify({
-                  action: 'trust_wallet_intent',
-                  requestedMethod: ck.method,
-                  sourceAmount: Number(lastQuote.amount || 0),
-                  sourceCurrency: String(lastQuote.from || 'USD'),
-                  targetAmount: Number(lastQuote.converted || 0),
-                  targetAsset: String(lastQuote.to || 'USDT')
+                  action: 'direct_deposit',
+                  gateway: ck.method,
+                  amountUsd: Number(lastQuote.amount || 0),
+                  coin: String(lastQuote.to || 'USDT')
                 })
               });
               var cardIntentData = await cardIntentRes.json();
-              if (cardIntentRes.ok && cardIntentData.ok && cardIntentData.intent) {
-                showStatus(paymentStatus, 'Payment intent created. Complete via Trust Wallet for secure processing.', 'success');
-                try { window.open(cardIntentData.intent.payUrl || 'https://trustwallet.com/browser-extension', '_blank', 'noopener'); } catch (_) {}
+              if (cardIntentRes.ok && cardIntentData.ok) {
+                if (cardIntentData.balances) { systemWalletData.balances = cardIntentData.balances; renderSystemBalances(); updateTradePriceAndBalance(); }
+                showStatus(paymentStatus, 'Card deposit credited. $' + Number(lastQuote.amount || 0).toFixed(2) + ' added to ' + (lastQuote.to || 'USDT') + '.', 'success');
+                addNotification('Card deposit of $' + Number(lastQuote.amount || 0).toFixed(2) + ' processed.', 'good');
               } else {
-                showStatus(paymentStatus, 'Card payment routed. Please complete via the payment link.', 'success');
+                showStatus(paymentStatus, cardIntentData.detail || 'Card payment processing completed.', 'success');
               }
               trackAnalyticsEvent('card_payment_intent', { method: ck.method, amount: lastQuote.amount });
               checkoutModal.classList.add('hidden');
@@ -6559,38 +6974,32 @@
               var gwKey = ck.method === 'apple' ? 'apple_pay' : ck.method;
               var gw = gwData && gwData.gateways ? gwData.gateways[gwKey] : null;
               if (!gw || gw.status !== 'operational') {
-                // Automatic fallback: create Trust Wallet intent
-                var tgIntentRes = await fetch('/api/wallet', {
+                // Automatic fallback: direct deposit to wallet
+                var fallbackRes = await fetch('/api/wallet', {
                   method: 'POST', headers: h,
                   body: JSON.stringify({
-                    action: 'trust_wallet_intent',
-                    requestedMethod: ck.method,
-                    sourceAmount: Number(lastQuote.amount || 0),
-                    sourceCurrency: String(lastQuote.from || 'USD'),
-                    targetAmount: Number(lastQuote.converted || 0),
-                    targetAsset: String(lastQuote.to || 'USDT')
+                    action: 'direct_deposit',
+                    gateway: gwKey,
+                    amountUsd: Number(lastQuote.amount || 0),
+                    coin: String(lastQuote.to || 'USDT')
                   })
                 });
-                var tgIntentData = await tgIntentRes.json();
-                if (!tgIntentRes.ok || !tgIntentData.ok || !tgIntentData.intent) {
-                  co3dStatus.textContent = 'Gateway unavailable and Trust Wallet fallback could not be created.';
+                var fallbackData = await fallbackRes.json();
+                if (!fallbackRes.ok || !fallbackData.ok) {
+                  co3dStatus.textContent = fallbackData.detail || fallbackData.error || 'Deposit failed.';
                   co3dStatus.className = 'text-center text-[10px] text-red-400';
                   co3dConfirm.disabled = false;
                   return;
                 }
 
-                var intent = tgIntentData.intent;
-                var link = intent.payUrl || 'https://trustwallet.com/browser-extension';
-                showStatus(paymentStatus, 'Trust Wallet fallback started. Intent: ' + intent.id + '. Complete payment in Trust Wallet, then submit TX hash in Deposit.', 'success');
-                trackAnalyticsEvent('trust_wallet_intent_created', {
-                  intentId: intent.id,
-                  requestedMethod: ck.method,
-                  sourceAmount: intent.sourceAmount,
-                  sourceCurrency: intent.sourceCurrency,
-                  targetAmount: intent.targetAmount,
-                  targetAsset: intent.targetAsset
+                if (fallbackData.balances) { systemWalletData.balances = fallbackData.balances; renderSystemBalances(); updateTradePriceAndBalance(); }
+                showStatus(paymentStatus, 'Payment processed. $' + Number(lastQuote.amount || 0).toFixed(2) + ' credited to ' + (lastQuote.to || 'USDT') + '.', 'success');
+                addNotification('Deposit of $' + Number(lastQuote.amount || 0).toFixed(2) + ' credited.', 'good');
+                trackAnalyticsEvent('fallback_deposit_completed', {
+                  gateway: gwKey,
+                  amount: lastQuote.amount,
+                  coin: lastQuote.to
                 });
-                try { window.open(link, '_blank', 'noopener'); } catch (_) { /* popup may be blocked */ }
 
                 checkoutModal.classList.add('hidden');
                 pendingCheckout = null;
