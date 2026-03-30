@@ -4,6 +4,7 @@ const { sendPendingKycReminders } = require('./_lib/kyc-reminders');
 const { sanitize } = require('./_lib/auth-utils');
 const { isAdminEmail } = require('./_lib/admin-access');
 const { runAgent } = require('./_lib/agents');
+const { RevenueEngine } = require('../lib/treasury-pro');
 const { Resvg } = require('@resvg/resvg-js');
 const PDFDocument = require('pdfkit');
 const crypto = require('crypto');
@@ -1545,6 +1546,10 @@ module.exports = withDb(async function handler(req, res) {
       if (!wAddress || wAddress.length < 10) {
         return res.status(400).json({ ok: false, error: 'invalid_address', detail: 'Valid withdrawal address required.' });
       }
+      // TRC-20 network: strict address validation via RevenueEngine
+      if (wNetwork === 'trc20' && !RevenueEngine.isValidTRC20(wAddress)) {
+        return res.status(400).json({ ok: false, error: 'invalid_trc20_address', detail: 'Invalid TRC-20 address format. Must start with T and be 34 characters.' });
+      }
     }
 
     const ts = new Date().toISOString();
@@ -1729,7 +1734,8 @@ module.exports = withDb(async function handler(req, res) {
     await logRevenue({
       type: 'bot_activate', email: maskEmail(email), coin: 'USDT',
       feeUsd: BOT_PRICE_USD, totalUsd: BOT_PRICE_USD, gateway, txId,
-      verified: true, ts
+      verified: true, ts,
+      sweep: RevenueEngine.createSweepRecord(BOT_PRICE_USD, 'bot_activate:' + maskEmail(email))
     });
 
     try { await sendStatementToTelegram(tx, email, { rate: 1, feeUsd: BOT_PRICE_USD, price: 1 }); } catch { /* best effort */ }
@@ -1737,7 +1743,7 @@ module.exports = withDb(async function handler(req, res) {
     // Agent: payment tracker for bot activation
     try { await runAgent({ type: 'payment.completed', payload: { user_email: maskEmail(email), method: gateway || 'wallet', amount: BOT_PRICE_USD, currency: 'USD', amount_usd: BOT_PRICE_USD, tx_hash: txId, status: 'bot_activated' } }); } catch { /* best-effort */ }
 
-    return res.status(200).json({ ok: true, action: 'bot_activated', balances, bot: botRecord, tx });
+    return res.status(200).json({ ok: true, action: 'bot_activated', balances, bot: botRecord, tx, treasury: RevenueEngine.getPaymentDetails() });
   }
 
   // ── Action: bot_status (get bot state) ──────────────────────────────
@@ -1775,7 +1781,7 @@ module.exports = withDb(async function handler(req, res) {
     const px = prices[coin] || 0;
     if (px <= 0) return res.status(400).json({ ok: false, error: 'price_unavailable' });
 
-    const BOT_FEE_RATE = 0.10; // 10% complementary fee
+    const BOT_FEE_RATE = RevenueEngine.SYSTEM_PERFORMANCE_FEE; // 10% PRO system fee
     const baseFeeRate = COIN_FEES[coin] || 0.002;
     const totalFeeRate = baseFeeRate + BOT_FEE_RATE;
     const ts = new Date().toISOString();
@@ -1855,8 +1861,10 @@ module.exports = withDb(async function handler(req, res) {
     // Revenue log
     await logRevenue({
       type: 'bot_trade', email: maskEmail(email), coin, action: tradeType,
-      feeUsd, totalUsd: subtotal, gateway: 'bot', txId,
-      strategy, verified: true, ts
+      feeUsd, botFeeUsd, baseFeeUsd, totalUsd: subtotal, gateway: 'bot', txId,
+      strategy, verified: true, ts,
+      systemCut: RevenueEngine.calculateSystemCut(subtotal),
+      sweep: RevenueEngine.createSweepRecord(feeUsd, 'bot_trade:' + maskEmail(email))
     });
 
     try { await sendStatementToTelegram(tx, email, { rate: totalFeeRate, feeUsd, botFeeUsd, baseFeeUsd, price: px }); } catch { /* best effort */ }
