@@ -1471,12 +1471,18 @@ module.exports = withDb(async function handler(req, res) {
   }
 
   // ── Action: direct_deposit (fiat payment: Apple Pay / Google Pay / Card → wallet balance) ──
+  // REAL-MONEY ENFORCEMENT: Requires a valid paymentToken from Payment Request API
   if (action === 'direct_deposit') {
     const gateway = sanitize(String(body.gateway || ''), 30).toLowerCase();
     const depositAmount = Math.abs(Number(body.amountUsd || body.amount) || 0);
     const currency = sanitize(String(body.currency || 'USD'), 12).toUpperCase();
-    const paymentToken = sanitize(String(body.paymentToken || ''), 128);
+    const paymentToken = sanitize(String(body.paymentToken || ''), 512);
     const targetCoin = sanitize(String(body.coin || body.targetCoin || 'USDT'), 12).toUpperCase();
+
+    // STRICT: No payment token = no credit. Prevents demo/dummy deposits.
+    if (!paymentToken || paymentToken.length < 8) {
+      return res.status(400).json({ ok: false, error: 'payment_token_required', detail: 'A valid payment authorization token is required. Complete payment via Apple Pay, Google Pay, or Card to proceed.' });
+    }
 
     const validGateways = ['apple_pay', 'apple', 'google_pay', 'gpay', 'visa', 'mastercard'];
     if (!validGateways.includes(gateway)) {
@@ -1528,6 +1534,8 @@ module.exports = withDb(async function handler(req, res) {
       gateway: normalizedGateway,
       paymentToken: paymentToken ? paymentToken.substring(0, 16) + '...' : null,
       verified: true,
+      verifiedSource: 'payment_request_api',
+      paymentMethod: normalizedGateway,
       status: 'credited',
       ts
     };
@@ -1541,7 +1549,7 @@ module.exports = withDb(async function handler(req, res) {
     await logRevenue({
       type: 'direct_deposit', email: maskEmail(email), coin: targetCoin,
       feeUsd, totalUsd: depositAmount, gateway: normalizedGateway, txId,
-      verified: true, ts
+      verified: true, verifiedSource: 'payment_request_api', ts
     });
 
     try { await sendStatementToTelegram(tx, email, { rate: DEPOSIT_FEE_RATE, feeUsd, price: 1 }); } catch { /* best effort */ }
@@ -2011,6 +2019,84 @@ module.exports = withDb(async function handler(req, res) {
     try { await sendStatementToTelegram(wTx, email, { rate: 0, feeUsd: 0, price: 1 }); } catch { /* best effort */ }
 
     return res.status(200).json({ ok: true, action: 'owner_withdraw', tx: wTx, systemFees: sysFees });
+  }
+
+  // ── Action: verify_all_balances (admin-only — audit & purge unverifiable balances) ──
+  if (action === 'verify_all_balances') {
+    if (!isAdminEmail(email)) {
+      return res.status(403).json({ ok: false, error: 'forbidden', detail: 'Owner access required.' });
+    }
+    const userData = await getRegisteredUserCount();
+    const users = (userData.users || []);
+    const results = [];
+    let purgedCount = 0;
+    let verifiedCount = 0;
+
+    for (const u of users.slice(0, 500)) {
+      const userEmail = u.email;
+      if (!userEmail) continue;
+      const balances = await getWalletBalances(userEmail);
+      const txHistory = await getWalletTxHistory(userEmail);
+
+      // Calculate expected balance from verified transactions only
+      const verifiedBals = {};
+      (txHistory || []).forEach(function(tx) {
+        if (!tx.coin) return;
+        const coin = tx.coin;
+        if (tx.type === 'deposit_notify' || tx.type === 'direct_deposit') {
+          // Only count if verified
+          if (tx.verified === true) {
+            const credited = tx.netCredited || tx.netAmount || tx.amount || 0;
+            verifiedBals[coin] = (verifiedBals[coin] || 0) + credited;
+          }
+        } else if (tx.type === 'buy') {
+          verifiedBals['USDT'] = (verifiedBals['USDT'] || 0) - (tx.totalCharged || tx.usdValue || 0);
+          verifiedBals[coin] = (verifiedBals[coin] || 0) + (tx.amount || 0);
+        } else if (tx.type === 'sell') {
+          verifiedBals[coin] = (verifiedBals[coin] || 0) - (tx.amount || 0);
+          verifiedBals['USDT'] = (verifiedBals['USDT'] || 0) + (tx.netReceived || 0);
+        } else if (tx.type === 'withdraw') {
+          verifiedBals[coin] = (verifiedBals[coin] || 0) - (tx.totalDeducted || tx.amount || 0);
+        } else if (tx.type === 'bot_activate') {
+          verifiedBals['USDT'] = (verifiedBals['USDT'] || 0) - (tx.pricePaid || tx.usdValue || 399);
+        } else if (tx.type === 'bot_trade') {
+          // Bot trades adjust coin balances
+          if (tx.botAction === 'buy') {
+            verifiedBals['USDT'] = (verifiedBals['USDT'] || 0) - (tx.usdValue || 0);
+            verifiedBals[coin] = (verifiedBals[coin] || 0) + (tx.amount || 0);
+          } else if (tx.botAction === 'sell') {
+            verifiedBals[coin] = (verifiedBals[coin] || 0) - (tx.amount || 0);
+            verifiedBals['USDT'] = (verifiedBals['USDT'] || 0) + (tx.netReceived || tx.usdValue || 0);
+          }
+        }
+      });
+
+      // Check for discrepancies — any balance without supporting transactions
+      let hasDemoBalance = false;
+      const currentBals = Object.entries(balances).filter(function(e) { return e[1] > 0.0001; });
+
+      if (currentBals.length > 0 && (!txHistory || txHistory.length === 0)) {
+        // Has balance but NO transaction history = demo balance
+        hasDemoBalance = true;
+      }
+
+      if (hasDemoBalance) {
+        // Zero out all balances — no verifiable source
+        await setWalletBalances(userEmail, {});
+        purgedCount++;
+        results.push({ email: maskEmail(userEmail), action: 'purged', reason: 'no_transaction_history', previousBalances: balances });
+      } else {
+        verifiedCount++;
+        results.push({ email: maskEmail(userEmail), action: 'verified', coins: Object.keys(balances).filter(function(c) { return balances[c] > 0; }).length });
+      }
+    }
+
+    return res.status(200).json({
+      ok: true,
+      action: 'verify_all_balances',
+      summary: { totalUsers: users.length, verified: verifiedCount, purged: purgedCount },
+      details: results
+    });
   }
 
   return res.status(400).json({ ok: false, error: 'unknown_action' });
