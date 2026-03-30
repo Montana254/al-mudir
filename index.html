@@ -679,16 +679,46 @@
     }
 
     .dash-nav-btn {
-      border: 1px solid #2f3741;
-      background: #101418;
+      border: 1px solid transparent;
+      background: transparent;
       color: #cfd4db;
       transition: all 0.2s ease;
+      border-radius: 0.5rem;
     }
 
-    .dash-nav-btn.active,
     .dash-nav-btn:hover {
+      background: rgba(255,255,255,0.04);
+      color: #fff;
+    }
+
+    .dash-nav-btn.active {
       border-color: var(--dash-accent);
+      background: rgba(180, 247, 49, 0.06);
       color: var(--dash-accent);
+    }
+
+    .dash-nav-btn[data-panel="flights"].active {
+      border-color: rgba(139, 92, 246, 0.5);
+      background: rgba(139, 92, 246, 0.06);
+      color: #a78bfa;
+    }
+
+    .dash-nav-btn[data-panel="trade"].active {
+      border-color: rgba(74, 222, 128, 0.4);
+      background: rgba(74, 222, 128, 0.06);
+      color: #4ade80;
+    }
+
+    .dash-nav-btn[data-panel="deposit"].active {
+      border-color: rgba(96, 165, 250, 0.4);
+      background: rgba(96, 165, 250, 0.06);
+      color: #60a5fa;
+    }
+
+    .dash-nav-btn[data-panel="bot"].active {
+      border-color: rgba(250, 204, 21, 0.35);
+      background: rgba(250, 204, 21, 0.06);
+      color: #facc15;
     }
 
     .dash-mobile-nav {
@@ -834,6 +864,26 @@
       background: rgba(139, 92, 246, 0.08);
       color: #a78bfa;
     }
+    .dash-mobile-nav-btn[data-panel="trade"].active {
+      border-color: rgba(74, 222, 128, 0.3);
+      background: rgba(74, 222, 128, 0.06);
+      color: #4ade80;
+    }
+    .dash-mobile-nav-btn[data-panel="deposit"].active {
+      border-color: rgba(96, 165, 250, 0.3);
+      background: rgba(96, 165, 250, 0.06);
+      color: #60a5fa;
+    }
+    .dash-mobile-nav-btn[data-panel="bot"].active {
+      border-color: rgba(250, 204, 21, 0.3);
+      background: rgba(250, 204, 21, 0.06);
+      color: #facc15;
+    }
+    .dash-mobile-nav-btn[data-panel="profile"].active {
+      border-color: rgba(156, 163, 175, 0.3);
+      background: rgba(156, 163, 175, 0.06);
+      color: #d1d5db;
+    }
 
     /* Flight card styles */
     #flightResults .dash-card:hover {
@@ -929,7 +979,7 @@
       <p class="reveal r3 mx-auto mt-8 max-w-2xl text-gray-300">Institutional-grade management with seven-figure AUM and precision execution across macro and digital markets.</p>
       <div class="reveal r4 mt-10 flex flex-col justify-center gap-4 md:flex-row">
         <a href="#portalAuth" class="btn-gold rounded px-10 py-4 text-sm">Join Now</a>
-        <a href="#terminal" class="btn-outline rounded px-10 py-4 text-sm">View Terminal</a>
+        <a href="#terminal" class="btn-outline rounded px-10 py-4 text-sm">View Services</a>
       </div>
     </div>
   </section>
@@ -1280,24 +1330,27 @@
 
             <p id="dashUserId" class="hidden">-</p>
             <p id="dashBrokerId" class="hidden">-</p>
-            <div class="mt-5 hidden space-y-2 lg:block">
-              <button data-panel="home" class="dash-nav-btn active dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Home</button>
-              <button data-panel="trade" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Trade</button>
-              <button data-panel="bot" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs"><i class="fa-solid fa-robot mr-1 text-[var(--dash-accent)]"></i>Trading Bot</button>
-              <button data-panel="deposit" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Deposit</button>
-              <button data-panel="flights" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs"><i class="fa-solid fa-plane mr-1 text-violet-400"></i>Flights</button>
-              <button data-panel="profile" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Profile</button>
-              <button data-panel="owner" id="ownerNavBtn" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs hidden"><i class="fa-solid fa-crown mr-1 text-[var(--dash-accent)]"></i>Owner</button>
+            <div class="mt-5 hidden space-y-1.5 lg:block">
+              <button data-panel="home" class="dash-nav-btn active dashboard-nav-btn w-full rounded-lg px-3 py-2.5 text-left text-xs flex items-center gap-2"><i class="fa-solid fa-house text-[11px] text-gray-400"></i>Home</button>
+              <button data-panel="trade" class="dash-nav-btn dashboard-nav-btn w-full rounded-lg px-3 py-2.5 text-left text-xs flex items-center gap-2"><i class="fa-solid fa-chart-line text-[11px] text-green-400"></i>Trade</button>
+              <button data-panel="bot" class="dash-nav-btn dashboard-nav-btn w-full rounded-lg px-3 py-2.5 text-left text-xs flex items-center gap-2"><i class="fa-solid fa-robot text-[11px] text-yellow-400"></i>AI Bot</button>
+              <button data-panel="deposit" class="dash-nav-btn dashboard-nav-btn w-full rounded-lg px-3 py-2.5 text-left text-xs flex items-center gap-2"><i class="fa-solid fa-wallet text-[11px] text-blue-400"></i>Deposit & Withdraw</button>
+              <button data-panel="flights" class="dash-nav-btn dashboard-nav-btn w-full rounded-lg px-3 py-2.5 text-left text-xs flex items-center gap-2"><i class="fa-solid fa-plane text-[11px] text-violet-400"></i>Flights</button>
+              <button data-panel="profile" class="dash-nav-btn dashboard-nav-btn w-full rounded-lg px-3 py-2.5 text-left text-xs flex items-center gap-2"><i class="fa-solid fa-user text-[11px] text-gray-400"></i>Profile</button>
+              <button data-panel="owner" id="ownerNavBtn" class="dash-nav-btn dashboard-nav-btn w-full rounded-lg px-3 py-2.5 text-left text-xs flex items-center gap-2 hidden"><i class="fa-solid fa-crown text-[11px] text-[var(--dash-accent)]"></i>Owner</button>
             </div>
           </aside>
 
           <main class="space-y-6">
             <div class="pro-strip rounded-xl p-5">
-              <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Command Center</p>
-                  <h5 class="mt-2 text-xl text-white">Portfolio Intelligence Dashboard</h5>
-                  <p class="mt-2 text-sm text-gray-400">Exchange-grade layout for markets, allocation, wallet flow, and profile controls.</p>
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400"><i class="fa-solid fa-terminal mr-1.5 text-[var(--dash-accent)]/60"></i>Command Center</p>
+                  <h5 class="mt-1.5 text-lg sm:text-xl text-white">Welcome back<span id="dashGreetName" class="text-gray-300"></span></h5>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                  <span class="text-[10px] uppercase tracking-[0.14em] text-green-400">All Systems Live</span>
                 </div>
               </div>
               <!-- Services Carousel — Interactive -->
@@ -1330,7 +1383,7 @@
                       <p class="mt-2 text-[9px] text-purple-400/70 uppercase tracking-wider group-hover:text-purple-400 transition-colors">Tap to pay →</p>
                     </div>
                   </div>
-                  <div onclick="switchDashboardPanel('profile');setTimeout(function(){openProfileSection('profileWithdrawSection')},300)" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#0a1628,#1a3a5c,#2d6a8e);">
+                  <div onclick="switchDashboardPanel('deposit');setTimeout(function(){var ws=document.getElementById('withdrawCoinSelect');if(ws)ws.scrollIntoView({behavior:'smooth',block:'center'})},400)" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#0a1628,#1a3a5c,#2d6a8e);">
                     <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent group-hover:from-cyan-500/20 transition-all"></div>
                     <div class="relative px-4 py-4">
                       <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-cyan-400">Live</p></div>
@@ -1366,7 +1419,7 @@
                       <p class="mt-2 text-[9px] text-violet-400/70 uppercase tracking-wider group-hover:text-violet-400 transition-colors">Tap to browse →</p>
                     </div>
                   </div>
-                  <div onclick="switchDashboardPanel('profile');setTimeout(function(){openProfileSection('profileKYCSection')},300)" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#1a1a1a,#2a2a2a,#3a3a3a);">
+                  <div onclick="switchDashboardPanel('profile');setTimeout(function(){openProfileSection('profileKycSection')},300)" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#1a1a1a,#2a2a2a,#3a3a3a);">
                     <div class="absolute inset-0 bg-gradient-to-br from-gray-400/10 to-transparent group-hover:from-gray-400/20 transition-all"></div>
                     <div class="relative px-4 py-4">
                       <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-gray-400">Secure</p></div>
@@ -1419,10 +1472,10 @@
                     <p id="portfolioSubline" class="mt-1 text-sm text-gray-500">Total across all coins</p>
                     <div id="homeCoinBreakdown" class="mt-4 space-y-1"></div>
                     <div class="mt-4 grid grid-cols-2 gap-3">
-                      <button onclick="switchDashboardPanel('deposit')" class="wallet-quick-btn rounded py-2 text-xs">Deposit</button>
-                      <button onclick="switchDashboardPanel('trade')" class="wallet-quick-btn rounded py-2 text-xs">Trade</button>
-                      <button class="wallet-quick-btn rounded py-2 text-xs">History</button>
-                      <button onclick="switchDashboardPanel('profile')" class="wallet-quick-btn rounded py-2 text-xs">Profile</button>
+                      <button onclick="switchDashboardPanel('deposit')" class="wallet-quick-btn rounded py-2 text-xs"><i class="fa-solid fa-arrow-down text-[9px] mr-1 opacity-60"></i>Deposit</button>
+                      <button onclick="switchDashboardPanel('trade')" class="wallet-quick-btn rounded py-2 text-xs"><i class="fa-solid fa-chart-line text-[9px] mr-1 opacity-60"></i>Trade</button>
+                      <button onclick="switchDashboardPanel('deposit');setTimeout(function(){var ws=document.getElementById('withdrawCoinSelect');if(ws)ws.scrollIntoView({behavior:'smooth',block:'center'})},400)" class="wallet-quick-btn rounded py-2 text-xs"><i class="fa-solid fa-arrow-up text-[9px] mr-1 opacity-60"></i>Withdraw</button>
+                      <button onclick="switchDashboardPanel('profile')" class="wallet-quick-btn rounded py-2 text-xs"><i class="fa-solid fa-user text-[9px] mr-1 opacity-60"></i>Profile</button>
                     </div>
                   </div>
 
@@ -2251,7 +2304,11 @@
               <!-- ── Service Menu Buttons ── -->
               <div class="dash-card rounded-xl p-5 space-y-3">
                 <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Services</p>
-                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+                  <button onclick="switchDashboardPanel('deposit');setTimeout(function(){var ws=document.getElementById('withdrawCoinSelect');if(ws)ws.scrollIntoView({behavior:'smooth',block:'center'})},300)" class="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-black/20 p-4 text-center transition hover:border-cyan-400/50 hover:bg-cyan-500/5">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20"><i class="fa-solid fa-money-bill-transfer"></i></span>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-300 group-hover:text-white">Withdraw</span>
+                  </button>
                   <button data-profile-section="profileSettingsSection" class="profile-menu-btn group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-black/20 p-4 text-center transition hover:border-[var(--dash-accent)]/50 hover:bg-[var(--dash-accent)]/5">
                     <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--dash-accent)]/10 text-[var(--dash-accent)] group-hover:bg-[var(--dash-accent)]/20"><i class="fa-solid fa-gear"></i></span>
                     <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-300 group-hover:text-white">Account Settings</span>
@@ -3966,10 +4023,15 @@
       if (tickerTimer) clearInterval(tickerTimer);
       if (orderBookTimer) clearInterval(orderBookTimer);
       if (marketPricesTimer) clearInterval(marketPricesTimer);
+      if (window._flightRefreshTimer) clearInterval(window._flightRefreshTimer);
       dashboardPulseTimer = setInterval(tickDashboardNumbers, 6000);
       tickerTimer = setInterval(tickMarketSnapshot, 2500);
       orderBookTimer = setInterval(renderOrderBook, 1700);
       marketPricesTimer = setInterval(fetchMarketPrices, MARKET_PRICES_INTERVAL);
+      // Auto-refresh flight deals every 5 minutes
+      window._flightRefreshTimer = setInterval(function() {
+        loadPopularFlights();
+      }, 300000);
     }
 
     function getSession() {
@@ -4547,6 +4609,12 @@
       const systemId = user.userId || 'Pending';
       const brokerId = (user.brokerProfile && user.brokerProfile.accountId) || null;
       dashName.textContent = user.name;
+      // Greeting in command center
+      var greetEl = document.getElementById('dashGreetName');
+      if (greetEl) {
+        var firstName = (user.name || '').split(' ')[0];
+        greetEl.textContent = firstName ? ', ' + firstName : '';
+      }
       dashEmail.textContent = user.userId || 'Pending';
       dashUserId.textContent = 'AL-MUDIR ID: ' + systemId;
       if (dashBrokerId) {
@@ -4621,6 +4689,11 @@
         loadOwnerDashboard();
       }
       if (panel === 'flights') {
+        // Set minimum depart date to today
+        var departInput = document.getElementById('flightDepart');
+        if (departInput && !departInput.value) {
+          departInput.min = new Date().toISOString().split('T')[0];
+        }
         loadPopularFlights();
       }
     }
