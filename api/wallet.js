@@ -2099,5 +2099,269 @@ module.exports = withDb(async function handler(req, res) {
     });
   }
 
+  // ── Action: flight_deals (public — fetch live flight deals from Travelpayouts) ──
+  if (action === 'flight_deals') {
+    const origin = sanitize(String(body.origin || 'NYC').toUpperCase()).slice(0, 3);
+    const destination = sanitize(String(body.destination || '').toUpperCase()).slice(0, 3);
+    const departDate = sanitize(String(body.depart_date || ''));
+    const returnDate = sanitize(String(body.return_date || ''));
+    const passengers = Math.min(Math.max(parseInt(body.passengers) || 1, 1), 9);
+
+    try {
+      // Use Travelpayouts/Aviasales cheapest-tickets API (free, no key needed for public data)
+      const searchParams = new URLSearchParams({
+        currency: 'USD',
+        origin: origin,
+        page: '1',
+        limit: '20',
+        sorting: 'price',
+        trip_class: '0'
+      });
+      if (destination) searchParams.set('destination', destination);
+      if (departDate) searchParams.set('depart_date', departDate);
+      if (returnDate) searchParams.set('return_date', returnDate);
+
+      // Fetch from multiple sources for best coverage
+      const [pricesResp, popularResp] = await Promise.all([
+        fetch('https://api.travelpayouts.com/aviasales/v3/prices_for_dates?' + searchParams.toString(), {
+          headers: { 'X-Access-Token': '5b1eb2895eee96cdc85cd74ad0e2e368' }
+        }).catch(() => null),
+        fetch('https://api.travelpayouts.com/aviasales/v3/get_latest_prices?' + new URLSearchParams({
+          currency: 'USD', origin: origin, limit: '15', sorting: 'price',
+          token: '5b1eb2895eee96cdc85cd74ad0e2e368'
+        }), {
+          headers: { 'X-Access-Token': '5b1eb2895eee96cdc85cd74ad0e2e368' }
+        }).catch(() => null)
+      ]);
+
+      let flights = [];
+      const SERVICE_FEE_PCT = 0.035; // 3.5% service fee
+
+      if (pricesResp && pricesResp.ok) {
+        const pricesData = await pricesResp.json();
+        if (pricesData.data && Array.isArray(pricesData.data)) {
+          flights = pricesData.data.map(f => ({
+            id: f.departure_at + '-' + f.origin + '-' + f.destination,
+            origin: f.origin,
+            destination: f.destination,
+            airline: f.airline || 'Multiple',
+            depart: f.departure_at,
+            arrive: f.return_at || null,
+            price: +(f.price * passengers).toFixed(2),
+            serviceFee: +((f.price * passengers) * SERVICE_FEE_PCT).toFixed(2),
+            totalPrice: +((f.price * passengers) * (1 + SERVICE_FEE_PCT)).toFixed(2),
+            duration: f.duration || null,
+            transfers: f.transfers || 0,
+            link: f.link ? ('https://www.aviasales.com' + f.link) : null,
+            flightNumber: f.flight_number || null,
+            passengers: passengers
+          }));
+        }
+      }
+
+      if (flights.length === 0 && popularResp && popularResp.ok) {
+        const popData = await popularResp.json();
+        if (popData.data && Array.isArray(popData.data)) {
+          flights = popData.data.map(f => ({
+            id: f.departure_at + '-' + f.origin + '-' + f.destination,
+            origin: f.origin,
+            destination: f.destination,
+            airline: f.airline || 'Multiple',
+            depart: f.departure_at,
+            arrive: f.return_at || null,
+            price: +(f.price * passengers).toFixed(2),
+            serviceFee: +((f.price * passengers) * SERVICE_FEE_PCT).toFixed(2),
+            totalPrice: +((f.price * passengers) * (1 + SERVICE_FEE_PCT)).toFixed(2),
+            duration: f.duration || null,
+            transfers: f.transfers || 0,
+            link: f.link ? ('https://www.aviasales.com' + f.link) : null,
+            flightNumber: f.flight_number || null,
+            passengers: passengers
+          }));
+        }
+      }
+
+      return res.status(200).json({
+        ok: true,
+        action: 'flight_deals',
+        origin: origin,
+        destination: destination || 'ANY',
+        passengers: passengers,
+        serviceFeeRate: (SERVICE_FEE_PCT * 100).toFixed(1) + '%',
+        flights: flights.slice(0, 20),
+        ts: new Date().toISOString()
+      });
+    } catch (err) {
+      return res.status(200).json({ ok: true, action: 'flight_deals', flights: [], error: 'fetch_failed' });
+    }
+  }
+
+  // ── Action: book_flight (authenticated — book a flight using wallet balance or payment) ──
+  if (action === 'book_flight') {
+    if (!email) return res.status(401).json({ ok: false, error: 'unauthorized' });
+
+    const flightId = sanitize(String(body.flightId || ''));
+    const totalPrice = parseFloat(body.totalPrice);
+    const payMethod = sanitize(String(body.payMethod || 'wallet'));
+    const flightDetails = body.flightDetails || {};
+
+    if (!flightId || !totalPrice || totalPrice <= 0) {
+      return res.status(400).json({ ok: false, error: 'invalid_booking', detail: 'Flight ID and valid price required.' });
+    }
+
+    const SERVICE_FEE_PCT = 0.035;
+    const serviceFee = +(totalPrice * SERVICE_FEE_PCT / (1 + SERVICE_FEE_PCT)).toFixed(2);
+    const basePrice = +(totalPrice - serviceFee).toFixed(2);
+
+    if (payMethod === 'wallet' || payMethod === 'crypto') {
+      const bals = await getWalletBalances(email);
+      const usdtBal = bals['USDT'] || 0;
+      if (usdtBal < totalPrice) {
+        return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + totalPrice.toFixed(2) + ' USDT, have $' + usdtBal.toFixed(2) });
+      }
+      bals['USDT'] = +(usdtBal - totalPrice).toFixed(2);
+      await setWalletBalances(email, bals);
+    } else {
+      // Card / Apple Pay / GPay — require paymentToken
+      const paymentToken = sanitize(String(body.paymentToken || ''));
+      if (!paymentToken || paymentToken.length < 8) {
+        return res.status(400).json({ ok: false, error: 'payment_token_required', detail: 'Valid payment authorization required for card payments.' });
+      }
+    }
+
+    // Record booking as transaction
+    const ts = new Date().toISOString();
+    const bookingRef = 'FLT-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const bookingTx = {
+      type: 'flight_booking',
+      bookingRef: bookingRef,
+      flightId: flightId,
+      origin: sanitize(String(flightDetails.origin || '')),
+      destination: sanitize(String(flightDetails.destination || '')),
+      airline: sanitize(String(flightDetails.airline || '')),
+      depart: sanitize(String(flightDetails.depart || '')),
+      passengers: parseInt(flightDetails.passengers) || 1,
+      basePrice: basePrice,
+      serviceFee: serviceFee,
+      totalCharged: totalPrice,
+      payMethod: payMethod,
+      coin: 'USDT',
+      amount: totalPrice,
+      verified: true,
+      ts: ts
+    };
+    await appendWalletTx(email, bookingTx);
+
+    // Channel service fee to system wallet
+    await addSystemFee('USDT', serviceFee);
+    await appendSystemTx({
+      type: 'flight_booking_fee', email: maskEmail(email), bookingRef,
+      serviceFee, totalCharged: totalPrice, ts
+    });
+
+    // Log revenue
+    await logRevenue({
+      type: 'flight_booking', email: maskEmail(email), coin: 'USDT',
+      feeUsd: serviceFee, totalUsd: totalPrice, gateway: payMethod,
+      bookingRef, verified: true, ts
+    });
+
+    return res.status(200).json({
+      ok: true,
+      action: 'book_flight',
+      bookingRef: bookingRef,
+      totalCharged: totalPrice,
+      serviceFee: serviceFee,
+      payMethod: payMethod,
+      ts: ts
+    });
+  }
+
+  // ── Action: purge_demo_balances (admin-only — aggressive purge of ALL non-verified balances) ──
+  if (action === 'purge_demo_balances') {
+    if (!isAdminEmail(email)) {
+      return res.status(403).json({ ok: false, error: 'forbidden' });
+    }
+    const userData = await getRegisteredUserCount();
+    const users = (userData.users || []);
+    let purgedCount = 0;
+    let verifiedCount = 0;
+    const results = [];
+
+    for (const u of users.slice(0, 500)) {
+      const userEmail = u.email;
+      if (!userEmail) continue;
+      const balances = await getWalletBalances(userEmail);
+      const txHistory = await getWalletTxHistory(userEmail);
+      const currentBals = Object.entries(balances).filter(e => e[1] > 0.0001);
+      if (currentBals.length === 0) { verifiedCount++; continue; }
+
+      // Rebuild expected balances from verified tx only
+      const expected = {};
+      (txHistory || []).forEach(tx => {
+        const c = tx.coin;
+        if (!c) return;
+        if ((tx.type === 'deposit_notify' || tx.type === 'direct_deposit') && tx.verified === true) {
+          expected[c] = (expected[c] || 0) + (tx.netCredited || tx.netAmount || tx.amount || 0);
+        } else if (tx.type === 'buy') {
+          expected['USDT'] = (expected['USDT'] || 0) - (tx.totalCharged || tx.usdValue || 0);
+          expected[c] = (expected[c] || 0) + (tx.amount || 0);
+        } else if (tx.type === 'sell') {
+          expected[c] = (expected[c] || 0) - (tx.amount || 0);
+          expected['USDT'] = (expected['USDT'] || 0) + (tx.netReceived || 0);
+        } else if (tx.type === 'withdraw') {
+          expected[c] = (expected[c] || 0) - (tx.totalDeducted || tx.amount || 0);
+        } else if (tx.type === 'bot_activate') {
+          expected['USDT'] = (expected['USDT'] || 0) - (tx.pricePaid || tx.usdValue || 399);
+        } else if (tx.type === 'bot_trade') {
+          if (tx.botAction === 'buy') {
+            expected['USDT'] = (expected['USDT'] || 0) - (tx.usdValue || 0);
+            expected[c] = (expected[c] || 0) + (tx.amount || 0);
+          } else if (tx.botAction === 'sell') {
+            expected[c] = (expected[c] || 0) - (tx.amount || 0);
+            expected['USDT'] = (expected['USDT'] || 0) + (tx.netReceived || tx.usdValue || 0);
+          }
+        } else if (tx.type === 'flight_booking') {
+          expected['USDT'] = (expected['USDT'] || 0) - (tx.totalCharged || tx.amount || 0);
+        }
+      });
+
+      // Purge: no tx history OR all tx unverified = demo
+      const hasVerifiedDeposit = (txHistory || []).some(tx =>
+        (tx.type === 'deposit_notify' || tx.type === 'direct_deposit') && tx.verified === true
+      );
+
+      if (!txHistory || txHistory.length === 0 || (!hasVerifiedDeposit && currentBals.length > 0)) {
+        await setWalletBalances(userEmail, {});
+        purgedCount++;
+        results.push({ email: maskEmail(userEmail), action: 'purged', reason: hasVerifiedDeposit ? 'no_tx' : 'no_verified_deposits', prev: balances });
+      } else {
+        // Cap balances to expected — remove any excess
+        const cleaned = {};
+        for (const [coin, bal] of Object.entries(balances)) {
+          const exp = Math.max(expected[coin] || 0, 0);
+          cleaned[coin] = Math.min(bal, exp);
+          if (cleaned[coin] < 0.0001) delete cleaned[coin];
+        }
+        await setWalletBalances(userEmail, cleaned);
+        verifiedCount++;
+        results.push({ email: maskEmail(userEmail), action: 'verified_capped', coins: Object.keys(cleaned).length });
+      }
+    }
+
+    // Also purge system fee wallet if no system tx history
+    const sysTxRaw = await redis('GET', SYSTEM_TX_KEY);
+    if (!sysTxRaw || !Array.isArray(sysTxRaw) || sysTxRaw.length === 0) {
+      await redis('SET', SYSTEM_FEE_KEY, {});
+      results.push({ action: 'system_fees_purged', reason: 'no_system_tx_history' });
+    }
+
+    return res.status(200).json({
+      ok: true, action: 'purge_demo_balances',
+      summary: { totalUsers: users.length, verified: verifiedCount, purged: purgedCount },
+      details: results
+    });
+  }
+
   return res.status(400).json({ ok: false, error: 'unknown_action' });
 });

@@ -798,6 +798,96 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── Modern Responsive Design ──────────────────────────────── */
+
+    /* Mobile-first base (< 640px) */
+    @media screen and (max-width: 639px) {
+      .hero-atmos h1 { font-size: 1.8rem !important; line-height: 1.2; }
+      .hero-atmos p { font-size: 0.85rem; }
+      .pro-strip { padding: 1rem; }
+      .pro-strip h5 { font-size: 1rem; }
+      .dash-card { padding: 0.85rem; }
+      #commandCenterCarousel > div { width: 11rem !important; }
+      .dash-shell { padding: 0.75rem; border-radius: 0.75rem; }
+      .glass { padding: 0.85rem; }
+      section.px-6 { padding-left: 1rem; padding-right: 1rem; }
+      .grid.gap-4 { gap: 0.75rem; }
+      #panelFlights .grid.lg\\:grid-cols-4 { grid-template-columns: 1fr; }
+    }
+
+    /* Tablet (640px - 1023px) */
+    @media screen and (min-width: 640px) and (max-width: 1023px) {
+      .hero-atmos h1 { font-size: 2.8rem !important; }
+      #commandCenterCarousel > div { width: 12.5rem !important; }
+      .dash-shell { padding: 1.25rem; }
+    }
+
+    /* Desktop (1024px+) */
+    @media screen and (min-width: 1024px) {
+      #commandCenterCarousel > div { width: 13rem !important; }
+    }
+
+    /* Mobile bottom nav active state for flights */
+    .dash-mobile-nav-btn[data-panel="flights"].active {
+      border-color: rgba(139, 92, 246, 0.35);
+      background: rgba(139, 92, 246, 0.08);
+      color: #a78bfa;
+    }
+
+    /* Flight card styles */
+    #flightResults .dash-card:hover {
+      border-color: rgba(139, 92, 246, 0.25);
+    }
+
+    /* Carousel card press effect */
+    #commandCenterCarousel > div:active {
+      transform: scale(0.97);
+      transition: transform 0.1s ease;
+    }
+
+    #publicServicesCarousel > a:active {
+      transform: scale(0.97);
+      transition: transform 0.1s ease;
+    }
+
+    /* Safe area insets for modern phones (notch/Dynamic Island) */
+    @supports (padding-top: env(safe-area-inset-top)) {
+      nav.fixed.top-0 { padding-top: env(safe-area-inset-top); }
+      .dash-mobile-nav { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
+    }
+
+    /* Tablet landscape optimization */
+    @media screen and (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+      .hero-atmos { min-height: 70vh; padding-top: 5rem; padding-bottom: 4rem; }
+      .chart-public { height: 360px; }
+    }
+
+    /* Large desktop */
+    @media screen and (min-width: 1440px) {
+      .mx-auto.max-w-7xl { max-width: 90rem; }
+    }
+
+    /* Print styles */
+    @media print {
+      nav, .dash-mobile-nav, .ticker-wrap, .scan-beam { display: none; }
+      body { background: white; color: black; }
+    }
+
+    /* Reduce motion for accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Dark mode forced colors */
+    @media (forced-colors: active) {
+      .dash-card { border: 1px solid CanvasText; }
+      .btn-gold { background: ButtonFace; color: ButtonText; border: 1px solid ButtonText; }
+    }
   </style>
 </head>
 <body>
@@ -807,7 +897,7 @@
       <div id="navLandingLinks" class="hidden gap-8 md:flex text-xs uppercase tracking-[0.22em] text-gray-300">
         <a href="#about" class="hover:text-white">About</a>
         <a href="#metrics" class="hover:text-white">Metrics</a>
-        <a href="#terminal" class="hover:text-white">Terminal</a>
+        <a href="#terminal" class="hover:text-white">Services</a>
       </div>
       <div class="top-actions">
         <a href="#portalAuth" class="btn-outline rounded px-5 py-2 text-[11px] uppercase tracking-[0.18em]">Access Portal</a>
@@ -871,16 +961,70 @@
   <section id="terminal" class="bg-[#061d18] px-6 py-20">
     <div class="mx-auto max-w-7xl">
       <div class="mb-8 text-center">
-        <h2 class="serif text-4xl text-gold-gradient">Execution Terminal</h2>
-        <p class="mono mt-3 text-xs uppercase tracking-[0.22em] text-gray-400">Latency 0.04ms | Institutional Feed</p>
+        <h2 class="serif text-4xl text-gold-gradient">Our Services</h2>
+        <p class="mono mt-3 text-xs uppercase tracking-[0.22em] text-gray-400">Institutional-Grade Platform | Full-Service Exchange</p>
         <div class="mt-4 flex items-center justify-center gap-3">
-          <span class="live-badge"><span class="live-dot"></span>Live XAUUSD Feed</span>
-          <span class="text-[11px] uppercase tracking-[0.16em] text-gray-500">Proprietary Stream</span>
+          <span class="live-badge"><span class="live-dot"></span>All Systems Live</span>
+          <span class="text-[11px] uppercase tracking-[0.16em] text-gray-500">24/7 Operations</span>
         </div>
       </div>
-      <div class="chart-public terminal-frame rounded-xl p-2 sm:p-3">
-        <div class="terminal-content">
-          <canvas id="heroCanvasChart" style="height:100%;width:100%;display:block"></canvas>
+      <!-- Public Services Carousel -->
+      <div class="overflow-hidden rounded-xl border border-white/10 bg-black/30 p-4 sm:p-6">
+        <div id="publicServicesCarousel" class="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory" style="scrollbar-width:none;-ms-overflow-style:none;">
+          <a href="#portalAuth" class="snap-start shrink-0 w-64 sm:w-72 rounded-xl overflow-hidden relative group cursor-pointer" style="background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);">
+            <div class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent group-hover:from-green-500/25 transition-all duration-300"></div>
+            <div class="relative px-5 py-6">
+              <i class="fa-solid fa-chart-line text-3xl text-green-400 mb-3"></i>
+              <h3 class="text-base font-semibold text-white">Crypto Trading</h3>
+              <p class="text-[11px] text-gray-400 mt-2 leading-relaxed">Trade 17+ cryptocurrencies with real-time prices. Buy, sell, convert with institutional-grade execution.</p>
+              <span class="inline-flex items-center gap-1.5 mt-3 text-[10px] text-green-400 uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>Live</span>
+            </div>
+          </a>
+          <a href="#portalAuth" class="snap-start shrink-0 w-64 sm:w-72 rounded-xl overflow-hidden relative group cursor-pointer" style="background:linear-gradient(135deg,#1a0a2e,#3a1d5e,#6a3d9f);">
+            <div class="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent group-hover:from-violet-500/25 transition-all duration-300"></div>
+            <div class="relative px-5 py-6">
+              <i class="fa-solid fa-plane text-3xl text-violet-400 mb-3"></i>
+              <h3 class="text-base font-semibold text-white">Flight Deals</h3>
+              <p class="text-[11px] text-gray-400 mt-2 leading-relaxed">Global flight deals from all airlines. Book tickets directly with crypto or card. Best prices guaranteed.</p>
+              <span class="inline-flex items-center gap-1.5 mt-3 text-[10px] text-violet-400 uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></span>New</span>
+            </div>
+          </a>
+          <a href="#portalAuth" class="snap-start shrink-0 w-64 sm:w-72 rounded-xl overflow-hidden relative group cursor-pointer" style="background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);">
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent group-hover:from-blue-500/25 transition-all duration-300"></div>
+            <div class="relative px-5 py-6">
+              <i class="fa-solid fa-link text-3xl text-blue-400 mb-3"></i>
+              <h3 class="text-base font-semibold text-white">On-Chain Deposits</h3>
+              <p class="text-[11px] text-gray-400 mt-2 leading-relaxed">Verified blockchain deposits across multiple networks. Real-time on-chain confirmation and instant credit.</p>
+              <span class="inline-flex items-center gap-1.5 mt-3 text-[10px] text-blue-400 uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>Active</span>
+            </div>
+          </a>
+          <a href="#portalAuth" class="snap-start shrink-0 w-64 sm:w-72 rounded-xl overflow-hidden relative group cursor-pointer" style="background:linear-gradient(135deg,#1b1b2f,#3a2d5e,#5c3d8f);">
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent group-hover:from-purple-500/25 transition-all duration-300"></div>
+            <div class="relative px-5 py-6">
+              <i class="fa-brands fa-apple text-3xl text-purple-400 mb-3"></i>
+              <h3 class="text-base font-semibold text-white">Card Payments</h3>
+              <p class="text-[11px] text-gray-400 mt-2 leading-relaxed">Apple Pay, Google Pay, Visa, Mastercard. Verified instant deposits with secure tokenized payments.</p>
+              <span class="inline-flex items-center gap-1.5 mt-3 text-[10px] text-purple-400 uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>Active</span>
+            </div>
+          </a>
+          <a href="#portalAuth" class="snap-start shrink-0 w-64 sm:w-72 rounded-xl overflow-hidden relative group cursor-pointer" style="background:linear-gradient(135deg,#1a1a1a,#2d2d00,#4a4500);">
+            <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent group-hover:from-yellow-500/25 transition-all duration-300"></div>
+            <div class="relative px-5 py-6">
+              <i class="fa-solid fa-robot text-3xl text-yellow-400 mb-3"></i>
+              <h3 class="text-base font-semibold text-white">AI Trading Bot</h3>
+              <p class="text-[11px] text-gray-400 mt-2 leading-relaxed">Automated trading bot with $399 activation. AI-driven buy/sell decisions with full portfolio management.</p>
+              <span class="inline-flex items-center gap-1.5 mt-3 text-[10px] text-yellow-400 uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>Active</span>
+            </div>
+          </a>
+          <a href="#portalAuth" class="snap-start shrink-0 w-64 sm:w-72 rounded-xl overflow-hidden relative group cursor-pointer" style="background:linear-gradient(135deg,#0a2818,#1a4a2e,#2d7a4a);">
+            <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent group-hover:from-emerald-500/25 transition-all duration-300"></div>
+            <div class="relative px-5 py-6">
+              <i class="fa-solid fa-signal text-3xl text-emerald-400 mb-3"></i>
+              <h3 class="text-base font-semibold text-white">Trading Signals</h3>
+              <p class="text-[11px] text-gray-400 mt-2 leading-relaxed">Professional trading signals for 6+ instruments. Real-time P&L tracking with entry and target prices.</p>
+              <span class="inline-flex items-center gap-1.5 mt-3 text-[10px] text-emerald-400 uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Live</span>
+            </div>
+          </a>
         </div>
       </div>
 
@@ -1141,6 +1285,7 @@
               <button data-panel="trade" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Trade</button>
               <button data-panel="bot" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs"><i class="fa-solid fa-robot mr-1 text-[var(--dash-accent)]"></i>Trading Bot</button>
               <button data-panel="deposit" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Deposit</button>
+              <button data-panel="flights" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs"><i class="fa-solid fa-plane mr-1 text-violet-400"></i>Flights</button>
               <button data-panel="profile" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs">Profile</button>
               <button data-panel="owner" id="ownerNavBtn" class="dash-nav-btn dashboard-nav-btn w-full rounded px-3 py-2 text-left text-xs hidden"><i class="fa-solid fa-crown mr-1 text-[var(--dash-accent)]"></i>Owner</button>
             </div>
@@ -1155,48 +1300,89 @@
                   <p class="mt-2 text-sm text-gray-400">Exchange-grade layout for markets, allocation, wallet flow, and profile controls.</p>
                 </div>
               </div>
-              <!-- Services Carousel -->
+              <!-- Services Carousel — Interactive -->
               <div class="mt-4 overflow-hidden">
                 <div id="commandCenterCarousel" class="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide" style="scrollbar-width:none;-ms-overflow-style:none;">
-                  <div class="snap-start shrink-0 w-48 rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2.5">
-                    <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-green-400">Live</p></div>
-                    <p class="mt-1 text-xs font-semibold text-white">Crypto Trading</p>
-                    <p class="text-[10px] text-gray-400">17 coins · Real-time prices</p>
+                  <div onclick="switchDashboardPanel('trade')" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent group-hover:from-green-500/20 transition-all"></div>
+                    <div class="relative px-4 py-4">
+                      <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-green-400">Live</p></div>
+                      <div class="mt-2 flex items-center gap-2"><i class="fa-solid fa-chart-line text-lg text-green-400"></i><p class="text-sm font-semibold text-white">Crypto Trading</p></div>
+                      <p class="text-[10px] text-gray-400 mt-1">17 coins · Real-time prices</p>
+                      <p class="mt-2 text-[9px] text-green-400/70 uppercase tracking-wider group-hover:text-green-400 transition-colors">Tap to trade →</p>
+                    </div>
                   </div>
-                  <div class="snap-start shrink-0 w-48 rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2.5">
-                    <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-green-400">Live</p></div>
-                    <p class="mt-1 text-xs font-semibold text-white">On-Chain Deposits</p>
-                    <p class="text-[10px] text-gray-400">Verified · Multi-network</p>
+                  <div onclick="switchDashboardPanel('deposit')" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent group-hover:from-blue-500/20 transition-all"></div>
+                    <div class="relative px-4 py-4">
+                      <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-blue-400">Active</p></div>
+                      <div class="mt-2 flex items-center gap-2"><i class="fa-solid fa-link text-lg text-blue-400"></i><p class="text-sm font-semibold text-white">On-Chain Deposits</p></div>
+                      <p class="text-[10px] text-gray-400 mt-1">Verified · Multi-network</p>
+                      <p class="mt-2 text-[9px] text-blue-400/70 uppercase tracking-wider group-hover:text-blue-400 transition-colors">Tap to deposit →</p>
+                    </div>
                   </div>
-                  <div class="snap-start shrink-0 w-48 rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2.5">
-                    <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-blue-400">Active</p></div>
-                    <p class="mt-1 text-xs font-semibold text-white">Card Payments</p>
-                    <p class="text-[10px] text-gray-400">Apple Pay · GPay · Visa · MC</p>
+                  <div onclick="switchDashboardPanel('deposit')" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#1b1b2f,#3a2d5e,#5c3d8f);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent group-hover:from-purple-500/20 transition-all"></div>
+                    <div class="relative px-4 py-4">
+                      <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-purple-400">Active</p></div>
+                      <div class="mt-2 flex items-center gap-2"><i class="fa-brands fa-apple text-lg text-purple-400"></i><p class="text-sm font-semibold text-white">Card Payments</p></div>
+                      <p class="text-[10px] text-gray-400 mt-1">Apple Pay · GPay · Visa · MC</p>
+                      <p class="mt-2 text-[9px] text-purple-400/70 uppercase tracking-wider group-hover:text-purple-400 transition-colors">Tap to pay →</p>
+                    </div>
                   </div>
-                  <div class="snap-start shrink-0 w-48 rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2.5">
-                    <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-green-400">Live</p></div>
-                    <p class="mt-1 text-xs font-semibold text-white">Withdrawals</p>
-                    <p class="text-[10px] text-gray-400">TRC-20 · Multi-chain</p>
+                  <div onclick="switchDashboardPanel('profile');setTimeout(function(){openProfileSection('profileWithdrawSection')},300)" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#0a1628,#1a3a5c,#2d6a8e);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent group-hover:from-cyan-500/20 transition-all"></div>
+                    <div class="relative px-4 py-4">
+                      <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-cyan-400">Live</p></div>
+                      <div class="mt-2 flex items-center gap-2"><i class="fa-solid fa-money-bill-transfer text-lg text-cyan-400"></i><p class="text-sm font-semibold text-white">Withdrawals</p></div>
+                      <p class="text-[10px] text-gray-400 mt-1">TRC-20 · Multi-chain</p>
+                      <p class="mt-2 text-[9px] text-cyan-400/70 uppercase tracking-wider group-hover:text-cyan-400 transition-colors">Tap to withdraw →</p>
+                    </div>
                   </div>
-                  <div class="snap-start shrink-0 w-48 rounded-lg border border-[var(--dash-accent)]/20 bg-[var(--dash-accent)]/5 px-3 py-2.5">
-                    <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-[var(--dash-accent)] animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-[var(--dash-accent)]">Active</p></div>
-                    <p class="mt-1 text-xs font-semibold text-white">AI Trading Bot</p>
-                    <p class="text-[10px] text-gray-400">$399 · Automated execution</p>
+                  <div onclick="switchDashboardPanel('bot')" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#1a1a1a,#2d2d00,#4a4500);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent group-hover:from-yellow-500/20 transition-all"></div>
+                    <div class="relative px-4 py-4">
+                      <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-yellow-400">Active</p></div>
+                      <div class="mt-2 flex items-center gap-2"><i class="fa-solid fa-robot text-lg text-yellow-400"></i><p class="text-sm font-semibold text-white">AI Trading Bot</p></div>
+                      <p class="text-[10px] text-gray-400 mt-1">$399 · Automated execution</p>
+                      <p class="mt-2 text-[9px] text-yellow-400/70 uppercase tracking-wider group-hover:text-yellow-400 transition-colors">Tap to activate →</p>
+                    </div>
                   </div>
-                  <div class="snap-start shrink-0 w-48 rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2.5">
-                    <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-green-400">Live</p></div>
-                    <p class="mt-1 text-xs font-semibold text-white">Trading Signals</p>
-                    <p class="text-[10px] text-gray-400">Real-time · 6 instruments</p>
+                  <div onclick="switchDashboardPanel('profile');setTimeout(function(){openProfileSection('profileSignalsSection')},300)" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#0a2818,#1a4a2e,#2d7a4a);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent group-hover:from-emerald-500/20 transition-all"></div>
+                    <div class="relative px-4 py-4">
+                      <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-emerald-400">Live</p></div>
+                      <div class="mt-2 flex items-center gap-2"><i class="fa-solid fa-signal text-lg text-emerald-400"></i><p class="text-sm font-semibold text-white">Trading Signals</p></div>
+                      <p class="text-[10px] text-gray-400 mt-1">Real-time · 6 instruments</p>
+                      <p class="mt-2 text-[9px] text-emerald-400/70 uppercase tracking-wider group-hover:text-emerald-400 transition-colors">Tap to view →</p>
+                    </div>
                   </div>
-                  <div class="snap-start shrink-0 w-48 rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2.5">
-                    <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-green-400">Live</p></div>
-                    <p class="mt-1 text-xs font-semibold text-white">KYC Verification</p>
-                    <p class="text-[10px] text-gray-400">Auto-verify · Compliant</p>
+                  <div onclick="switchDashboardPanel('flights')" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#1a0a2e,#3a1d5e,#6a3d9f);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent group-hover:from-violet-500/20 transition-all"></div>
+                    <div class="relative px-4 py-4">
+                      <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-violet-400">New</p></div>
+                      <div class="mt-2 flex items-center gap-2"><i class="fa-solid fa-plane text-lg text-violet-400"></i><p class="text-sm font-semibold text-white">Flight Deals</p></div>
+                      <p class="text-[10px] text-gray-400 mt-1">Global · Best prices</p>
+                      <p class="mt-2 text-[9px] text-violet-400/70 uppercase tracking-wider group-hover:text-violet-400 transition-colors">Tap to browse →</p>
+                    </div>
                   </div>
-                  <div class="snap-start shrink-0 w-48 rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2.5">
-                    <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-green-400">Live</p></div>
-                    <p class="mt-1 text-xs font-semibold text-white">Treasury Engine</p>
-                    <p class="text-[10px] text-gray-400">TRC-20 sweep · 10% fee</p>
+                  <div onclick="switchDashboardPanel('profile');setTimeout(function(){openProfileSection('profileKYCSection')},300)" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#1a1a1a,#2a2a2a,#3a3a3a);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-gray-400/10 to-transparent group-hover:from-gray-400/20 transition-all"></div>
+                    <div class="relative px-4 py-4">
+                      <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-gray-400">Secure</p></div>
+                      <div class="mt-2 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-lg text-gray-300"></i><p class="text-sm font-semibold text-white">KYC Verification</p></div>
+                      <p class="text-[10px] text-gray-400 mt-1">Auto-verify · Compliant</p>
+                      <p class="mt-2 text-[9px] text-gray-400/70 uppercase tracking-wider group-hover:text-gray-300 transition-colors">Tap to verify →</p>
+                    </div>
+                  </div>
+                  <div onclick="switchDashboardPanel('profile');setTimeout(function(){openProfileSection('profileSettingsSection')},300)" class="snap-start shrink-0 w-52 rounded-xl cursor-pointer overflow-hidden relative group" style="background:linear-gradient(135deg,#0a1a0a,#1a3a1a,#2a5a2a);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-lime-500/10 to-transparent group-hover:from-lime-500/20 transition-all"></div>
+                    <div class="relative px-4 py-4">
+                      <div class="flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse"></span><p class="text-[9px] uppercase tracking-[0.14em] text-lime-400">Live</p></div>
+                      <div class="mt-2 flex items-center gap-2"><i class="fa-solid fa-building-columns text-lg text-lime-400"></i><p class="text-sm font-semibold text-white">Treasury Engine</p></div>
+                      <p class="text-[10px] text-gray-400 mt-1">TRC-20 sweep · 10% fee</p>
+                      <p class="mt-2 text-[9px] text-lime-400/70 uppercase tracking-wider group-hover:text-lime-400 transition-colors">Tap to manage →</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1342,32 +1528,44 @@
                 </div>
 
                 <div class="space-y-4">
+                  <!-- Flight Deals Quick Access -->
                   <div class="dash-card rounded-xl p-4">
                     <div class="flex items-center justify-between gap-2">
-                      <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Execution Terminal</p>
-                      <div class="flex items-center gap-1 flex-wrap">
-                        <button data-chart-symbol="OANDA:XAUUSD" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">XAUUSD</button>
-                        <button data-chart-symbol="BINANCE:BTCUSDT" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">BTCUSDT</button>
-                        <button data-chart-symbol="BINANCE:ETHUSDT" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">ETHUSDT</button>
-                        <button data-chart-symbol="BINANCE:SOLUSDT" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">SOLUSDT</button>
-                        <button data-chart-symbol="BINANCE:BNBUSDT" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">BNBUSDT</button>
-                        <button data-chart-symbol="FX:EURUSD" class="chart-symbol-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-300">EURUSD</button>
-                      </div>
+                      <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400"><i class="fa-solid fa-plane mr-1 text-violet-400"></i>Flight Deals</p>
+                      <button onclick="switchDashboardPanel('flights')" class="text-[10px] uppercase tracking-[0.12em] text-violet-400 hover:text-violet-300">View All →</button>
                     </div>
-                    <div class="mt-2 flex items-center gap-1">
-                      <button data-chart-interval="1" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">1m</button>
-                      <button data-chart-interval="5" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">5m</button>
-                      <button data-chart-interval="15" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">15m</button>
-                      <button data-chart-interval="60" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">1h</button>
-                      <button data-chart-interval="240" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">4h</button>
-                      <button data-chart-interval="D" class="chart-interval-btn rounded border border-white/10 px-2 py-1 text-[10px] text-gray-400">1D</button>
+                    <div id="homeFlightDeals" class="mt-3 space-y-2">
+                      <div class="flex items-center justify-center py-6 text-[10px] text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading deals...</div>
                     </div>
-                    <div id="marketStatusBadge" class="mt-2 flex items-center gap-2">
-                      <span id="marketStatusDot" class="inline-block h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
-                      <span id="marketStatusText" class="text-[10px] uppercase tracking-[0.12em] text-green-400">Market Open</span>
+                  </div>
+
+                  <!-- Services Carousel Mini -->
+                  <div class="dash-card rounded-xl p-4">
+                    <div class="flex items-center justify-between">
+                      <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Quick Access</p>
+                      <span class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Services</span>
                     </div>
-                    <div class="mt-2 rounded border border-white/10 p-1" style="height:380px;">
-                      <div id="tradingview_dashboard_xau" style="height:100%;width:100%;"></div>
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                      <button onclick="switchDashboardPanel('trade')" class="rounded-lg border border-white/10 bg-white/5 p-3 text-left hover:border-green-500/30 hover:bg-green-500/5 transition-all group">
+                        <i class="fa-solid fa-chart-line text-green-400 text-sm"></i>
+                        <p class="mt-1 text-[11px] font-semibold text-white">Trade</p>
+                        <p class="text-[9px] text-gray-500">Buy & Sell</p>
+                      </button>
+                      <button onclick="switchDashboardPanel('deposit')" class="rounded-lg border border-white/10 bg-white/5 p-3 text-left hover:border-blue-500/30 hover:bg-blue-500/5 transition-all group">
+                        <i class="fa-solid fa-wallet text-blue-400 text-sm"></i>
+                        <p class="mt-1 text-[11px] font-semibold text-white">Deposit</p>
+                        <p class="text-[9px] text-gray-500">Fund Account</p>
+                      </button>
+                      <button onclick="switchDashboardPanel('bot')" class="rounded-lg border border-white/10 bg-white/5 p-3 text-left hover:border-yellow-500/30 hover:bg-yellow-500/5 transition-all group">
+                        <i class="fa-solid fa-robot text-yellow-400 text-sm"></i>
+                        <p class="mt-1 text-[11px] font-semibold text-white">AI Bot</p>
+                        <p class="text-[9px] text-gray-500">Auto Trade</p>
+                      </button>
+                      <button onclick="switchDashboardPanel('flights')" class="rounded-lg border border-white/10 bg-white/5 p-3 text-left hover:border-violet-500/30 hover:bg-violet-500/5 transition-all group">
+                        <i class="fa-solid fa-plane text-violet-400 text-sm"></i>
+                        <p class="mt-1 text-[11px] font-semibold text-white">Flights</p>
+                        <p class="text-[9px] text-gray-500">Book Deals</p>
+                      </button>
                     </div>
                   </div>
 
@@ -2454,28 +2652,114 @@
               </div>
             </section>
 
+            <!-- ═══ FLIGHTS PANEL ═══ -->
+            <section id="panelFlights" class="dashboard-panel hidden space-y-5">
+              <div class="dash-card rounded-xl p-5 space-y-4">
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <p class="text-[11px] uppercase tracking-[0.2em] text-violet-400"><i class="fa-solid fa-plane mr-1"></i>Flight Deals</p>
+                    <p class="mt-1 text-xs text-gray-400">Search global flights across all airlines. Book directly with wallet balance or card.</p>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></span>
+                    <span class="text-[10px] text-violet-400 uppercase tracking-wider">Live Prices</span>
+                  </div>
+                </div>
+
+                <!-- Search Form -->
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">From</p>
+                    <input id="flightOrigin" type="text" maxlength="3" placeholder="NYC" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm uppercase" value="NYC">
+                  </div>
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">To</p>
+                    <input id="flightDest" type="text" maxlength="3" placeholder="Any destination" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm uppercase">
+                  </div>
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Depart</p>
+                    <input id="flightDepart" type="date" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  </div>
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Passengers</p>
+                    <select id="flightPassengers" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                      <option value="1" class="text-black">1 Passenger</option>
+                      <option value="2" class="text-black">2 Passengers</option>
+                      <option value="3" class="text-black">3 Passengers</option>
+                      <option value="4" class="text-black">4 Passengers</option>
+                      <option value="5" class="text-black">5 Passengers</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                  <button id="searchFlightsBtn" class="rounded bg-gradient-to-r from-violet-600 to-purple-500 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:opacity-90 flex items-center gap-2"><i class="fa-solid fa-search"></i>Search Flights</button>
+                  <button onclick="loadPopularFlights()" class="rounded border border-violet-500/30 bg-violet-500/10 px-4 py-2.5 text-[11px] uppercase tracking-[0.14em] text-violet-400 hover:bg-violet-500/20"><i class="fa-solid fa-fire mr-1"></i>Popular Deals</button>
+                </div>
+                <p class="text-[9px] text-gray-600"><i class="fa-solid fa-info-circle mr-1"></i>3.5% service fee applies to all bookings. Prices in USD.</p>
+              </div>
+
+              <!-- Flight Results -->
+              <div id="flightResults" class="space-y-3">
+                <div class="dash-card rounded-xl p-5 text-center">
+                  <i class="fa-solid fa-plane-departure text-3xl text-violet-400/30 mb-3"></i>
+                  <p class="text-sm text-gray-400">Search for flights to see available deals</p>
+                  <p class="text-[10px] text-gray-600 mt-1">Or tap "Popular Deals" for trending routes</p>
+                </div>
+              </div>
+
+              <!-- Booking Confirmation Modal -->
+              <div id="flightBookingModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                <div class="mx-4 w-full max-w-md rounded-2xl border border-violet-500/30 bg-[#0b1117] p-6 shadow-2xl space-y-4">
+                  <div class="text-center">
+                    <i class="fa-solid fa-plane text-2xl text-violet-400 mb-2"></i>
+                    <h4 class="text-lg font-semibold text-white">Confirm Booking</h4>
+                  </div>
+                  <div id="flightBookingDetails" class="space-y-2 text-sm"></div>
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Pay With</p>
+                    <select id="flightPayMethod" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                      <option value="wallet" class="text-black">USDT Wallet Balance</option>
+                      <option value="apple_pay" class="text-black">Apple Pay</option>
+                      <option value="gpay" class="text-black">Google Pay</option>
+                      <option value="visa" class="text-black">Visa / Debit Card</option>
+                    </select>
+                    <p id="flightWalletBalance" class="mt-1 text-[10px] text-gray-500"></p>
+                  </div>
+                  <div class="flex gap-2">
+                    <button onclick="closeFlightBookingModal()" class="flex-1 rounded border border-white/10 py-2.5 text-[11px] uppercase tracking-[0.12em] text-gray-400 hover:bg-white/5">Cancel</button>
+                    <button id="confirmFlightBookBtn" class="flex-1 rounded bg-gradient-to-r from-violet-600 to-purple-500 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:opacity-90">Confirm & Pay</button>
+                  </div>
+                  <p id="flightBookStatus" class="hidden text-center text-xs"></p>
+                </div>
+              </div>
+            </section>
+
           </main>
         </div>
 
         <nav class="dash-mobile-nav fixed inset-x-0 bottom-0 z-40 lg:hidden">
-          <div class="mx-auto grid max-w-6xl grid-cols-5 gap-2 px-4 pt-3">
-            <button data-panel="home" class="dash-mobile-nav-btn dashboard-nav-btn active flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+          <div class="mx-auto grid max-w-6xl grid-cols-6 gap-1 px-3 pt-3">
+            <button data-panel="home" class="dash-mobile-nav-btn dashboard-nav-btn active flex flex-col items-center rounded-lg py-2 text-[9px] uppercase tracking-[0.06em]">
               <i class="fa-solid fa-house text-sm"></i>
               <span class="mt-1">Home</span>
             </button>
-            <button data-panel="trade" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+            <button data-panel="trade" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[9px] uppercase tracking-[0.06em]">
               <i class="fa-solid fa-chart-line text-sm"></i>
               <span class="mt-1">Trade</span>
             </button>
-            <button data-panel="bot" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+            <button data-panel="flights" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[9px] uppercase tracking-[0.06em]">
+              <i class="fa-solid fa-plane text-sm"></i>
+              <span class="mt-1">Flights</span>
+            </button>
+            <button data-panel="bot" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[9px] uppercase tracking-[0.06em]">
               <i class="fa-solid fa-robot text-sm"></i>
               <span class="mt-1">Bot</span>
             </button>
-            <button data-panel="deposit" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+            <button data-panel="deposit" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[9px] uppercase tracking-[0.06em]">
               <i class="fa-solid fa-wallet text-sm"></i>
               <span class="mt-1">Deposit</span>
             </button>
-            <button data-panel="profile" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[10px] uppercase tracking-[0.08em]">
+            <button data-panel="profile" class="dash-mobile-nav-btn dashboard-nav-btn flex flex-col items-center rounded-lg py-2 text-[9px] uppercase tracking-[0.06em]">
               <i class="fa-solid fa-user text-sm"></i>
               <span class="mt-1">Profile</span>
             </button>
@@ -2816,6 +3100,7 @@
       trade: document.getElementById('panelTrade'),
       bot: document.getElementById('panelBot'),
       deposit: document.getElementById('panelDeposit'),
+      flights: document.getElementById('panelFlights'),
       profile: document.getElementById('panelProfile'),
       owner: document.getElementById('panelOwner')
     };
@@ -3432,9 +3717,232 @@
         if (carousel.scrollLeft >= maxScroll - 10) {
           carousel.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          carousel.scrollBy({ left: 200, behavior: 'smooth' });
+          carousel.scrollBy({ left: 220, behavior: 'smooth' });
         }
-      }, 3000);
+      }, 3500);
+    }
+
+    // Also auto-scroll public landing carousel
+    (function() {
+      var pub = document.getElementById('publicServicesCarousel');
+      if (!pub) return;
+      setInterval(function() {
+        var max = pub.scrollWidth - pub.clientWidth;
+        if (pub.scrollLeft >= max - 10) {
+          pub.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          pub.scrollBy({ left: 280, behavior: 'smooth' });
+        }
+      }, 4000);
+    })();
+
+    // ── Flight Deals System ──
+    var flightCache = [];
+    var selectedFlight = null;
+
+    function airlineIcon(code) {
+      var map = { 'SU':'🇷🇺', 'AA':'🇺🇸', 'UA':'🇺🇸', 'DL':'🇺🇸', 'BA':'🇬🇧', 'EK':'🇦🇪', 'QR':'🇶🇦', 'TK':'🇹🇷', 'LH':'🇩🇪', 'AF':'🇫🇷', 'KL':'🇳🇱', 'SQ':'🇸🇬', 'CX':'🇭🇰', 'QF':'🇦🇺', 'NH':'🇯🇵', 'JL':'🇯🇵', 'EY':'🇦🇪', 'WN':'🇺🇸', 'B6':'🇺🇸', 'AS':'🇺🇸', 'F9':'🇺🇸', 'NK':'🇺🇸', 'W6':'🇪🇺', 'FR':'🇪🇺', 'U2':'🇪🇺' };
+      return map[code] || '✈️';
+    }
+
+    function formatFlightDate(d) {
+      if (!d) return '—';
+      try { return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year:'numeric' }); } catch(e) { return d; }
+    }
+
+    function renderFlightCards(flights, container) {
+      if (!container) container = document.getElementById('flightResults');
+      if (!container) return;
+      if (!flights || flights.length === 0) {
+        container.innerHTML = '<div class="dash-card rounded-xl p-5 text-center"><i class="fa-solid fa-plane-slash text-2xl text-gray-600 mb-2"></i><p class="text-sm text-gray-400">No flights found for this route</p><p class="text-[10px] text-gray-600 mt-1">Try different dates or destinations</p></div>';
+        return;
+      }
+      container.innerHTML = flights.map(function(f, i) {
+        var stops = f.transfers === 0 ? '<span class="text-green-400">Direct</span>' : '<span class="text-yellow-400">' + f.transfers + ' stop' + (f.transfers > 1 ? 's' : '') + '</span>';
+        var dur = f.duration ? (Math.floor(f.duration / 60) + 'h ' + (f.duration % 60) + 'm') : '—';
+        return '<div class="dash-card rounded-xl p-4 hover:border-violet-500/30 transition-all">' +
+          '<div class="flex items-start justify-between gap-3 flex-wrap">' +
+            '<div class="flex-1 min-w-0">' +
+              '<div class="flex items-center gap-2">' +
+                '<span class="text-lg">' + airlineIcon(f.airline) + '</span>' +
+                '<div>' +
+                  '<p class="text-sm font-semibold text-white">' + f.origin + ' → ' + f.destination + '</p>' +
+                  '<p class="text-[10px] text-gray-500">' + (f.airline || '') + (f.flightNumber ? ' · ' + f.flightNumber : '') + ' · ' + stops + ' · ' + dur + '</p>' +
+                '</div>' +
+              '</div>' +
+              '<div class="mt-2 flex items-center gap-3 text-[10px] text-gray-400">' +
+                '<span><i class="fa-solid fa-calendar mr-1"></i>' + formatFlightDate(f.depart) + '</span>' +
+                (f.arrive ? '<span><i class="fa-solid fa-calendar-check mr-1"></i>' + formatFlightDate(f.arrive) + '</span>' : '') +
+                '<span><i class="fa-solid fa-users mr-1"></i>' + f.passengers + ' pax</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="text-right shrink-0">' +
+              '<p class="text-lg font-bold text-white">$' + f.totalPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + '</p>' +
+              '<p class="text-[9px] text-gray-500 line-through">$' + ((f.totalPrice * 1.15).toFixed(2)) + '</p>' +
+              '<p class="text-[9px] text-violet-400">incl. 3.5% fee</p>' +
+              '<button onclick="openFlightBooking(' + i + ')" class="mt-2 rounded bg-gradient-to-r from-violet-600 to-purple-500 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white hover:opacity-90">Book Now</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderHomeFlightDeals(flights) {
+      var el = document.getElementById('homeFlightDeals');
+      if (!el) return;
+      var top = (flights || []).slice(0, 3);
+      if (top.length === 0) {
+        el.innerHTML = '<p class="text-center text-[10px] text-gray-500 py-4">No deals available</p>';
+        return;
+      }
+      el.innerHTML = top.map(function(f, i) {
+        return '<div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 hover:border-violet-500/20 cursor-pointer transition-all" onclick="switchDashboardPanel(\'flights\')">' +
+          '<div class="flex items-center gap-2 min-w-0">' +
+            '<span>' + airlineIcon(f.airline) + '</span>' +
+            '<div class="min-w-0">' +
+              '<p class="text-[11px] font-semibold text-white truncate">' + f.origin + ' → ' + f.destination + '</p>' +
+              '<p class="text-[9px] text-gray-500">' + formatFlightDate(f.depart) + ' · ' + (f.transfers === 0 ? 'Direct' : f.transfers + ' stop') + '</p>' +
+            '</div>' +
+          '</div>' +
+          '<p class="text-sm font-bold text-violet-400 shrink-0">$' + f.totalPrice.toFixed(0) + '</p>' +
+        '</div>';
+      }).join('');
+    }
+
+    async function searchFlights(origin, dest, depart, passengers) {
+      try {
+        var body = { action: 'flight_deals', origin: origin || 'NYC', passengers: passengers || 1 };
+        if (dest) body.destination = dest;
+        if (depart) body.depart_date = depart;
+        var resp = await fetch('/api/wallet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        var data = await resp.json();
+        if (data.ok && data.flights) {
+          flightCache = data.flights;
+          return data.flights;
+        }
+      } catch(e) { console.warn('Flight search error:', e); }
+      return [];
+    }
+
+    async function loadPopularFlights() {
+      var resultsEl = document.getElementById('flightResults');
+      if (resultsEl) resultsEl.innerHTML = '<div class="dash-card rounded-xl p-5 text-center"><i class="fa-solid fa-spinner fa-spin text-violet-400 text-xl mb-2"></i><p class="text-sm text-gray-400">Searching best deals...</p></div>';
+      var flights = await searchFlights('NYC', '', '', 1);
+      flightCache = flights;
+      renderFlightCards(flights, resultsEl);
+      renderHomeFlightDeals(flights);
+    }
+
+    function openFlightBooking(idx) {
+      var f = flightCache[idx];
+      if (!f) return;
+      selectedFlight = f;
+      var details = document.getElementById('flightBookingDetails');
+      if (details) {
+        details.innerHTML =
+          '<div class="rounded border border-white/10 bg-black/20 p-3">' +
+            '<p class="text-xs font-semibold text-white">' + f.origin + ' → ' + f.destination + '</p>' +
+            '<p class="text-[10px] text-gray-400 mt-1">' + formatFlightDate(f.depart) + (f.arrive ? ' — ' + formatFlightDate(f.arrive) : '') + '</p>' +
+            '<p class="text-[10px] text-gray-400">' + (f.airline || '') + ' · ' + f.passengers + ' passenger' + (f.passengers > 1 ? 's' : '') + '</p>' +
+          '</div>' +
+          '<div class="flex justify-between text-sm"><span class="text-gray-400">Base price</span><span class="text-white">$' + (f.price || 0).toFixed(2) + '</span></div>' +
+          '<div class="flex justify-between text-sm"><span class="text-gray-400">Service fee (3.5%)</span><span class="text-white">$' + (f.serviceFee || 0).toFixed(2) + '</span></div>' +
+          '<div class="flex justify-between text-sm font-semibold border-t border-white/10 pt-2"><span class="text-white">Total</span><span class="text-violet-400">$' + f.totalPrice.toFixed(2) + '</span></div>';
+      }
+      // Show wallet balance hint
+      var balEl = document.getElementById('flightWalletBalance');
+      if (balEl && currentUser) {
+        fetch('/api/wallet', { headers: { 'Authorization': 'Bearer ' + getSession().token } })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.ok && d.balances) {
+              var usdt = d.balances['USDT'] || 0;
+              balEl.textContent = 'USDT Balance: $' + usdt.toFixed(2) + (usdt >= f.totalPrice ? ' ✓ Sufficient' : ' ✗ Insufficient');
+              balEl.className = 'mt-1 text-[10px] ' + (usdt >= f.totalPrice ? 'text-green-400' : 'text-red-400');
+            }
+          }).catch(function() {});
+      }
+      document.getElementById('flightBookingModal').classList.remove('hidden');
+    }
+
+    function closeFlightBookingModal() {
+      document.getElementById('flightBookingModal').classList.add('hidden');
+      selectedFlight = null;
+    }
+
+    async function confirmFlightBooking() {
+      if (!selectedFlight || !currentUser) return;
+      var btn = document.getElementById('confirmFlightBookBtn');
+      var status = document.getElementById('flightBookStatus');
+      var payMethod = document.getElementById('flightPayMethod').value;
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+      status.className = 'text-center text-xs text-gray-400';
+      status.classList.remove('hidden');
+      status.textContent = 'Processing booking...';
+
+      var bookBody = {
+        action: 'book_flight',
+        flightId: selectedFlight.id,
+        totalPrice: selectedFlight.totalPrice,
+        payMethod: payMethod,
+        flightDetails: {
+          origin: selectedFlight.origin,
+          destination: selectedFlight.destination,
+          airline: selectedFlight.airline,
+          depart: selectedFlight.depart,
+          passengers: selectedFlight.passengers
+        }
+      };
+
+      // For card payments, request payment authorization
+      if (payMethod !== 'wallet' && payMethod !== 'crypto') {
+        try {
+          var methods = [{ supportedMethods: 'basic-card', data: { supportedNetworks: ['visa','mastercard'] } }];
+          var details = { total: { label: 'AL-MUDIR Flight Booking', amount: { currency: 'USD', value: selectedFlight.totalPrice.toFixed(2) } } };
+          var pr = new PaymentRequest(methods, details);
+          var resp = await pr.show();
+          bookBody.paymentToken = JSON.stringify(resp.details || resp.methodName || resp.requestId);
+          await resp.complete('success');
+        } catch (e) {
+          status.textContent = 'Payment cancelled or not supported. Use wallet balance instead.';
+          status.className = 'text-center text-xs text-red-400';
+          status.classList.remove('hidden');
+          btn.disabled = false;
+          btn.textContent = 'Confirm & Pay';
+          return;
+        }
+      }
+
+      try {
+        var session = getSession();
+        var r = await fetch('/api/wallet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (session ? session.token : '') },
+          body: JSON.stringify(bookBody)
+        });
+        var data = await r.json();
+        if (data.ok) {
+          status.textContent = '✓ Booked! Ref: ' + data.bookingRef + ' — $' + data.totalCharged.toFixed(2) + ' charged.';
+          status.className = 'text-center text-xs text-green-400';
+          status.classList.remove('hidden');
+          setTimeout(function() { closeFlightBookingModal(); loadSystemWallet({ background: true }); updateHomeTotalBalance(); }, 3000);
+        } else {
+          status.textContent = data.detail || data.error || 'Booking failed';
+          status.className = 'text-center text-xs text-red-400';
+          status.classList.remove('hidden');
+        }
+      } catch(e) {
+        status.textContent = 'Network error. Please try again.';
+        status.className = 'text-center text-xs text-red-400';
+        status.classList.remove('hidden');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Confirm & Pay';
     }
 
     function initProDashboardWidgets() {
@@ -3452,6 +3960,8 @@
       setPositionsMode(currentPositionsMode);
       updateChartControlState();
       initCommandCenterCarousel();
+      // Load flight deals for home panel
+      loadPopularFlights();
       if (dashboardPulseTimer) clearInterval(dashboardPulseTimer);
       if (tickerTimer) clearInterval(tickerTimer);
       if (orderBookTimer) clearInterval(orderBookTimer);
@@ -4109,6 +4619,9 @@
       }
       if (panel === 'owner') {
         loadOwnerDashboard();
+      }
+      if (panel === 'flights') {
+        loadPopularFlights();
       }
     }
 
@@ -6127,6 +6640,28 @@
         fiatDepositBtn.innerHTML = '<i class="fa-solid fa-bolt"></i>Deposit Now';
       }
     });
+
+    // ── Flight Deals events ──
+    var searchFlightsBtn = document.getElementById('searchFlightsBtn');
+    var confirmFlightBookBtn = document.getElementById('confirmFlightBookBtn');
+    if (searchFlightsBtn) {
+      searchFlightsBtn.addEventListener('click', async function() {
+        var origin = (document.getElementById('flightOrigin').value || 'NYC').trim().toUpperCase();
+        var dest = (document.getElementById('flightDest').value || '').trim().toUpperCase();
+        var depart = document.getElementById('flightDepart').value || '';
+        var passengers = parseInt(document.getElementById('flightPassengers').value) || 1;
+        searchFlightsBtn.disabled = true;
+        searchFlightsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>Searching...';
+        var flights = await searchFlights(origin, dest, depart, passengers);
+        renderFlightCards(flights);
+        renderHomeFlightDeals(flights);
+        searchFlightsBtn.disabled = false;
+        searchFlightsBtn.innerHTML = '<i class="fa-solid fa-search"></i>Search Flights';
+      });
+    }
+    if (confirmFlightBookBtn) {
+      confirmFlightBookBtn.addEventListener('click', function() { confirmFlightBooking(); });
+    }
 
     // ── Trade panel events ──
     tradeBuyTab.addEventListener('click', () => setTradeMode('buy'));
