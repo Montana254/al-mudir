@@ -515,6 +515,30 @@ async function checkGatewayHealth() {
       status: trustWalletRouteAvailable ? 'operational' : 'degraded',
       checked: nowIso,
       detail: trustWalletRouteAvailable ? 'deeplink_route' : 'no_route'
+    },
+    apple_pay: {
+      name: 'Apple Pay',
+      status: appleRouteAvailable ? 'operational' : 'degraded',
+      checked: nowIso,
+      detail: appleRouteAvailable ? 'payment_request_api' : 'trust_wallet_fallback'
+    },
+    google_pay: {
+      name: 'Google Pay',
+      status: 'operational',
+      checked: nowIso,
+      detail: 'payment_request_api'
+    },
+    visa: {
+      name: 'Visa / Debit Card',
+      status: cardRouteAvailable ? 'operational' : 'degraded',
+      checked: nowIso,
+      detail: cardRouteAvailable ? 'tokenized_processing' : 'trust_wallet_fallback'
+    },
+    mastercard: {
+      name: 'Mastercard',
+      status: cardRouteAvailable ? 'operational' : 'degraded',
+      checked: nowIso,
+      detail: cardRouteAvailable ? 'tokenized_processing' : 'trust_wallet_fallback'
     }
   };
 

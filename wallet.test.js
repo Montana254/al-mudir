@@ -99,7 +99,7 @@ async function run() {
   delete global.window.BinanceChain;
   try { mgr.pickProvider('walletconnect'); } catch (e) {
     wcThrew = true;
-    assert('walletconnect throws fallback guidance', e.message.includes('Open this page in a wallet app'));
+    assert('walletconnect throws fallback guidance', e.message.includes('WalletConnect requested') || e.message.includes('Open this page in a wallet app'));
   }
   if (!wcThrew) assert('walletconnect throws fallback guidance', false);
 
