@@ -1118,6 +1118,87 @@ module.exports = withDb(async function handler(req, res) {
     return res.status(200).json({ ok: true, ts: Date.now(), market, prices, changes });
   }
 
+  // ── Public endpoint: flight deals search (no auth required) ──
+  if (req.method === 'POST') {
+    try {
+      const peekBody = typeof req.body === 'object' ? req.body : {};
+      if (peekBody.action === 'flight_deals') {
+        const origin = sanitize(String(peekBody.origin || 'NYC').toUpperCase()).slice(0, 3);
+        const destination = sanitize(String(peekBody.destination || '').toUpperCase()).slice(0, 3);
+        const departDate = sanitize(String(peekBody.depart_date || ''));
+        const returnDate = sanitize(String(peekBody.return_date || ''));
+        const passengers = Math.min(Math.max(parseInt(peekBody.passengers) || 1, 1), 9);
+
+        try {
+          const searchParams = new URLSearchParams({
+            currency: 'USD', origin: origin, page: '1', limit: '20', sorting: 'price', trip_class: '0'
+          });
+          if (destination) searchParams.set('destination', destination);
+          if (departDate) searchParams.set('depart_date', departDate);
+          if (returnDate) searchParams.set('return_date', returnDate);
+
+          const [pricesResp, popularResp] = await Promise.all([
+            fetch('https://api.travelpayouts.com/aviasales/v3/prices_for_dates?' + searchParams.toString(), {
+              headers: { 'X-Access-Token': '5b1eb2895eee96cdc85cd74ad0e2e368' }
+            }).catch(() => null),
+            fetch('https://api.travelpayouts.com/aviasales/v3/get_latest_prices?' + new URLSearchParams({
+              currency: 'USD', origin: origin, limit: '15', sorting: 'price',
+              token: '5b1eb2895eee96cdc85cd74ad0e2e368'
+            }), {
+              headers: { 'X-Access-Token': '5b1eb2895eee96cdc85cd74ad0e2e368' }
+            }).catch(() => null)
+          ]);
+
+          let flights = [];
+          const SERVICE_FEE_PCT = 0.035;
+
+          if (pricesResp && pricesResp.ok) {
+            const pricesData = await pricesResp.json();
+            if (pricesData.data && Array.isArray(pricesData.data)) {
+              flights = pricesData.data.map(f => ({
+                id: f.departure_at + '-' + f.origin + '-' + f.destination,
+                origin: f.origin, destination: f.destination, airline: f.airline || 'Multiple',
+                depart: f.departure_at, arrive: f.return_at || null,
+                price: +(f.price * passengers).toFixed(2),
+                serviceFee: +((f.price * passengers) * SERVICE_FEE_PCT).toFixed(2),
+                totalPrice: +((f.price * passengers) * (1 + SERVICE_FEE_PCT)).toFixed(2),
+                duration: f.duration || null, transfers: f.transfers || 0,
+                link: f.link ? ('https://www.aviasales.com' + f.link) : null,
+                flightNumber: f.flight_number || null, passengers: passengers
+              }));
+            }
+          }
+
+          if (flights.length === 0 && popularResp && popularResp.ok) {
+            const popData = await popularResp.json();
+            if (popData.data && Array.isArray(popData.data)) {
+              flights = popData.data.map(f => ({
+                id: f.departure_at + '-' + f.origin + '-' + f.destination,
+                origin: f.origin, destination: f.destination, airline: f.airline || 'Multiple',
+                depart: f.departure_at, arrive: f.return_at || null,
+                price: +(f.price * passengers).toFixed(2),
+                serviceFee: +((f.price * passengers) * SERVICE_FEE_PCT).toFixed(2),
+                totalPrice: +((f.price * passengers) * (1 + SERVICE_FEE_PCT)).toFixed(2),
+                duration: f.duration || null, transfers: f.transfers || 0,
+                link: f.link ? ('https://www.aviasales.com' + f.link) : null,
+                flightNumber: f.flight_number || null, passengers: passengers
+              }));
+            }
+          }
+
+          return res.status(200).json({
+            ok: true, action: 'flight_deals', origin: origin,
+            destination: destination || 'ANY', passengers: passengers,
+            serviceFeeRate: (SERVICE_FEE_PCT * 100).toFixed(1) + '%',
+            flights: flights.slice(0, 20), ts: new Date().toISOString()
+          });
+        } catch (err) {
+          return res.status(200).json({ ok: true, action: 'flight_deals', flights: [], error: 'fetch_failed' });
+        }
+      }
+    } catch { /* not a flight_deals request, continue to auth */ }
+  }
+
   // Auth check
   const email = await getSessionEmail(req);
   if (!email) {
@@ -2099,102 +2180,7 @@ module.exports = withDb(async function handler(req, res) {
     });
   }
 
-  // ── Action: flight_deals (public — fetch live flight deals from Travelpayouts) ──
-  if (action === 'flight_deals') {
-    const origin = sanitize(String(body.origin || 'NYC').toUpperCase()).slice(0, 3);
-    const destination = sanitize(String(body.destination || '').toUpperCase()).slice(0, 3);
-    const departDate = sanitize(String(body.depart_date || ''));
-    const returnDate = sanitize(String(body.return_date || ''));
-    const passengers = Math.min(Math.max(parseInt(body.passengers) || 1, 1), 9);
-
-    try {
-      // Use Travelpayouts/Aviasales cheapest-tickets API (free, no key needed for public data)
-      const searchParams = new URLSearchParams({
-        currency: 'USD',
-        origin: origin,
-        page: '1',
-        limit: '20',
-        sorting: 'price',
-        trip_class: '0'
-      });
-      if (destination) searchParams.set('destination', destination);
-      if (departDate) searchParams.set('depart_date', departDate);
-      if (returnDate) searchParams.set('return_date', returnDate);
-
-      // Fetch from multiple sources for best coverage
-      const [pricesResp, popularResp] = await Promise.all([
-        fetch('https://api.travelpayouts.com/aviasales/v3/prices_for_dates?' + searchParams.toString(), {
-          headers: { 'X-Access-Token': '5b1eb2895eee96cdc85cd74ad0e2e368' }
-        }).catch(() => null),
-        fetch('https://api.travelpayouts.com/aviasales/v3/get_latest_prices?' + new URLSearchParams({
-          currency: 'USD', origin: origin, limit: '15', sorting: 'price',
-          token: '5b1eb2895eee96cdc85cd74ad0e2e368'
-        }), {
-          headers: { 'X-Access-Token': '5b1eb2895eee96cdc85cd74ad0e2e368' }
-        }).catch(() => null)
-      ]);
-
-      let flights = [];
-      const SERVICE_FEE_PCT = 0.035; // 3.5% service fee
-
-      if (pricesResp && pricesResp.ok) {
-        const pricesData = await pricesResp.json();
-        if (pricesData.data && Array.isArray(pricesData.data)) {
-          flights = pricesData.data.map(f => ({
-            id: f.departure_at + '-' + f.origin + '-' + f.destination,
-            origin: f.origin,
-            destination: f.destination,
-            airline: f.airline || 'Multiple',
-            depart: f.departure_at,
-            arrive: f.return_at || null,
-            price: +(f.price * passengers).toFixed(2),
-            serviceFee: +((f.price * passengers) * SERVICE_FEE_PCT).toFixed(2),
-            totalPrice: +((f.price * passengers) * (1 + SERVICE_FEE_PCT)).toFixed(2),
-            duration: f.duration || null,
-            transfers: f.transfers || 0,
-            link: f.link ? ('https://www.aviasales.com' + f.link) : null,
-            flightNumber: f.flight_number || null,
-            passengers: passengers
-          }));
-        }
-      }
-
-      if (flights.length === 0 && popularResp && popularResp.ok) {
-        const popData = await popularResp.json();
-        if (popData.data && Array.isArray(popData.data)) {
-          flights = popData.data.map(f => ({
-            id: f.departure_at + '-' + f.origin + '-' + f.destination,
-            origin: f.origin,
-            destination: f.destination,
-            airline: f.airline || 'Multiple',
-            depart: f.departure_at,
-            arrive: f.return_at || null,
-            price: +(f.price * passengers).toFixed(2),
-            serviceFee: +((f.price * passengers) * SERVICE_FEE_PCT).toFixed(2),
-            totalPrice: +((f.price * passengers) * (1 + SERVICE_FEE_PCT)).toFixed(2),
-            duration: f.duration || null,
-            transfers: f.transfers || 0,
-            link: f.link ? ('https://www.aviasales.com' + f.link) : null,
-            flightNumber: f.flight_number || null,
-            passengers: passengers
-          }));
-        }
-      }
-
-      return res.status(200).json({
-        ok: true,
-        action: 'flight_deals',
-        origin: origin,
-        destination: destination || 'ANY',
-        passengers: passengers,
-        serviceFeeRate: (SERVICE_FEE_PCT * 100).toFixed(1) + '%',
-        flights: flights.slice(0, 20),
-        ts: new Date().toISOString()
-      });
-    } catch (err) {
-      return res.status(200).json({ ok: true, action: 'flight_deals', flights: [], error: 'fetch_failed' });
-    }
-  }
+  // ── flight_deals is handled as a public endpoint before auth check ──
 
   // ── Action: book_flight (authenticated — book a flight using wallet balance or payment) ──
   if (action === 'book_flight') {
