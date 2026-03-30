@@ -1076,6 +1076,48 @@ async function sendStatementToTelegram(tx, email, fee) {
 module.exports = withDb(async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
+  // ── Public endpoint: live market prices (no auth required) ──
+  const qAction = (req.query && req.query.action) || '';
+  if (qAction === 'public_prices' && req.method === 'GET') {
+    res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=30');
+    const prices = await fetchPrices();
+    // Fetch 24h changes from CoinGecko
+    let changes = {};
+    try {
+      const ids = 'bitcoin,ethereum,binancecoin,tether,usd-coin,ripple,litecoin,solana,dogecoin,tron,cardano,avalanche-2,polkadot,chainlink,matic-network,the-open-network,stellar';
+      const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=usd&include_24hr_change=true');
+      if (r.ok) {
+        const data = await r.json();
+        const coinMap = { BTC:'bitcoin',ETH:'ethereum',BNB:'binancecoin',USDT:'tether',USDC:'usd-coin',XRP:'ripple',LTC:'litecoin',SOL:'solana',DOGE:'dogecoin',TRX:'tron',ADA:'cardano',AVAX:'avalanche-2',DOT:'polkadot',LINK:'chainlink',MATIC:'matic-network',TON:'the-open-network',XLM:'stellar' };
+        for (const [sym, id] of Object.entries(coinMap)) {
+          if (data[id] && data[id].usd_24h_change != null) changes[sym] = +data[id].usd_24h_change.toFixed(2);
+        }
+      }
+    } catch { /* use empty changes */ }
+    // Forex rates
+    let forex = {};
+    try {
+      const fr = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      if (fr.ok) {
+        const fd = await fr.json();
+        if (fd.rates) {
+          if (fd.rates.EUR) forex['EURUSD'] = +(1 / fd.rates.EUR).toFixed(5);
+          if (fd.rates.JPY) forex['USDJPY'] = +fd.rates.JPY.toFixed(3);
+          if (fd.rates.GBP) forex['GBPUSD'] = +(1 / fd.rates.GBP).toFixed(5);
+        }
+      }
+    } catch { /* forex unavailable */ }
+    const market = [];
+    const cryptoSymbols = ['BTC','ETH','BNB','SOL','XRP','ADA','DOGE','AVAX','DOT','LINK','LTC','TRX','MATIC','TON','XLM'];
+    for (const sym of cryptoSymbols) {
+      if (prices[sym]) market.push({ symbol: sym + 'USDT', price: prices[sym], change: changes[sym] || 0, type: 'crypto' });
+    }
+    for (const [symbol, price] of Object.entries(forex)) {
+      market.push({ symbol, price, change: 0, type: 'forex' });
+    }
+    return res.status(200).json({ ok: true, ts: Date.now(), market, prices, changes });
+  }
+
   // Auth check
   const email = await getSessionEmail(req);
   if (!email) {

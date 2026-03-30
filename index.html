@@ -3024,7 +3024,7 @@
 
     async function fetchMarketPrices() {
       try {
-        const r = await fetch('/api/prices');
+        const r = await fetch('/api/wallet?action=public_prices');
         const d = await r.json();
         if (!d.ok || !d.market) return;
         marketPricesLastFetch = d.ts || Date.now();
