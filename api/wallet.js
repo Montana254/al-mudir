@@ -114,10 +114,18 @@ function isValidTxHashByNetwork(network, txHash) {
 
 function isValidAddressByNetwork(network, addr) {
   const address = String(addr || '').trim();
-  const net = String(network || '').toLowerCase();
+  const netRaw = String(network || '').toLowerCase();
+  const net = netRaw === 'avax' ? 'avax-c' : netRaw;
   if (!address) return false;
   if (net === 'trc20') return /^T[A-Za-z1-9]{33}$/.test(address);
-  if (['erc20', 'bep20', 'polygon', 'avax-c'].includes(net)) return /^0x[a-fA-F0-9]{40}$/.test(address);
+  if (['erc20', 'bep20', 'polygon', 'avax-c'].includes(net)) {
+    try {
+      const { getAddress } = require('ethers');
+      return !!getAddress(address);
+    } catch {
+      return false;
+    }
+  }
   if (net === 'bitcoin') return /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,62}$/.test(address);
   if (net === 'solana') return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
   if (net === 'stellar') return /^G[A-Z2-7]{55}$/.test(address);
@@ -1780,6 +1788,7 @@ module.exports = withDb(async function handler(req, res) {
       treasuryAddresses: TREASURY_ADDRESSES,
       fees: COIN_FEES,
       depositFeeRate: DEPOSIT_FEE_RATE,
+      withdrawLimits: WITHDRAW_LIMITS,
       withdrawFees: {
         BTC: { flat: 0.0001, rate: 0.001 }, ETH: { flat: 0.001, rate: 0.001 },
         BNB: { flat: 0.0005, rate: 0.001 }, USDT: { flat: 1, rate: 0.001 },
@@ -2205,9 +2214,7 @@ module.exports = withDb(async function handler(req, res) {
     const wMethod = sanitize(String(body.method || 'crypto'), 30).toLowerCase();
     const withdraw2faToken = sanitize(String(body.withdraw2faToken || ''), 80);
 
-    const userRaw = await redis('GET', 'user:' + email);
-    const userObj = userRaw ? (typeof userRaw === 'string' ? JSON.parse(userRaw) : userRaw) : null;
-    const twoFaRequired = !!(userObj && userObj.securityPrefs && userObj.securityPrefs.twoFA === true);
+    const twoFaRequired = true;
     if (twoFaRequired) {
       if (!withdraw2faToken) {
         return res.status(403).json({ ok: false, error: 'withdraw_2fa_required', detail: '2FA verification is required before withdrawal.' });

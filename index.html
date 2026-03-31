@@ -2154,6 +2154,7 @@
                         <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Select Asset</p>
                         <select id="quickDepositCoin" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm"></select>
                       </div>
+                      <p id="quickDepositNetworkWarning" class="hidden text-[10px] text-yellow-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Wallet network is not supported for direct deposit right now. Switch network before sending.</p>
                       <div class="rounded border border-white/10 bg-black/30 p-3 flex items-center justify-between">
                         <div>
                           <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Wallet Balance</p>
@@ -2219,6 +2220,7 @@
                     <div>
                       <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Blockchain Transaction Hash</p>
                       <input id="depositTxHashInput" type="text" maxlength="128" placeholder="Paste your transaction hash (required)" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-xs font-mono">
+                      <p id="depositTxHashHint" class="mt-1 text-[10px] text-gray-500">Format: network-specific hash required.</p>
                     </div>
                     <div class="grid gap-3 sm:grid-cols-2">
                       <div>
@@ -2254,6 +2256,7 @@
                     <span class="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-green-400">Available 24/7</span>
                   </div>
                   <p class="text-[10px] text-gray-500">Limits: max $50,000 per withdrawal, max $100,000 daily.</p>
+                  <div id="withdrawLimitInfo" class="rounded border border-white/10 bg-black/20 px-3 py-2 text-[10px] text-gray-400">Per-transaction cap: $50,000 · Daily cap: $100,000</div>
 
                   <div class="grid gap-3 sm:grid-cols-2">
                     <div>
@@ -3114,6 +3117,27 @@
     </div>
   </div>
 
+  <div id="botOrderModal" class="hidden fixed inset-0 z-[97] bg-black/75 backdrop-blur-sm p-4">
+    <div class="mx-auto mt-20 max-w-md rounded-xl border border-white/15 bg-[#0e1114] p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs uppercase tracking-[0.14em] text-gray-400">Bot Order Summary</p>
+        <button id="botOrderClose" type="button" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="rounded border border-white/10 bg-black/30 p-3 space-y-2 text-xs">
+        <div class="flex items-center justify-between"><span class="text-gray-500">Product</span><span class="text-white">AL-MUDIR Trading Bot</span></div>
+        <div class="flex items-center justify-between"><span class="text-gray-500">License</span><span class="text-white">1 Account</span></div>
+        <div class="flex items-center justify-between"><span class="text-gray-500">Activation</span><span class="text-white">Instant after payment</span></div>
+        <div class="flex items-center justify-between border-t border-white/10 pt-2"><span class="text-gray-300 font-semibold">Total Charge</span><span class="text-[var(--dash-accent)] font-semibold">$399.00</span></div>
+      </div>
+      <p class="text-[11px] text-gray-400">Review the order and confirm to proceed to secure checkout.</p>
+      <div class="flex gap-2">
+        <button id="botOrderCancel" type="button" class="flex-1 rounded border border-white/10 py-2 text-[11px] uppercase tracking-[0.12em] text-gray-400 hover:bg-white/5">Cancel</button>
+        <button id="botOrderConfirm" type="button" class="flex-1 rounded bg-[var(--dash-accent)] py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black hover:opacity-90">Continue</button>
+      </div>
+      <p id="botOrderStatus" class="hidden text-center text-xs"></p>
+    </div>
+  </div>
+
   <footer class="py-12 px-6 text-center text-[10px] uppercase tracking-[0.2em] opacity-70 space-y-4">
     <p>Copyright 2026 AL-MUDIR Wealth and Fintech Ventures</p>
     <p class="mx-auto max-w-5xl text-[10px] normal-case tracking-normal text-gray-400">Risk Warning: Trading forex, commodities, and digital assets carries a high level of risk and may not be suitable for all investors. Past performance is not indicative of future results. You may lose some or all invested capital.</p>
@@ -3251,6 +3275,7 @@
     const copyDepositAddrBtn = document.getElementById('copyDepositAddrBtn');
     const depositAmountInput = document.getElementById('depositAmountInput');
     const depositTxHashInput = document.getElementById('depositTxHashInput');
+    const depositTxHashHint = document.getElementById('depositTxHashHint');
     const confirmDepositBtn = document.getElementById('confirmDepositBtn');
     const depositStatus = document.getElementById('depositStatus');
     const systemWalletGrid = document.getElementById('systemWalletGrid');
@@ -3272,6 +3297,7 @@
     const quickDepositSummary = document.getElementById('quickDepositSummary');
     const quickDepositFee = document.getElementById('quickDepositFee');
     const quickDepositReceive = document.getElementById('quickDepositReceive');
+    const quickDepositNetworkWarning = document.getElementById('quickDepositNetworkWarning');
     const quickDepositSendBtn = document.getElementById('quickDepositSendBtn');
     const quickDepositProgress = document.getElementById('quickDepositProgress');
     const quickDepositProgressText = document.getElementById('quickDepositProgressText');
@@ -3297,6 +3323,7 @@
     const withdraw2faSend = document.getElementById('withdraw2faSend');
     const withdraw2faConfirm = document.getElementById('withdraw2faConfirm');
     const withdraw2faStatus = document.getElementById('withdraw2faStatus');
+    const withdrawLimitInfo = document.getElementById('withdrawLimitInfo');
 
     // ── Fiat Deposit refs ──
     const fiatDepositMethod = document.getElementById('fiatDepositMethod');
@@ -3379,6 +3406,7 @@
     let preferredDashboardPanel = null;
     let tradeMode = 'buy';
     let adminKycQueue = [];
+    let botAnalysisInFlight = false;
     let systemWalletData = { balances: {}, prices: {}, coins: {}, networks: {}, treasuryAddresses: {}, fees: {}, depositFeeRate: 0.0005, transactions: [] };
     let systemWalletInFlight = null;
     let systemWalletLoadedOnce = false;
@@ -3939,7 +3967,15 @@
       marketBoardBody.innerHTML = '';
       const active = MARKET_SNAPSHOT.filter(function(e) { return e.price > 0; });
       if (!active.length) {
-        marketBoardBody.innerHTML = '<div class="px-3 py-3 text-xs text-gray-500 text-center">Fetching live prices…</div>';
+        marketBoardBody.innerHTML = [
+          '<div class="market-row grid grid-cols-[1.2fr_0.9fr_0.8fr_0.7fr] items-center px-3 py-2 animate-pulse">',
+          '<span class="inline-block h-3 w-16 rounded bg-white/10"></span><span class="inline-block h-3 w-14 rounded bg-white/10"></span><span class="inline-block h-3 w-10 rounded bg-white/10"></span><span class="inline-block h-5 w-12 rounded bg-white/10"></span>',
+          '</div>',
+          '<div class="market-row grid grid-cols-[1.2fr_0.9fr_0.8fr_0.7fr] items-center px-3 py-2 animate-pulse">',
+          '<span class="inline-block h-3 w-16 rounded bg-white/10"></span><span class="inline-block h-3 w-14 rounded bg-white/10"></span><span class="inline-block h-3 w-10 rounded bg-white/10"></span><span class="inline-block h-5 w-12 rounded bg-white/10"></span>',
+          '</div>',
+          '<div class="px-3 pb-3 text-[10px] text-gray-500 text-center">Fetching live prices...</div>'
+        ].join('');
         return;
       }
       // Staleness indicator
@@ -5866,6 +5902,7 @@
             if (d.fees) systemWalletData.fees = d.fees;
             if (d.depositFeeRate !== undefined) systemWalletData.depositFeeRate = d.depositFeeRate;
             if (d.withdrawFees) withdrawFeesData = d.withdrawFees;
+            if (d.withdrawLimits) systemWalletData.withdrawLimits = d.withdrawLimits;
             systemWalletLoadedOnce = true;
             systemWalletLastFetchAt = Date.now();
             renderSystemBalances();
@@ -6034,14 +6071,28 @@
       updateDepositAddress();
     }
 
+    function getTxHashHint(network) {
+      var n = String(network || '').toLowerCase();
+      if (n === 'erc20' || n === 'bep20' || n === 'polygon' || n === 'avax-c') return 'Expected: 0x + 64 hex chars (66 total).';
+      if (n === 'trc20' || n === 'bitcoin' || n === 'litecoin' || n === 'dogecoin' || n === 'xrp' || n === 'stellar' || n === 'polkadot') return 'Expected: 64 hex characters.';
+      if (n === 'solana' || n === 'ton') return 'Expected: base58 hash (43-88 chars).';
+      return 'Paste the full confirmed transaction hash from your wallet/exchange.';
+    }
+
     function updateDepositAddress() {
       var coin = depositCoinSelect.value;
       var network = depositNetworkSelect.value;
       var addrs = systemWalletData.treasuryAddresses || {};
       var addr = addrs[network] || '';
       updateDepositNetworkWarning();
+      if (depositTxHashHint) {
+        depositTxHashHint.textContent = 'Format: ' + getTxHashHint(network);
+      }
       if (!addr || !network) {
-        depositAddressCard.classList.add('hidden');
+        depositNetworkLabel.textContent = 'Select network';
+        depositAddrDisplay.textContent = 'Choose coin and network first. Your verified treasury address will appear here.';
+        depositCoinLabel.textContent = coin || '—';
+        depositAddressCard.classList.remove('hidden');
         return;
       }
       var meta = getNetworkMeta(network);
@@ -6985,10 +7036,15 @@
       if (manager && manager.walletConnected && manager.chainId) {
         quickDepositNoWallet.classList.add('hidden');
         quickDepositForm.classList.remove('hidden');
+        if (quickDepositNetworkWarning) {
+          var supportedChain = !!(manager.treasuryNativeAddress && manager.treasuryNativeAddress[manager.chainId]);
+          quickDepositNetworkWarning.classList.toggle('hidden', supportedChain);
+        }
         populateQuickDepositCoins(manager);
       } else {
         quickDepositNoWallet.classList.remove('hidden');
         quickDepositForm.classList.add('hidden');
+        if (quickDepositNetworkWarning) quickDepositNetworkWarning.classList.add('hidden');
       }
     }
 
@@ -7084,6 +7140,11 @@
       var manager = initializePaymentManager();
       if (!manager || !manager.walletConnected) {
         showStatus(depositStatus, 'Connect a wallet first.', 'error');
+        return;
+      }
+      if (!manager.treasuryNativeAddress || !manager.treasuryNativeAddress[manager.chainId]) {
+        showStatus(depositStatus, 'Unsupported wallet network for direct deposit. Switch network and retry.', 'error');
+        if (quickDepositNetworkWarning) quickDepositNetworkWarning.classList.remove('hidden');
         return;
       }
       var coin = quickDepositCoin.value;
@@ -7236,6 +7297,10 @@
       var bals = systemWalletData.balances || {};
       var bal = bals[coin] || 0;
       withdrawAvailBal.textContent = 'Available: ' + bal.toFixed(8) + ' ' + coin;
+      if (withdrawLimitInfo) {
+        var lim = systemWalletData.withdrawLimits || { perTxUsd: 50000, dailyUsd: 100000 };
+        withdrawLimitInfo.textContent = 'Per-transaction cap: $' + Number(lim.perTxUsd || 50000).toLocaleString() + ' · Daily cap: $' + Number(lim.dailyUsd || 100000).toLocaleString();
+      }
       updateWithdrawFees();
     }
 
@@ -7316,16 +7381,10 @@
       if (amount > (bals[coin] || 0)) { showStatus(withdrawStatus, 'Insufficient ' + coin + ' balance.', 'error'); return; }
 
       var payload = { action: 'withdraw', coin: coin, amount: amount, address: address, network: network, method: 'crypto' };
-      var twoFaEnabled = !!(document.getElementById('security2fa') && document.getElementById('security2fa').checked);
-      if (twoFaEnabled) {
-        pendingWithdrawRequest = payload;
-        if (withdraw2faCode) withdraw2faCode.value = '';
-        if (withdraw2faModal) withdraw2faModal.classList.remove('hidden');
-        if (withdraw2faStatus) showStatus(withdraw2faStatus, 'Send and verify your one-time code to continue.', 'neutral');
-        return;
-      }
-
-      await submitWithdrawalRequest(payload);
+      pendingWithdrawRequest = payload;
+      if (withdraw2faCode) withdraw2faCode.value = '';
+      if (withdraw2faModal) withdraw2faModal.classList.remove('hidden');
+      if (withdraw2faStatus) showStatus(withdraw2faStatus, 'Send and verify your one-time code to continue. 2FA is required for all withdrawals.', 'neutral');
     });
 
     if (withdraw2faClose) {
@@ -7586,6 +7645,10 @@
     var botStatWinRate = document.getElementById('botStatWinRate');
     var botStatPnl = document.getElementById('botStatPnl');
     var botStatFees = document.getElementById('botStatFees');
+    var botOrderModal = document.getElementById('botOrderModal');
+    var botOrderClose = document.getElementById('botOrderClose');
+    var botOrderCancel = document.getElementById('botOrderCancel');
+    var botOrderConfirm = document.getElementById('botOrderConfirm');
     var botActive = false;
     var botData = null;
     var botTrades = [];
@@ -7757,32 +7820,39 @@
     botBuyBtn.addEventListener('click', async function() {
       var h = authHeaders();
       if (!h) { showStatus(botPurchaseStatus, 'Sign in required.', 'error'); return; }
-      if (!confirm('Confirm bot activation charge of $399.00?')) {
-        showStatus(botPurchaseStatus, 'Activation cancelled.', 'neutral');
+      if (botOrderModal) {
+        botOrderModal.classList.remove('hidden');
         return;
       }
-
-      // Show checkout modal for bot purchase
-      showCheckoutModal({
-        type: 'bot_purchase',
-        action: 'Activate Trading Bot',
-        coin: 'USDT',
-        rawAmount: 399,
-        amount: '$399.00',
-        price: '$1.00',
-        subtotal: '$399.00',
-        fee: '$0.00',
-        total: '$399.00',
-        method: selectedPayMethod
-      });
     });
+
+    if (botOrderClose) botOrderClose.addEventListener('click', function() { botOrderModal.classList.add('hidden'); });
+    if (botOrderCancel) botOrderCancel.addEventListener('click', function() { botOrderModal.classList.add('hidden'); showStatus(botPurchaseStatus, 'Activation cancelled.', 'neutral'); });
+    if (botOrderConfirm) {
+      botOrderConfirm.addEventListener('click', function() {
+        if (botOrderModal) botOrderModal.classList.add('hidden');
+        showCheckoutModal({
+          type: 'bot_purchase',
+          action: 'Activate Trading Bot',
+          coin: 'USDT',
+          rawAmount: 399,
+          amount: '$399.00',
+          price: '$1.00',
+          subtotal: '$399.00',
+          fee: '$0.00',
+          total: '$399.00',
+          method: selectedPayMethod
+        });
+      });
+    }
 
     // Bot: run analysis cycle
     async function runBotAnalysis() {
       var h = authHeaders();
       if (!h) { showStatus(botTradeStatus, 'Sign in required.', 'error'); return; }
       if (!botActive) { showStatus(botTradeStatus, 'Activate the bot first.', 'error'); return; }
-      if (botRunNowBtn.disabled) return;
+      if (botRunNowBtn.disabled || botAnalysisInFlight) return;
+      botAnalysisInFlight = true;
 
       var coin = botCoinSelect.value || 'BTC';
       var stratKey = botStrategySelect.value || 'auto';
@@ -7791,6 +7861,7 @@
       var price = prices[coin] || 0;
 
       if (price <= 0) {
+        botAnalysisInFlight = false;
         showStatus(botTradeStatus, 'Price unavailable for ' + coin + '. Try again.', 'error');
         return;
       }
@@ -7881,6 +7952,7 @@
       var tradeAmount = positionUsd / price;
       if (tradeAmount <= 0 || positionUsd < 0.50) {
         logLine('⚠ Insufficient balance for ' + coin + ' trade. Fund your account.', '#f87171');
+        botAnalysisInFlight = false;
         botRunNowBtn.disabled = false;
         botRunNowBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i>Run Analysis';
         showStatus(botTradeStatus, 'Insufficient balance for this trade.', 'error');
@@ -7954,6 +8026,7 @@
       }
 
       botAnalysisTime.textContent = 'Last run: ' + new Date().toLocaleString();
+      botAnalysisInFlight = false;
       botRunNowBtn.disabled = false;
       botRunNowBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i>Run Analysis';
     }
