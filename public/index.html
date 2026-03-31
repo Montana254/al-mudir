@@ -6372,10 +6372,10 @@
         forgotSendCode.disabled = true;
         showStatus(forgotStatus, 'Sending reset code...', 'neutral');
         try {
-          var res = await fetch('/api/auth-forgot-password', {
+          var res = await fetch('/api/auth-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'request', email: email })
+            body: JSON.stringify({ action: 'forgot_password_request', email: email })
           });
           var result = await res.json();
           if (!res.ok || !result.ok) {
@@ -6412,10 +6412,10 @@
         forgotResetBtn.disabled = true;
         showStatus(forgotStatus, 'Resetting password...', 'neutral');
         try {
-          var resetRes = await fetch('/api/auth-forgot-password', {
+          var resetRes = await fetch('/api/auth-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'confirm', email: email, code: code, newPassword: nextPassword })
+            body: JSON.stringify({ action: 'forgot_password_confirm', email: email, code: code, newPassword: nextPassword, confirmPassword: confirmPassword })
           });
           var resetData = await resetRes.json();
           if (!resetRes.ok || !resetData.ok) {
@@ -7342,10 +7342,10 @@
         withdraw2faSend.disabled = true;
         showStatus(withdraw2faStatus, 'Sending one-time code...', 'neutral');
         try {
-          var res = await fetch('/api/auth-withdraw-otp', {
+          var res = await fetch('/api/auth-profile', {
             method: 'POST',
             headers: h,
-            body: JSON.stringify({ action: 'send' })
+            body: JSON.stringify({ action: 'withdrawOtpSend' })
           });
           var data = await res.json();
           if (!res.ok || !data.ok) {
@@ -7377,10 +7377,10 @@
         withdraw2faConfirm.disabled = true;
         showStatus(withdraw2faStatus, 'Verifying code...', 'neutral');
         try {
-          var res = await fetch('/api/auth-withdraw-otp', {
+          var res = await fetch('/api/auth-profile', {
             method: 'POST',
             headers: h,
-            body: JSON.stringify({ action: 'verify', code: code })
+            body: JSON.stringify({ action: 'withdrawOtpVerify', code: code })
           });
           var data = await res.json();
           if (!res.ok || !data.ok) {

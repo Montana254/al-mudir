@@ -1,8 +1,14 @@
 'use strict';
+const crypto = require('crypto');
 const { redis, withDb } = require('./_lib/redis');
-const { sanitize, hashPassword, verifyPassword } = require('./_lib/auth-utils');
+const { sanitize, generateOtp, hashPassword, verifyPassword } = require('./_lib/auth-utils');
+const { sendOtpCode } = require('./_lib/email');
 const { ensureUserRecord, saveUserProfileSnapshot, toSafeProfile } = require('./_lib/user-profile');
 const { attachAdminFlag } = require('./_lib/admin-access');
+
+const withdrawSendRateMap = new Map();
+const WITHDRAW_WINDOW_MS = 10 * 60 * 1000;
+const WITHDRAW_MAX_SEND_REQ = 3;
 
 async function resolveSession(req) {
   const auth = req.headers['authorization'] || '';
@@ -72,6 +78,59 @@ module.exports = withDb(async function handler(req, res) {
       await saveUserProfileSnapshot(redis, user);
       await redis('EXPIRE', 'session:' + token, 86400);
       return res.status(200).json({ ok: true, message: 'password_changed' });
+    }
+
+    // ── Withdrawal OTP send/verify actions ──
+    if (body.action === 'withdrawOtpSend') {
+      const now = Date.now();
+      const entry = withdrawSendRateMap.get(user.email) || { count: 0, resetAt: now + WITHDRAW_WINDOW_MS };
+      if (now > entry.resetAt) {
+        entry.count = 0;
+        entry.resetAt = now + WITHDRAW_WINDOW_MS;
+      }
+      entry.count += 1;
+      withdrawSendRateMap.set(user.email, entry);
+      if (entry.count > WITHDRAW_MAX_SEND_REQ) {
+        return res.status(429).json({ ok: false, error: 'rate_limited' });
+      }
+
+      const code = generateOtp();
+      await redis('SET', 'withdraw_otp:' + user.email, JSON.stringify({ code: code, exp: Date.now() + 5 * 60 * 1000 }));
+      await redis('EXPIRE', 'withdraw_otp:' + user.email, 300);
+
+      await sendOtpCode({
+        email: user.email,
+        phone: user.phone,
+        otp: code,
+        name: user.name,
+        preferredChannel: user.otpChannel || 'email'
+      });
+
+      return res.status(200).json({ ok: true });
+    }
+
+    if (body.action === 'withdrawOtpVerify') {
+      const code = sanitize(body.code, 10).replace(/\D/g, '');
+      if (!code || code.length !== 6) {
+        return res.status(400).json({ ok: false, error: 'invalid_code' });
+      }
+
+      const otpRaw = await redis('GET', 'withdraw_otp:' + user.email);
+      if (!otpRaw) return res.status(400).json({ ok: false, error: 'otp_expired' });
+      const otp = typeof otpRaw === 'string' ? JSON.parse(otpRaw) : otpRaw;
+      if (Date.now() > Number(otp.exp || 0)) {
+        await redis('DEL', 'withdraw_otp:' + user.email);
+        return res.status(400).json({ ok: false, error: 'otp_expired' });
+      }
+      if (String(otp.code) !== code) {
+        return res.status(400).json({ ok: false, error: 'otp_invalid' });
+      }
+
+      await redis('DEL', 'withdraw_otp:' + user.email);
+      const token2fa = crypto.randomBytes(24).toString('hex');
+      await redis('SET', 'withdraw_2fa_token:' + user.email + ':' + token2fa, JSON.stringify({ ok: true, at: Date.now() }));
+      await redis('EXPIRE', 'withdraw_2fa_token:' + user.email + ':' + token2fa, 300);
+      return res.status(200).json({ ok: true, token: token2fa });
     }
 
     if (body.name !== undefined && body.name !== null) {

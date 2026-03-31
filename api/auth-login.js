@@ -83,7 +83,7 @@ module.exports = withDb(async function handler(req, res) {
     // Forgot-password step 2: confirm OTP and set new password
     if (action === 'forgot_password_confirm') {
       const email = sanitize(body.email, 120).toLowerCase();
-      const otp = sanitize(body.otp, 10).replace(/\s/g, '');
+      const otp = sanitize(body.otp || body.code, 10).replace(/\s/g, '');
       const newPassword = String(body.newPassword || '');
       const confirmPassword = String(body.confirmPassword || '');
 
