@@ -145,6 +145,51 @@ async function sendOtpSms(to, otp, name) {
   return data;
 }
 
+async function sendSystemEmail(params) {
+  const to = String(params && params.to || '').trim();
+  const subject = String(params && params.subject || '').trim();
+  const html = String(params && params.html || '').trim();
+  const text = String(params && params.text || '').trim();
+  if (!to || !subject || !html) throw new Error('invalid_email_payload');
+
+  if (process.env.RESEND_API_KEY) {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + process.env.RESEND_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: FROM,
+        to: [to],
+        subject: subject,
+        html: html,
+        text: text || undefined
+      })
+    });
+    if (res.ok) return { provider: 'resend' };
+  }
+
+  if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_PORT === 465,
+      auth: { user: SMTP_USER, pass: SMTP_PASS }
+    });
+    await transporter.sendMail({
+      from: FROM,
+      to: to,
+      subject: subject,
+      html: html,
+      text: text || undefined
+    });
+    return { provider: 'smtp' };
+  }
+
+  throw new Error('email_not_configured');
+}
+
 function maskEmail(email) {
   const value = String(email || '').trim();
   const at = value.indexOf('@');
@@ -178,4 +223,4 @@ async function sendOtpCode(params) {
   return { method: 'email', target: maskEmail(email) };
 }
 
-module.exports = { sendOtpEmail, sendOtpCode };
+module.exports = { sendOtpEmail, sendOtpCode, sendSystemEmail };
