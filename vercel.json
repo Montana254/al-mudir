@@ -7,6 +7,14 @@
     { "path": "/api/cron-report", "schedule": "0 4 * * *" }
   ],
   "rewrites": [
+    { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/terms.html", "destination": "/terms.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/privacy.html", "destination": "/privacy.html" },
+    { "source": "/risk-disclosure", "destination": "/risk-disclosure.html" },
+    { "source": "/risk-disclosure.html", "destination": "/risk-disclosure.html" },
+    { "source": "/cookies", "destination": "/cookies.html" },
+    { "source": "/cookies.html", "destination": "/cookies.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
