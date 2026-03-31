@@ -940,6 +940,11 @@
     }
     .flight-ac-item:last-child { border-bottom: none !important; }
 
+    /* Seat map styling */
+    #flightSeatMap { scrollbar-width: thin; scrollbar-color: rgba(139,92,246,0.3) transparent; max-height: 240px; overflow-y: auto; }
+    #flightBookingModal > div { scrollbar-width: thin; scrollbar-color: rgba(139,92,246,0.3) transparent; }
+    .seat-btn { font-size: 6px; min-width: 20px; min-height: 20px; }
+
     #publicServicesCarousel > a:active {
       transform: scale(0.97);
       transition: transform 0.1s ease;
@@ -2814,20 +2819,57 @@
 
               <!-- Booking Confirmation Modal -->
               <div id="flightBookingModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                <div class="mx-4 w-full max-w-md rounded-2xl border border-violet-500/30 bg-[#0b1117] p-6 shadow-2xl space-y-4">
-                  <div class="text-center">
-                    <i class="fa-solid fa-plane text-2xl text-violet-400 mb-2"></i>
-                    <h4 class="text-lg font-semibold text-white">Confirm Booking</h4>
+                <div class="mx-4 w-full max-w-lg rounded-2xl border border-violet-500/30 bg-[#0b1117] shadow-2xl max-h-[92vh] overflow-y-auto">
+                  <!-- Header -->
+                  <div class="sticky top-0 z-10 bg-[#0b1117] p-4 border-b border-white/10 text-center">
+                    <i class="fa-solid fa-plane text-xl text-violet-400 mb-1"></i>
+                    <h4 class="text-base font-semibold text-white">Book Flight</h4>
+                    <p id="flightBookRoute" class="text-[10px] text-gray-400 mt-0.5"></p>
                   </div>
-                  <div id="flightBookingDetails" class="space-y-2 text-sm"></div>
-                  <div>
-                    <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Pay With</p>
-                    <select id="flightPayMethod" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
-                      <option value="wallet" class="text-black">USDT Wallet Balance</option>
-                      <option value="apple_pay" class="text-black">Apple Pay</option>
-                      <option value="gpay" class="text-black">Google Pay</option>
-                      <option value="visa" class="text-black">Visa / Debit Card</option>
-                    </select>
+
+                  <div class="p-4 space-y-4">
+                    <!-- Flight Summary -->
+                    <div id="flightBookingDetails" class="space-y-2 text-sm"></div>
+
+                    <!-- Passenger Details -->
+                    <div class="space-y-2">
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Passenger Details</p>
+                      <input id="flightPassengerName" type="text" placeholder="Full name (as on ID)" maxlength="100" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                      <input id="flightPassengerEmail" type="email" placeholder="Email for e-ticket delivery" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                    </div>
+
+                    <!-- Seat Selection -->
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-2"><i class="fa-solid fa-chair mr-1"></i>Select Your Seat</p>
+                      <div class="flex items-center gap-3 mb-2 text-[9px] text-gray-400">
+                        <span><span class="inline-block w-3 h-3 rounded-sm bg-violet-500/50 mr-1 align-middle"></span>Available</span>
+                        <span><span class="inline-block w-3 h-3 rounded-sm bg-gray-700 mr-1 align-middle"></span>Taken</span>
+                        <span><span class="inline-block w-3 h-3 rounded-sm bg-amber-500/50 mr-1 align-middle"></span>First/Biz</span>
+                        <span><span class="inline-block w-3 h-3 rounded-sm ring-2 ring-violet-500 mr-1 align-middle"></span>Selected</span>
+                      </div>
+                      <div id="flightSeatMap" class="bg-[#0a0e14] rounded-lg border border-white/5 p-3 overflow-x-auto"></div>
+                      <p id="flightSeatInfo" class="text-[10px] text-gray-500 mt-1">Tap a seat to select</p>
+                      <input id="flightSelectedSeat" type="hidden" value="">
+                    </div>
+
+                    <!-- Ancillary Services -->
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-2"><i class="fa-solid fa-suitcase mr-1"></i>Add Services</p>
+                      <div id="flightAncillaries" class="space-y-1.5"></div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div id="flightPriceBreakdown" class="border-t border-white/10 pt-3 space-y-1"></div>
+
+                    <!-- Payment Method -->
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Pay With</p>
+                      <select id="flightPayMethod" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                        <option value="wallet" class="text-black">USDT Wallet Balance</option>
+                        <option value="apple_pay" class="text-black">Apple Pay</option>
+                        <option value="gpay" class="text-black">Google Pay</option>
+                        <option value="visa" class="text-black">Visa / Debit Card</option>
+                      </select>
                     <p id="flightWalletBalance" class="mt-1 text-[10px] text-gray-500"></p>
                   </div>
                   <div class="flex gap-2">
@@ -2835,6 +2877,7 @@
                     <button id="confirmFlightBookBtn" class="flex-1 rounded bg-gradient-to-r from-violet-600 to-purple-500 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:opacity-90">Confirm & Pay</button>
                   </div>
                   <p id="flightBookStatus" class="hidden text-center text-xs"></p>
+                  </div>
                 </div>
               </div>
             </section>
@@ -3865,20 +3908,23 @@
       container.innerHTML = flights.map(function(f, i) {
         var stops = f.transfers === 0 ? '<span class="text-green-400">Direct</span>' : '<span class="text-yellow-400">' + f.transfers + ' stop' + (f.transfers > 1 ? 's' : '') + '</span>';
         var dur = f.duration ? (Math.floor(f.duration / 60) + 'h ' + (f.duration % 60) + 'm') : '—';
+        var seatsAvail = f.seatInfo ? '<span class="text-[9px] text-emerald-400"><i class="fa-solid fa-chair mr-0.5"></i>' + f.seatInfo.available + ' seats</span>' : '';
+        var aircraft = f.aircraft ? '<span class="text-[9px] text-gray-500">' + f.aircraft + '</span>' : '';
         return '<div class="dash-card rounded-xl p-4 hover:border-violet-500/30 transition-all">' +
           '<div class="flex items-start justify-between gap-3 flex-wrap">' +
             '<div class="flex-1 min-w-0">' +
               '<div class="flex items-center gap-2">' +
-                '<span class="text-lg">' + airlineIcon(f.airline) + '</span>' +
+                '<span class="text-lg">' + airlineIcon(f.airlineCode || f.airline) + '</span>' +
                 '<div>' +
                   '<p class="text-sm font-semibold text-white">' + (f.originCity || f.origin) + ' → ' + (f.destinationCity || f.destination) + '</p>' +
                   '<p class="text-[10px] text-gray-500">' + f.origin + ' → ' + f.destination + ' · ' + (f.airline || '') + (f.flightNumber ? ' · ' + f.flightNumber : '') + ' · ' + stops + ' · ' + dur + '</p>' +
                 '</div>' +
               '</div>' +
-              '<div class="mt-2 flex items-center gap-3 text-[10px] text-gray-400">' +
+              '<div class="mt-2 flex items-center gap-3 flex-wrap text-[10px] text-gray-400">' +
                 '<span><i class="fa-solid fa-calendar mr-1"></i>' + formatFlightDate(f.depart) + '</span>' +
                 (f.arrive ? '<span><i class="fa-solid fa-calendar-check mr-1"></i>' + formatFlightDate(f.arrive) + '</span>' : '') +
                 '<span><i class="fa-solid fa-users mr-1"></i>' + f.passengers + ' pax</span>' +
+                seatsAvail + aircraft +
               '</div>' +
             '</div>' +
             '<div class="text-right shrink-0">' +
@@ -4003,22 +4049,44 @@
       var f = flightCache[idx];
       if (!f) return;
       selectedFlight = f;
+      selectedFlight._selectedSeat = '';
+      selectedFlight._ancillaries = [];
+
+      // Route header
+      var routeEl = document.getElementById('flightBookRoute');
+      if (routeEl) routeEl.textContent = (f.originCity || f.origin) + ' → ' + (f.destinationCity || f.destination) + ' · ' + formatFlightDate(f.depart);
+
+      // Flight summary
       var details = document.getElementById('flightBookingDetails');
       if (details) {
         details.innerHTML =
           '<div class="rounded border border-white/10 bg-black/20 p-3">' +
-            '<p class="text-xs font-semibold text-white">' + (f.originCity || f.origin) + ' → ' + (f.destinationCity || f.destination) + '</p>' +
-            '<p class="text-[10px] text-gray-400 mt-1">' + f.origin + ' → ' + f.destination + ' · ' + formatFlightDate(f.depart) + (f.arrive ? ' — ' + formatFlightDate(f.arrive) : '') + '</p>' +
-            '<p class="text-[10px] text-gray-400">' + (f.airline || '') + ' · ' + f.passengers + ' passenger' + (f.passengers > 1 ? 's' : '') + '</p>' +
-          '</div>' +
-          '<div class="flex justify-between text-sm"><span class="text-gray-400">Base price</span><span class="text-white">$' + (f.price || 0).toFixed(2) + '</span></div>' +
-          '<div class="flex justify-between text-sm"><span class="text-gray-400">Service fee (3.5%)</span><span class="text-white">$' + (f.serviceFee || 0).toFixed(2) + '</span></div>' +
-          '<div class="flex justify-between text-sm font-semibold border-t border-white/10 pt-2"><span class="text-white">Total</span><span class="text-violet-400">$' + f.totalPrice.toFixed(2) + '</span></div>';
+            '<div class="flex items-center gap-2 mb-1"><span class="text-lg">' + airlineIcon(f.airlineCode) + '</span><p class="text-xs font-semibold text-white">' + (f.airline || '') + ' · ' + (f.flightNumber || '') + '</p></div>' +
+            '<p class="text-[10px] text-gray-400">' + f.origin + ' → ' + f.destination + ' · ' + (f.durationFormatted || '') + ' · ' + (f.transfers === 0 ? 'Direct' : f.transfers + ' stop') + ' · ' + (f.aircraft || '') + '</p>' +
+            '<p class="text-[10px] text-gray-400">' + f.passengers + ' passenger' + (f.passengers > 1 ? 's' : '') + '</p>' +
+          '</div>';
       }
-      // Show wallet balance hint
+
+      // Prefill email/name from session
+      var nameInput = document.getElementById('flightPassengerName');
+      var emailInput = document.getElementById('flightPassengerEmail');
+      if (nameInput && currentUser) nameInput.value = currentUser.name || '';
+      if (emailInput && currentUser) emailInput.value = currentUser.email || '';
+
+      // Render seat map
+      renderSeatMap(f);
+
+      // Render ancillary services
+      renderAncillaries(f);
+
+      // Render initial price breakdown
+      updatePriceBreakdown(f);
+
+      // Show wallet balance
       var balEl = document.getElementById('flightWalletBalance');
       if (balEl && currentUser) {
-        fetch('/api/wallet', { headers: { 'Authorization': 'Bearer ' + getSession().token } })
+        var session = getSession();
+        fetch('/api/wallet', { headers: { 'Authorization': 'Bearer ' + (session ? session.token : '') } })
           .then(function(r) { return r.json(); })
           .then(function(d) {
             if (d.ok && d.balances) {
@@ -4031,6 +4099,133 @@
       document.getElementById('flightBookingModal').classList.remove('hidden');
     }
 
+    function renderSeatMap(f) {
+      var container = document.getElementById('flightSeatMap');
+      if (!container || !f.seatMap) {
+        if (container) container.innerHTML = '<p class="text-center text-[10px] text-gray-500 py-2">Seat map unavailable</p>';
+        return;
+      }
+      var cols = f.seatInfo ? f.seatInfo.cols : 6;
+      var colLetters = typeof cols === 'string' ? cols : 'ABCDEF';
+      var rows = f.seatInfo ? f.seatInfo.rows : 26;
+
+      // Header row with column letters
+      var html = '<div style="display:grid;grid-template-columns:24px repeat(' + colLetters.length + ',1fr);gap:2px;max-width:' + (colLetters.length * 28 + 28) + 'px;margin:0 auto;">';
+      html += '<div></div>';
+      for (var c = 0; c < colLetters.length; c++) {
+        html += '<div class="text-center text-[8px] text-gray-500 pb-1">' + colLetters[c] + '</div>';
+      }
+
+      // Group by row
+      var seatsByRow = {};
+      f.seatMap.forEach(function(s) {
+        var rn = parseInt(s.seat);
+        if (!seatsByRow[rn]) seatsByRow[rn] = [];
+        seatsByRow[rn].push(s);
+      });
+
+      for (var r = 1; r <= rows; r++) {
+        var rowSeats = seatsByRow[r] || [];
+        html += '<div class="text-[8px] text-gray-500 flex items-center justify-center">' + r + '</div>';
+        for (var si = 0; si < rowSeats.length; si++) {
+          var s = rowSeats[si];
+          var bg = '';
+          var cursor = '';
+          var onclick = '';
+          if (!s.available) {
+            bg = 'bg-gray-700/60';
+            cursor = 'cursor-not-allowed opacity-40';
+          } else if (s.class === 'first' || s.class === 'business') {
+            bg = 'bg-amber-500/30 hover:bg-amber-500/50';
+            cursor = 'cursor-pointer';
+            onclick = ' onclick="selectSeat(\'' + s.seat + '\',' + (s.price || 0) + ',\'' + s.class + '\')"';
+          } else {
+            bg = 'bg-violet-500/20 hover:bg-violet-500/40';
+            cursor = 'cursor-pointer';
+            onclick = ' onclick="selectSeat(\'' + s.seat + '\',' + (s.price || 0) + ',\'' + s.class + '\')"';
+          }
+          html += '<div id="seat-' + s.seat + '" class="w-5 h-5 rounded-sm text-[7px] flex items-center justify-center text-gray-300 ' + bg + ' ' + cursor + ' transition-all seat-btn" data-seat="' + s.seat + '"' + onclick + '>' + s.seat + '</div>';
+          // Add aisle gap after column C (narrow) or D (wide)
+          if (colLetters.length === 6 && si === 2) html += '<div class="w-1"></div>';
+          else if (colLetters.length === 9 && (si === 2 || si === 5)) html += '<div class="w-1"></div>';
+        }
+        html += '';
+      }
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    function selectSeat(seatId, price, cls) {
+      if (!selectedFlight) return;
+      // Deselect previous
+      document.querySelectorAll('#flightSeatMap .seat-btn').forEach(function(el) {
+        el.classList.remove('ring-2', 'ring-violet-500', 'bg-violet-500/60');
+      });
+      // Select new
+      var el = document.getElementById('seat-' + seatId);
+      if (el) {
+        el.classList.add('ring-2', 'ring-violet-500', 'bg-violet-500/60');
+      }
+      selectedFlight._selectedSeat = seatId;
+      selectedFlight._seatPrice = price;
+      document.getElementById('flightSelectedSeat').value = seatId;
+      var info = document.getElementById('flightSeatInfo');
+      if (info) {
+        info.textContent = 'Selected: Seat ' + seatId + ' (' + cls + ')' + (price > 0 ? ' +$' + price : ' — Free');
+        info.className = 'text-[10px] text-violet-400 mt-1 font-semibold';
+      }
+      updatePriceBreakdown(selectedFlight);
+    }
+
+    function renderAncillaries(f) {
+      var container = document.getElementById('flightAncillaries');
+      if (!container || !f.ancillaryServices) return;
+      container.innerHTML = f.ancillaryServices.map(function(svc) {
+        var checked = svc.included ? 'checked disabled' : '';
+        var priceTag = svc.included ? '<span class="text-green-400">Included</span>' : (svc.price > 0 ? '+$' + svc.price : 'Free');
+        return '<label class="flex items-center justify-between rounded border border-white/5 bg-white/5 px-3 py-2 hover:border-violet-500/20 cursor-pointer transition-all">' +
+          '<div class="flex items-center gap-2">' +
+            '<input type="checkbox" class="accent-violet-500 ancillary-cb" data-svc-id="' + svc.id + '" data-svc-name="' + svc.name + '" data-svc-price="' + svc.price + '" ' + checked + ' onchange="toggleAncillary(this)">' +
+            '<span class="text-xs text-gray-300">' + svc.name + '</span>' +
+          '</div>' +
+          '<span class="text-[10px] text-gray-400">' + priceTag + '</span>' +
+        '</label>';
+      }).join('');
+    }
+
+    function toggleAncillary(cb) {
+      if (!selectedFlight) return;
+      var svcId = cb.dataset.svcId;
+      var price = parseFloat(cb.dataset.svcPrice) || 0;
+      if (cb.checked) {
+        if (!selectedFlight._ancillaries) selectedFlight._ancillaries = [];
+        selectedFlight._ancillaries.push({ id: svcId, name: cb.dataset.svcName, price: price });
+      } else {
+        selectedFlight._ancillaries = (selectedFlight._ancillaries || []).filter(function(a) { return a.id !== svcId; });
+      }
+      updatePriceBreakdown(selectedFlight);
+    }
+
+    function updatePriceBreakdown(f) {
+      var el = document.getElementById('flightPriceBreakdown');
+      if (!el) return;
+      var seatPrice = f._seatPrice || 0;
+      var ancTotal = (f._ancillaries || []).reduce(function(sum, a) { return sum + (a.price || 0); }, 0);
+      var addOns = seatPrice + ancTotal;
+      var grandTotal = f.totalPrice + addOns;
+
+      var html = '<div class="flex justify-between text-xs"><span class="text-gray-400">Base price × ' + f.passengers + ' pax</span><span class="text-white">$' + f.price.toFixed(2) + '</span></div>';
+      html += '<div class="flex justify-between text-xs"><span class="text-gray-400">Service fee (3.5%)</span><span class="text-white">$' + f.serviceFee.toFixed(2) + '</span></div>';
+      if (seatPrice > 0) html += '<div class="flex justify-between text-xs"><span class="text-gray-400">Seat (' + (f._selectedSeat || '') + ')</span><span class="text-white">+$' + seatPrice.toFixed(2) + '</span></div>';
+      if (ancTotal > 0) html += '<div class="flex justify-between text-xs"><span class="text-gray-400">Add-on services</span><span class="text-white">+$' + ancTotal.toFixed(2) + '</span></div>';
+      html += '<div class="flex justify-between text-sm font-semibold border-t border-white/10 pt-2 mt-1"><span class="text-white">Total</span><span class="text-violet-400">$' + grandTotal.toFixed(2) + '</span></div>';
+      el.innerHTML = html;
+
+      // Update selectedFlight computed total for booking
+      selectedFlight._grandTotal = grandTotal;
+    }
+
     function closeFlightBookingModal() {
       document.getElementById('flightBookingModal').classList.add('hidden');
       selectedFlight = null;
@@ -4041,22 +4236,43 @@
       var btn = document.getElementById('confirmFlightBookBtn');
       var status = document.getElementById('flightBookStatus');
       var payMethod = document.getElementById('flightPayMethod').value;
+      var passengerName = (document.getElementById('flightPassengerName').value || '').trim();
+      var passengerEmail = (document.getElementById('flightPassengerEmail').value || '').trim();
       btn.disabled = true;
       btn.textContent = 'Processing...';
       status.className = 'text-center text-xs text-gray-400';
       status.classList.remove('hidden');
       status.textContent = 'Processing booking...';
 
+      if (!passengerName) {
+        status.textContent = 'Please enter passenger name.';
+        status.className = 'text-center text-xs text-red-400';
+        btn.disabled = false;
+        btn.textContent = 'Confirm & Pay';
+        return;
+      }
+
+      var grandTotal = selectedFlight._grandTotal || selectedFlight.totalPrice;
+      var ancillaryNames = (selectedFlight._ancillaries || []).map(function(a) { return a.name; });
+
       var bookBody = {
         action: 'book_flight',
         flightId: selectedFlight.id,
-        totalPrice: selectedFlight.totalPrice,
+        totalPrice: grandTotal,
         payMethod: payMethod,
+        selectedSeat: selectedFlight._selectedSeat || '',
+        ancillaries: ancillaryNames,
+        passengerName: passengerName,
+        passengerEmail: passengerEmail || currentUser.email,
         flightDetails: {
           origin: selectedFlight.origin,
           destination: selectedFlight.destination,
+          originCity: selectedFlight.originCity || selectedFlight.origin,
+          destinationCity: selectedFlight.destinationCity || selectedFlight.destination,
           airline: selectedFlight.airline,
+          flightNumber: selectedFlight.flightNumber,
           depart: selectedFlight.depart,
+          arrive: selectedFlight.arrive,
           passengers: selectedFlight.passengers
         }
       };
@@ -4065,7 +4281,7 @@
       if (payMethod !== 'wallet' && payMethod !== 'crypto') {
         try {
           var methods = [{ supportedMethods: 'basic-card', data: { supportedNetworks: ['visa','mastercard'] } }];
-          var details = { total: { label: 'AL-MUDIR Flight Booking', amount: { currency: 'USD', value: selectedFlight.totalPrice.toFixed(2) } } };
+          var details = { total: { label: 'AL-MUDIR Flight Booking', amount: { currency: 'USD', value: grandTotal.toFixed(2) } } };
           var pr = new PaymentRequest(methods, details);
           var resp = await pr.show();
           bookBody.paymentToken = JSON.stringify(resp.details || resp.methodName || resp.requestId);
@@ -4089,10 +4305,13 @@
         });
         var data = await r.json();
         if (data.ok) {
-          status.textContent = '✓ Booked! Ref: ' + data.bookingRef + ' — $' + data.totalCharged.toFixed(2) + ' charged.';
+          var seatMsg = data.seat ? ' · Seat: ' + data.seat : '';
+          var gateMsg = data.gate ? ' · Gate: ' + data.gate : '';
+          var emailMsg = data.ticketSentTo ? '\nE-ticket sent to ' + data.ticketSentTo : '';
+          status.textContent = '✓ Booked! Ref: ' + data.bookingRef + ' — $' + data.totalCharged.toFixed(2) + seatMsg + gateMsg + emailMsg;
           status.className = 'text-center text-xs text-green-400';
           status.classList.remove('hidden');
-          setTimeout(function() { closeFlightBookingModal(); loadSystemWallet({ background: true }); updateHomeTotalBalance(); }, 3000);
+          setTimeout(function() { closeFlightBookingModal(); loadSystemWallet({ background: true }); updateHomeTotalBalance(); }, 4000);
         } else {
           status.textContent = data.detail || data.error || 'Booking failed';
           status.className = 'text-center text-xs text-red-400';

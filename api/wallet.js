@@ -205,6 +205,163 @@ function maskEmail(e) {
   return parts[0][0] + '***@' + (parts[1] || '');
 }
 
+// ── E-Ticket Email Delivery ─────────────────────────────
+async function sendFlightTicketEmail(t) {
+  const resendKey = (process.env.RESEND_API_KEY || '').trim();
+  const smtpHost = (process.env.SMTP_HOST || '').trim();
+  const smtpUser = (process.env.SMTP_USER || '').trim();
+  const smtpPass = (process.env.SMTP_PASS || '').trim();
+  const botToken = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
+  const chatId = (process.env.TELEGRAM_CHAT_ID || '').trim();
+
+  const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const fDate = d => { try { return new Date(d).toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }); } catch { return d; } };
+
+  const ancList = (t.ancillaries || []).length > 0
+    ? t.ancillaries.map(a => '<li style="color:#aaa;font-size:12px;margin:2px 0;">' + esc(a) + '</li>').join('')
+    : '<li style="color:#666;font-size:12px;">None selected</li>';
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;padding:0;background:#04060a;font-family:Arial,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:24px;">
+<div style="text-align:center;padding:20px 0;border-bottom:1px solid #1a1f2e;">
+  <h1 style="color:#a78bfa;margin:0;font-size:24px;letter-spacing:4px;">AL-MUDIR</h1>
+  <p style="color:#666;font-size:10px;text-transform:uppercase;letter-spacing:3px;margin:4px 0 0;">E-Ticket Confirmation</p>
+</div>
+
+<div style="background:#0b1117;border:1px solid #1e2433;border-radius:12px;margin:20px 0;overflow:hidden;">
+  <div style="background:linear-gradient(135deg,#7c3aed,#a855f7);padding:16px 20px;">
+    <p style="color:#fff;font-size:10px;text-transform:uppercase;letter-spacing:2px;margin:0;">Boarding Pass</p>
+    <p style="color:#fff;font-size:22px;font-weight:700;margin:8px 0 0;">${esc(t.originCity || t.origin)} → ${esc(t.destinationCity || t.destination)}</p>
+  </div>
+  <div style="padding:20px;">
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #1a1f2e;">
+          <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0;">Passenger</p>
+          <p style="color:#fff;font-size:14px;margin:4px 0 0;font-weight:600;">${esc(t.passengerName)}</p>
+        </td>
+        <td style="padding:8px 0;border-bottom:1px solid #1a1f2e;text-align:right;">
+          <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0;">Booking Ref</p>
+          <p style="color:#a78bfa;font-size:14px;margin:4px 0 0;font-weight:700;">${esc(t.bookingRef)}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #1a1f2e;">
+          <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0;">Flight</p>
+          <p style="color:#fff;font-size:13px;margin:4px 0 0;">${esc(t.airline)} ${esc(t.flightNumber)}</p>
+        </td>
+        <td style="padding:8px 0;border-bottom:1px solid #1a1f2e;text-align:right;">
+          <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0;">Passengers</p>
+          <p style="color:#fff;font-size:13px;margin:4px 0 0;">${t.passengers}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #1a1f2e;">
+          <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0;">Departure</p>
+          <p style="color:#fff;font-size:12px;margin:4px 0 0;">${esc(fDate(t.depart))}</p>
+        </td>
+        <td style="padding:8px 0;border-bottom:1px solid #1a1f2e;text-align:right;">
+          <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0;">Arrival</p>
+          <p style="color:#fff;font-size:12px;margin:4px 0 0;">${esc(fDate(t.arrive))}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #1a1f2e;">
+          <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0;">Seat</p>
+          <p style="color:#fff;font-size:18px;margin:4px 0 0;font-weight:700;">${esc(t.seat)}</p>
+        </td>
+        <td style="padding:8px 0;border-bottom:1px solid #1a1f2e;text-align:right;">
+          <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0;">Gate</p>
+          <p style="color:#fff;font-size:18px;margin:4px 0 0;font-weight:700;">${esc(t.gate)}</p>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="padding:8px 0;">
+          <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0;">Boarding Group</p>
+          <p style="color:#a78bfa;font-size:13px;margin:4px 0 0;font-weight:600;">${esc(t.boardingGroup)}</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div style="background:#0b1117;border:1px solid #1e2433;border-radius:12px;margin:16px 0;padding:16px 20px;">
+  <p style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Add-On Services</p>
+  <ul style="list-style:none;padding:0;margin:0;">${ancList}</ul>
+</div>
+
+<div style="background:#0b1117;border:1px solid #1e2433;border-radius:12px;margin:16px 0;padding:16px 20px;">
+  <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+    <span style="color:#888;font-size:12px;">Payment Method</span>
+    <span style="color:#fff;font-size:12px;">${esc(t.payMethod)}</span>
+  </div>
+  <div style="display:flex;justify-content:space-between;border-top:1px solid #1a1f2e;padding-top:8px;">
+    <span style="color:#fff;font-size:14px;font-weight:700;">Total Charged</span>
+    <span style="color:#a78bfa;font-size:18px;font-weight:700;">$${Number(t.totalCharged).toFixed(2)}</span>
+  </div>
+</div>
+
+<div style="text-align:center;padding:16px 0;border-top:1px solid #1a1f2e;">
+  <p style="color:#555;font-size:10px;margin:0;">This e-ticket was issued by AL-MUDIR · al-mudir.org</p>
+  <p style="color:#444;font-size:9px;margin:4px 0 0;">Please present this confirmation at check-in. ${esc(t.ts)}</p>
+</div>
+</div></body></html>`;
+
+  // Try Resend first
+  if (resendKey) {
+    try {
+      const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: process.env.EMAIL_FROM || 'AL-MUDIR <noreply@al-mudir.org>',
+          to: [t.passengerEmail],
+          subject: 'Your Flight Ticket — ' + t.bookingRef + ' | ' + (t.originCity || t.origin) + ' → ' + (t.destinationCity || t.destination),
+          html: html
+        })
+      });
+      if (r.ok) return { sent: true, provider: 'resend', to: t.passengerEmail };
+    } catch (e) { console.error('[ticket] Resend failed:', e.message); }
+  }
+
+  // Try SMTP
+  if (smtpHost && smtpUser && smtpPass) {
+    try {
+      const nodemailer = require('nodemailer');
+      const transport = nodemailer.createTransport({ host: smtpHost, port: parseInt(process.env.SMTP_PORT || '587'), secure: false, auth: { user: smtpUser, pass: smtpPass } });
+      await transport.sendMail({
+        from: process.env.EMAIL_FROM || 'AL-MUDIR <noreply@al-mudir.org>',
+        to: t.passengerEmail,
+        subject: 'Your Flight Ticket — ' + t.bookingRef + ' | ' + (t.originCity || t.origin) + ' → ' + (t.destinationCity || t.destination),
+        html: html
+      });
+      return { sent: true, provider: 'smtp', to: t.passengerEmail };
+    } catch (e) { console.error('[ticket] SMTP failed:', e.message); }
+  }
+
+  // Telegram fallback — notify admin of the booking
+  if (botToken && chatId) {
+    const tgText = '✈️ <b>Flight Booked — Ticket Pending Email</b>\n\n'
+      + '📋 Ref: <code>' + t.bookingRef + '</code>\n'
+      + '👤 ' + esc(t.passengerName) + ' (' + esc(t.passengerEmail) + ')\n'
+      + '✈️ ' + esc(t.originCity || t.origin) + ' → ' + esc(t.destinationCity || t.destination) + '\n'
+      + '🛫 ' + esc(t.airline) + ' ' + esc(t.flightNumber) + '\n'
+      + '💺 Seat: ' + esc(t.seat) + ' | Gate: ' + esc(t.gate) + '\n'
+      + '💰 $' + Number(t.totalCharged).toFixed(2) + ' (' + esc(t.payMethod) + ')\n'
+      + '📅 ' + esc(t.ts) + '\n\n'
+      + '⚠️ Email delivery unavailable. Forward ticket manually.';
+    await fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: tgText, parse_mode: 'HTML' })
+    });
+    return { sent: true, provider: 'telegram_fallback', to: t.passengerEmail };
+  }
+
+  return { sent: false, error: 'no_email_provider' };
+}
+
 function fmtNum(n, d) {
   return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 }
@@ -1491,6 +1648,42 @@ module.exports = withDb(async function handler(req, res) {
                 }
 
                 const totalBase = price * passengers;
+
+                // Generate seat availability
+                const totalSeats = dur > 300 ? 280 : 160;
+                const occupancy = 0.55 + rng() * 0.35;
+                const taken = Math.floor(totalSeats * occupancy);
+                const available = totalSeats - taken;
+                const rows = dur > 300 ? 40 : 26;
+                const cols = dur > 300 ? 'ABCDEFGHJ' : 'ABCDEF';
+                const seatMap = [];
+                for (let row = 1; row <= rows; row++) {
+                  for (let ci = 0; ci < cols.length; ci++) {
+                    const seatId = row + cols[ci];
+                    const seatRng = rng();
+                    let cls = 'economy';
+                    if (row <= 2) cls = 'first';
+                    else if (row <= 6) cls = 'business';
+                    const occ = seatRng < occupancy;
+                    const px = cls === 'first' ? 150 : cls === 'business' ? 85 : (ci === 0 || ci === cols.length - 1) ? 25 : 0;
+                    seatMap.push({ seat: seatId, class: cls, available: !occ, price: px });
+                  }
+                }
+
+                // Ancillary services
+                const ancillaryServices = [
+                  { id: 'bag_cabin', name: 'Cabin Bag (7kg)', price: 0, included: true },
+                  { id: 'bag_checked', name: 'Checked Bag (23kg)', price: dur > 300 ? 45 : 30, included: false },
+                  { id: 'bag_extra', name: 'Extra Checked Bag (23kg)', price: dur > 300 ? 65 : 45, included: false },
+                  { id: 'meal_standard', name: 'Standard Meal', price: dur > 300 ? 0 : 12, included: dur > 300 },
+                  { id: 'meal_premium', name: 'Premium Meal', price: 25, included: false },
+                  { id: 'seat_select', name: 'Seat Selection', price: 15, included: false },
+                  { id: 'priority', name: 'Priority Boarding', price: 18, included: false },
+                  { id: 'lounge', name: 'Airport Lounge Access', price: 55, included: false },
+                  { id: 'insurance', name: 'Travel Insurance', price: 35, included: false },
+                  { id: 'flex', name: 'Flexible Ticket (free change)', price: Math.round(price * 0.15), included: false }
+                ];
+
                 flights.push({
                   id: departISO.replace(/[^0-9]/g, '') + '-' + origin + '-' + dest + '-' + flightNum,
                   origin, destination: dest,
@@ -1506,6 +1699,10 @@ module.exports = withDb(async function handler(req, res) {
                   serviceFee: +(totalBase * SERVICE_FEE_PCT).toFixed(2),
                   totalPrice: +(totalBase * (1 + SERVICE_FEE_PCT)).toFixed(2),
                   passengers,
+                  aircraft: dur > 300 ? 'Boeing 787 Dreamliner' : 'Airbus A320',
+                  seatInfo: { total: totalSeats, available, rows, cols, classes: ['first','business','economy'] },
+                  seatMap,
+                  ancillaryServices,
                   link: null
                 });
               }
@@ -2520,6 +2717,10 @@ module.exports = withDb(async function handler(req, res) {
     const totalPrice = parseFloat(body.totalPrice);
     const payMethod = sanitize(String(body.payMethod || 'wallet'));
     const flightDetails = body.flightDetails || {};
+    const selectedSeat = sanitize(String(body.selectedSeat || ''));
+    const ancillaries = Array.isArray(body.ancillaries) ? body.ancillaries.map(a => sanitize(String(a || ''))) : [];
+    const passengerEmail = sanitize(String(body.passengerEmail || email)).toLowerCase().trim();
+    const passengerName = sanitize(String(body.passengerName || '').substring(0, 100));
 
     if (!flightId || !totalPrice || totalPrice <= 0) {
       return res.status(400).json({ ok: false, error: 'invalid_booking', detail: 'Flight ID and valid price required.' });
@@ -2548,15 +2749,27 @@ module.exports = withDb(async function handler(req, res) {
     // Record booking as transaction
     const ts = new Date().toISOString();
     const bookingRef = 'FLT-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const gate = selectedSeat ? 'G' + (Math.floor(Math.random() * 30) + 1) : 'G' + (Math.floor(Math.random() * 20) + 1);
+    const boardingGroup = selectedSeat && parseInt(selectedSeat) <= 6 ? 'Priority' : 'General';
     const bookingTx = {
       type: 'flight_booking',
       bookingRef: bookingRef,
       flightId: flightId,
       origin: sanitize(String(flightDetails.origin || '')),
       destination: sanitize(String(flightDetails.destination || '')),
+      originCity: sanitize(String(flightDetails.originCity || flightDetails.origin || '')),
+      destinationCity: sanitize(String(flightDetails.destinationCity || flightDetails.destination || '')),
       airline: sanitize(String(flightDetails.airline || '')),
+      flightNumber: sanitize(String(flightDetails.flightNumber || '')),
       depart: sanitize(String(flightDetails.depart || '')),
+      arrive: sanitize(String(flightDetails.arrive || '')),
       passengers: parseInt(flightDetails.passengers) || 1,
+      selectedSeat: selectedSeat,
+      ancillaries: ancillaries,
+      gate: gate,
+      boardingGroup: boardingGroup,
+      passengerName: passengerName,
+      passengerEmail: passengerEmail,
       basePrice: basePrice,
       serviceFee: serviceFee,
       totalCharged: totalPrice,
@@ -2582,6 +2795,21 @@ module.exports = withDb(async function handler(req, res) {
       bookingRef, verified: true, ts
     });
 
+    // ── Send e-ticket via email (non-blocking) ──
+    const ticketData = {
+      bookingRef, passengerName: passengerName || email.split('@')[0],
+      passengerEmail,
+      origin: bookingTx.origin, destination: bookingTx.destination,
+      originCity: bookingTx.originCity, destinationCity: bookingTx.destinationCity,
+      airline: bookingTx.airline, flightNumber: bookingTx.flightNumber,
+      depart: bookingTx.depart, arrive: bookingTx.arrive,
+      seat: selectedSeat || 'Auto-assigned', gate, boardingGroup,
+      passengers: bookingTx.passengers, ancillaries,
+      totalCharged: totalPrice, serviceFee, payMethod, ts
+    };
+    // Fire-and-forget email delivery
+    sendFlightTicketEmail(ticketData).catch(err => console.error('[ticket-email]', err.message));
+
     return res.status(200).json({
       ok: true,
       action: 'book_flight',
@@ -2589,6 +2817,11 @@ module.exports = withDb(async function handler(req, res) {
       totalCharged: totalPrice,
       serviceFee: serviceFee,
       payMethod: payMethod,
+      seat: selectedSeat || 'Auto-assigned',
+      gate: gate,
+      boardingGroup: boardingGroup,
+      ancillaries: ancillaries,
+      ticketSentTo: passengerEmail,
       ts: ts
     });
   }
