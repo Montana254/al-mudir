@@ -1219,6 +1219,9 @@
               <input id="loginPassword" required maxlength="72" autocomplete="current-password" type="password" placeholder="PASSWORD" class="auth-input w-full pr-16">
               <button type="button" class="password-toggle" data-toggle-password="loginPassword">Show</button>
             </div>
+            <div class="flex justify-end">
+              <button id="forgotPasswordBtn" type="button" class="text-[11px] uppercase tracking-[0.12em] text-gray-500 hover:text-white">Forgot Password?</button>
+            </div>
             <button class="btn-outline w-full rounded py-3 text-xs uppercase tracking-[0.15em]" type="submit">Access Dashboard</button>
             <p id="loginStatus" class="hidden text-center text-xs"></p>
           </form>
@@ -1250,7 +1253,27 @@
             <button id="resendOtpBtn" type="button" class="text-xs text-gray-400 hover:text-white underline">Resend code</button>
             <button id="backToAuthBtn" type="button" class="text-xs text-gray-500 hover:text-white">&#8592; Back to login</button>
           </div>
+          <p id="otpResendTimer" class="hidden text-center text-[11px] text-gray-500"></p>
           <p id="otpStatus" class="hidden text-center text-xs"></p>
+        </div>
+      </div>
+
+      <div id="forgotPasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div class="mx-4 w-full max-w-md rounded-xl border border-white/10 bg-[#0b1117] p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <p class="text-xs uppercase tracking-[0.16em] text-gray-400">Password Recovery</p>
+            <button id="forgotPasswordClose" type="button" class="text-gray-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <p class="text-xs text-gray-400">Request a 6-digit reset code, then set a new password.</p>
+          <input id="forgotEmail" type="email" maxlength="120" autocomplete="email" placeholder="EMAIL ADDRESS" class="auth-input w-full">
+          <div class="flex gap-2">
+            <input id="forgotOtp" type="text" maxlength="6" inputmode="numeric" placeholder="RESET OTP" class="auth-input w-1/2">
+            <button id="forgotSendOtpBtn" type="button" class="w-1/2 rounded border border-white/10 py-2 text-[11px] uppercase tracking-[0.12em] text-gray-300 hover:bg-white/5">Send OTP</button>
+          </div>
+          <input id="forgotNewPassword" type="password" minlength="8" maxlength="72" autocomplete="new-password" placeholder="NEW PASSWORD (MIN 8)" class="auth-input w-full">
+          <input id="forgotConfirmPassword" type="password" minlength="8" maxlength="72" autocomplete="new-password" placeholder="CONFIRM NEW PASSWORD" class="auth-input w-full">
+          <button id="forgotResetBtn" type="button" class="btn-gold w-full rounded py-2.5 text-xs">Reset Password</button>
+          <p id="forgotStatus" class="hidden text-center text-xs"></p>
         </div>
       </div>
 
@@ -1294,6 +1317,14 @@
               <div class="flex items-center justify-between">
                 <p class="text-[10px] uppercase tracking-[0.14em] text-[var(--dash-accent)]">Identity Verification (KYC)</p>
                 <button id="verifyWizardClose" class="text-gray-500 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <div id="vChecklist" class="rounded border border-white/10 bg-black/20 p-2.5 space-y-1.5">
+                <p class="text-[10px] uppercase tracking-[0.12em] text-gray-400">Before You Start</p>
+                <p class="text-[10px] text-gray-500">Have these ready: government ID, proof of residence (last 3 months), clear photos/scans under 5 MB each.</p>
+                <label class="flex items-center gap-2 text-[10px] text-gray-300">
+                  <input id="vChecklistConfirm" type="checkbox" class="accent-[var(--dash-accent)]">
+                  I have the required documents and details ready.
+                </label>
               </div>
               <!-- Step indicators -->
               <div class="flex items-center justify-center gap-1">
@@ -1345,8 +1376,8 @@
                   <p class="text-[9px] uppercase tracking-[0.12em] text-gray-500 mb-1">Front Side</p>
                   <input id="vDocFront" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" class="block w-full rounded border border-[#2f3741] bg-[#0f1317] px-2 py-1.5 text-[10px] file:mr-2 file:rounded file:border-0 file:bg-[var(--dash-accent)] file:px-2 file:py-1 file:text-[10px] file:font-semibold file:text-black">
                 </div>
-                <div id="vDocBackWrap">
-                  <p class="text-[9px] uppercase tracking-[0.12em] text-gray-500 mb-1">Back Side <span id="vBackRequired" class="text-red-400">(required)</span></p>
+                <div id="vDocBackWrap" class="hidden">
+                  <p class="text-[9px] uppercase tracking-[0.12em] text-gray-500 mb-1">Back Side <span id="vBackRequired" class="text-gray-500">(optional)</span></p>
                   <input id="vDocBack" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" class="block w-full rounded border border-[#2f3741] bg-[#0f1317] px-2 py-1.5 text-[10px] file:mr-2 file:rounded file:border-0 file:bg-[var(--dash-accent)] file:px-2 file:py-1 file:text-[10px] file:font-semibold file:text-black">
                 </div>
                 <p class="text-[9px] text-gray-600">PNG, JPG, WEBP, PDF — max 5 MB per file</p>
@@ -3061,8 +3092,19 @@
     const otpEmailDisplay = document.getElementById('otpEmailDisplay');
     const verifyOtpBtn = document.getElementById('verifyOtpBtn');
     const resendOtpBtn = document.getElementById('resendOtpBtn');
+    const otpResendTimer = document.getElementById('otpResendTimer');
     const backToAuthBtn = document.getElementById('backToAuthBtn');
     const otpStatus = document.getElementById('otpStatus');
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+    const forgotPasswordClose = document.getElementById('forgotPasswordClose');
+    const forgotEmail = document.getElementById('forgotEmail');
+    const forgotOtp = document.getElementById('forgotOtp');
+    const forgotSendOtpBtn = document.getElementById('forgotSendOtpBtn');
+    const forgotNewPassword = document.getElementById('forgotNewPassword');
+    const forgotConfirmPassword = document.getElementById('forgotConfirmPassword');
+    const forgotResetBtn = document.getElementById('forgotResetBtn');
+    const forgotStatus = document.getElementById('forgotStatus');
     const loginForm = document.getElementById('loginForm');
     const dashboard = document.getElementById('dashboard');
     const authArea = document.getElementById('authArea');
@@ -3255,6 +3297,7 @@
 
     let currentUser = null;
     let pendingVerification = null;
+    let otpResendInterval = null;
     let paymentManager = null;
     let lastQuote = null;
     let walletFallbackLink = '';
@@ -3706,7 +3749,8 @@
       if (!signupPasswordInput || !signupStrengthFill || !signupStrengthText) return;
       const password = signupPasswordInput.value || '';
       if (!password) {
-        signupStrengthFill.style.width = '0%';
+        signupStrengthFill.style.width = '10%';
+        signupStrengthFill.style.backgroundColor = '#374151';
         signupStrengthText.textContent = 'Password strength: waiting';
         signupStrengthText.className = 'mt-2 text-[11px] uppercase tracking-[0.12em] text-gray-500';
         return;
@@ -3718,6 +3762,39 @@
       signupStrengthText.textContent = 'Password strength: ' + strength.label;
       signupStrengthText.className = 'mt-2 text-[11px] uppercase tracking-[0.12em]';
       signupStrengthText.style.color = strength.color;
+    }
+
+    function setOtpResendCooldown(seconds) {
+      if (!resendOtpBtn || !otpResendTimer) return;
+      if (otpResendInterval) {
+        clearInterval(otpResendInterval);
+        otpResendInterval = null;
+      }
+      var remain = Math.max(0, parseInt(seconds, 10) || 0);
+      if (remain <= 0) {
+        resendOtpBtn.disabled = false;
+        resendOtpBtn.classList.remove('opacity-50', 'pointer-events-none');
+        otpResendTimer.classList.add('hidden');
+        otpResendTimer.textContent = '';
+        return;
+      }
+      resendOtpBtn.disabled = true;
+      resendOtpBtn.classList.add('opacity-50', 'pointer-events-none');
+      otpResendTimer.classList.remove('hidden');
+      otpResendTimer.textContent = 'Resend available in ' + remain + 's';
+      otpResendInterval = setInterval(function() {
+        remain -= 1;
+        if (remain <= 0) {
+          clearInterval(otpResendInterval);
+          otpResendInterval = null;
+          resendOtpBtn.disabled = false;
+          resendOtpBtn.classList.remove('opacity-50', 'pointer-events-none');
+          otpResendTimer.classList.add('hidden');
+          otpResendTimer.textContent = '';
+          return;
+        }
+        otpResendTimer.textContent = 'Resend available in ' + remain + 's';
+      }, 1000);
     }
 
     function formatPrice(symbol, value) {
@@ -4643,10 +4720,42 @@
       function updateBackVisibility() {
         var idType = ($('vIdType') && $('vIdType').value) || '';
         var wrap = $('vDocBackWrap');
-        if (wrap) wrap.style.display = needsBack[idType] ? '' : 'none';
+        var backReq = $('vBackRequired');
+        var required = !!needsBack[idType];
+        if (wrap) wrap.classList.toggle('hidden', !required);
+        if (backReq) {
+          backReq.textContent = required ? '(required)' : '(not required for passport)';
+          backReq.className = required ? 'text-red-400' : 'text-gray-500';
+        }
       }
-      document.addEventListener('change', function (e) {
-        if (e.target.id === 'vIdType') updateBackVisibility();
+
+      function validateUpload(file, label) {
+        if (!file) return null;
+        var allowed = ['image/jpeg','image/png','image/webp','application/pdf'];
+        var maxSize = 5 * 1024 * 1024;
+        if (!allowed.includes(file.type)) return label + ': unsupported file type';
+        if (file.size > maxSize) return label + ': exceeds 5 MB limit';
+        return null;
+      }
+
+      document.addEventListener('change', function(e) {
+        var id = e.target && e.target.id;
+        if (!id) return;
+        if (id === 'vIdType') updateBackVisibility();
+        if (id !== 'vDocFront' && id !== 'vDocBack' && id !== 'vResDoc') return;
+
+        var status = $('vStatus');
+        var file = e.target.files && e.target.files[0];
+        var label = id === 'vDocFront' ? 'ID front' : (id === 'vDocBack' ? 'ID back' : 'Residence doc');
+        var err = validateUpload(file, label);
+        if (err) {
+          e.target.value = '';
+          status.textContent = err;
+          status.style.color = '#f87171';
+        } else if (file) {
+          status.textContent = label + ' ready: ' + file.name;
+          status.style.color = '#94a3b8';
+        }
       });
 
       document.addEventListener('click', function (e) {
@@ -4665,6 +4774,9 @@
         }
         // Step 1 → 2
         if (t.id === 'vStep1Next') {
+          if (!$('vChecklistConfirm').checked) {
+            $('vStatus').textContent = 'Please confirm the checklist before continuing'; $('vStatus').style.color = '#f87171'; return;
+          }
           if (!$('vFullName').value.trim() || !$('vDob').value || !$('vNationality').value.trim()) {
             $('vStatus').textContent = 'Please fill in all fields'; $('vStatus').style.color = '#f87171'; return;
           }
@@ -5994,6 +6106,7 @@
         authArea.classList.add('hidden');
         if (welcomeGate) welcomeGate.classList.add('hidden');
         otpArea.classList.remove('hidden');
+        setOtpResendCooldown(60);
         otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
         await notifyEvent('user.created', { name, email, message: 'Client account created — pending verification' });
         trackAnalyticsEvent('account_created', { source: 'portal' });
@@ -6037,6 +6150,7 @@
           authArea.classList.add('hidden');
           if (welcomeGate) welcomeGate.classList.add('hidden');
           otpArea.classList.remove('hidden');
+          setOtpResendCooldown(60);
           otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
           return;
         }
@@ -6056,6 +6170,7 @@
           authArea.classList.add('hidden');
           if (welcomeGate) welcomeGate.classList.add('hidden');
           otpArea.classList.remove('hidden');
+          setOtpResendCooldown(60);
           otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
           return;
         }
@@ -6073,6 +6188,120 @@
         showStatus(loginStatus, 'Network error. Please try again.', 'error');
       }
     });
+
+    function closeForgotPasswordModal() {
+      if (!forgotPasswordModal) return;
+      forgotPasswordModal.classList.add('hidden');
+      if (forgotStatus) forgotStatus.classList.add('hidden');
+    }
+
+    if (forgotPasswordBtn) {
+      forgotPasswordBtn.addEventListener('click', function() {
+        if (!forgotPasswordModal) return;
+        if (forgotEmail) forgotEmail.value = normalize(document.getElementById('loginEmail').value || '', 120).toLowerCase();
+        if (forgotOtp) forgotOtp.value = '';
+        if (forgotNewPassword) forgotNewPassword.value = '';
+        if (forgotConfirmPassword) forgotConfirmPassword.value = '';
+        if (forgotStatus) forgotStatus.classList.add('hidden');
+        forgotPasswordModal.classList.remove('hidden');
+      });
+    }
+
+    if (forgotPasswordClose) {
+      forgotPasswordClose.addEventListener('click', closeForgotPasswordModal);
+    }
+
+    if (forgotSendOtpBtn) {
+      forgotSendOtpBtn.addEventListener('click', async function() {
+        const email = normalize((forgotEmail && forgotEmail.value) || '', 120).toLowerCase();
+        if (!email) {
+          showStatus(forgotStatus, 'Enter your email address.', 'error');
+          return;
+        }
+        forgotSendOtpBtn.disabled = true;
+        showStatus(forgotStatus, 'Sending reset code...', 'neutral');
+        try {
+          const res = await fetch('/api/auth-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'forgot_password_request', email: email })
+          });
+          const result = await res.json();
+          if (!res.ok || !result.ok) {
+            if (result.error === 'cooldown_active') {
+              showStatus(forgotStatus, 'Please wait ' + (result.retryAfter || 60) + 's before requesting a new code.', 'error');
+            } else {
+              showStatus(forgotStatus, result.error || 'Could not send reset code.', 'error');
+            }
+            return;
+          }
+          showStatus(forgotStatus, 'Reset code sent. Check your delivery channel and enter the 6-digit OTP.', 'success');
+        } catch (_) {
+          showStatus(forgotStatus, 'Network error. Please retry.', 'error');
+        } finally {
+          forgotSendOtpBtn.disabled = false;
+        }
+      });
+    }
+
+    if (forgotResetBtn) {
+      forgotResetBtn.addEventListener('click', async function() {
+        const email = normalize((forgotEmail && forgotEmail.value) || '', 120).toLowerCase();
+        const otp = normalize((forgotOtp && forgotOtp.value) || '', 10);
+        const newPassword = (forgotNewPassword && forgotNewPassword.value) || '';
+        const confirmPassword = (forgotConfirmPassword && forgotConfirmPassword.value) || '';
+
+        if (!email || !otp || !newPassword || !confirmPassword) {
+          showStatus(forgotStatus, 'All fields are required.', 'error');
+          return;
+        }
+        if (newPassword.length < 8) {
+          showStatus(forgotStatus, 'Password must be at least 8 characters.', 'error');
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          showStatus(forgotStatus, 'Password confirmation does not match.', 'error');
+          return;
+        }
+
+        forgotResetBtn.disabled = true;
+        showStatus(forgotStatus, 'Resetting password...', 'neutral');
+        try {
+          const res = await fetch('/api/auth-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'forgot_password_confirm',
+              email: email,
+              otp: otp,
+              newPassword: newPassword,
+              confirmPassword: confirmPassword
+            })
+          });
+          const result = await res.json();
+          if (!res.ok || !result.ok) {
+            const msg = result.error === 'otp_invalid' ? 'Incorrect OTP code.'
+              : result.error === 'otp_expired' || result.error === 'otp_expired_or_invalid' ? 'OTP expired. Request a new code.'
+              : result.error === 'password_too_short' ? 'Password must be at least 8 characters.'
+              : result.error === 'password_mismatch' ? 'Password confirmation does not match.'
+              : (result.error || 'Reset failed.');
+            showStatus(forgotStatus, msg, 'error');
+            return;
+          }
+
+          showStatus(forgotStatus, 'Password updated. You can now sign in.', 'success');
+          setTimeout(function() {
+            closeForgotPasswordModal();
+            if (document.getElementById('loginEmail')) document.getElementById('loginEmail').value = email;
+            if (document.getElementById('loginPassword')) document.getElementById('loginPassword').focus();
+          }, 1200);
+        } catch (_) {
+          showStatus(forgotStatus, 'Network error. Please retry.', 'error');
+        } finally {
+          forgotResetBtn.disabled = false;
+        }
+      });
+    }
 
     freeAccessBtn.addEventListener('click', async () => {
       if (!currentUser) {
@@ -6333,8 +6562,10 @@
               var rd = await rs.json();
               if (rs.ok && rd.ok) {
                 clearOtpDigits();
+                setOtpResendCooldown(rd.cooldownSec || 60);
                 showStatus(otpStatus, 'New verification code sent to your ' + (rd.verificationMethod || 'email') + '. Enter it below.', 'success');
               } else {
+                if (rd && rd.error === 'cooldown_active') setOtpResendCooldown(rd.retryAfter || 60);
                 showStatus(otpStatus, 'Enter your verification code. Tap Resend if needed.', 'neutral');
               }
             } catch (_) { showStatus(otpStatus, 'Enter your verification code. Tap Resend for a new one.', 'neutral'); }
@@ -6355,6 +6586,7 @@
 
     resendOtpBtn.addEventListener('click', async () => {
       if (!pendingVerification || !pendingVerification.email) return;
+      if (resendOtpBtn.disabled) return;
       showStatus(otpStatus, 'Sending new code...', 'neutral');
       try {
         const res = await fetch('/api/auth-resend-otp', {
@@ -6364,6 +6596,11 @@
         });
         const result = await res.json();
         if (!res.ok || !result.ok) {
+          if (result.error === 'cooldown_active') {
+            setOtpResendCooldown(result.retryAfter || 60);
+            showStatus(otpStatus, 'Please wait before requesting another code.', 'error');
+            return;
+          }
           showStatus(otpStatus, result.error === 'rate_limited' ? 'Too many requests. Wait a few minutes.' : (result.error || 'Resend failed.'), 'error');
           return;
         }
@@ -6374,6 +6611,7 @@
         otpMethodLabel.textContent = method === 'phone' ? 'Phone Verification' : 'Email Verification';
         otpEmailDisplay.textContent = target;
         clearOtpDigits();
+        setOtpResendCooldown(result.cooldownSec || 60);
         showStatus(otpStatus, 'New code sent to your ' + method + '.', 'success');
       } catch (_) {
         showStatus(otpStatus, 'Network error. Please retry.', 'error');
@@ -6385,6 +6623,7 @@
       otpArea.classList.add('hidden');
       authArea.classList.remove('hidden');
       otpStatus.classList.add('hidden');
+      setOtpResendCooldown(0);
       clearOtpDigits();
       document.getElementById('loginEmail').focus();
     });

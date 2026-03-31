@@ -7,6 +7,7 @@ const { ensureUserRecord } = require('./_lib/user-profile');
 const rateLimitMap = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQ = 3;
+const RESEND_COOLDOWN_SEC = 60;
 
 module.exports = withDb(async function handler(req, res) {
   try {
@@ -39,6 +40,20 @@ module.exports = withDb(async function handler(req, res) {
     const email = sanitize(body.email, 120).toLowerCase();
     if (!email) return res.status(400).json({ ok: false, error: 'missing_email' });
 
+    // Per-user resend cooldown to avoid OTP hammering
+    const cooldownKey = 'otp_resend_lock:' + email;
+    const lockVal = await redis('GET', cooldownKey);
+    if (lockVal) {
+      let retryAfter = 0;
+      try { retryAfter = Math.max(0, parseInt(await redis('TTL', cooldownKey), 10) || 0); } catch {}
+      return res.status(429).json({
+        ok: false,
+        error: 'cooldown_active',
+        detail: 'Please wait before requesting another code.',
+        retryAfter: retryAfter || RESEND_COOLDOWN_SEC
+      });
+    }
+
     const userRaw = await redis('GET', 'user:' + email);
     if (!userRaw) return res.status(404).json({ ok: false, error: 'user_not_found' });
 
@@ -63,11 +78,18 @@ module.exports = withDb(async function handler(req, res) {
     await redis('SET', 'otp:' + email, JSON.stringify({ code: otp, exp: Date.now() + 10 * 60 * 1000, purpose: purpose }));
     await redis('EXPIRE', 'otp:' + email, 600);
     const delivery = await sendOtpCode({ email, phone: user.phone, otp, name: user.name, preferredChannel: user.otpChannel || 'email' });
+    await redis('SET', cooldownKey, '1');
+    await redis('EXPIRE', cooldownKey, RESEND_COOLDOWN_SEC);
     user.verificationMethod = delivery.method;
     user.updatedAt = new Date().toISOString();
     await redis('SET', 'user:' + email, JSON.stringify(user));
 
-    return res.status(200).json({ ok: true, verificationMethod: delivery.method, deliveryTarget: delivery.target });
+    return res.status(200).json({
+      ok: true,
+      verificationMethod: delivery.method,
+      deliveryTarget: delivery.target,
+      cooldownSec: RESEND_COOLDOWN_SEC
+    });
   } catch (error) {
     const msg = String(error && error.message ? error.message : 'server_error');
     if (msg.includes('redis_not_configured')) {
