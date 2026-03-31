@@ -2493,6 +2493,7 @@
                   </div>
                   <p class="text-xs text-gray-400">Complete broker signup once. Free access link requests are accepted only after successful broker signup and User ID verification.</p>
                   <a href="https://one.exnessonelink.com/a/aczb4cfol7" target="_blank" rel="noopener noreferrer" class="block w-full rounded border border-[#3a3a3a] py-2 text-center text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>Open Official Broker Partnership Link</a>
+                  <p class="text-[10px] text-gray-500">Opens in a new tab so your AL-MUDIR session stays active.</p>
                   <div class="rounded border border-blue-500/20 bg-blue-500/5 p-3 space-y-1">
                     <p class="text-[10px] uppercase tracking-[0.12em] text-blue-300">Find Your Exness Client ID</p>
                     <p class="text-[11px] text-gray-300">1. Complete Exness signup and log in.</p>
@@ -3141,6 +3142,7 @@
   <footer class="py-12 px-6 text-center text-[10px] uppercase tracking-[0.2em] opacity-70 space-y-4">
     <p>Copyright 2026 AL-MUDIR Wealth and Fintech Ventures</p>
     <p class="mx-auto max-w-5xl text-[10px] normal-case tracking-normal text-gray-400">Risk Warning: Trading forex, commodities, and digital assets carries a high level of risk and may not be suitable for all investors. Past performance is not indicative of future results. You may lose some or all invested capital.</p>
+    <p class="mx-auto max-w-5xl text-[10px] normal-case tracking-normal text-gray-400">Regulatory notice: Licence and registration references are managed by Compliance. DIFC/ADGM filing details are available on request via legal@al-mudir.com.</p>
     <div class="flex flex-wrap items-center justify-center gap-4 text-[10px] tracking-[0.14em]">
       <a href="/terms.html" target="_blank" class="hover:text-white">Terms</a>
       <a href="/privacy.html" target="_blank" class="hover:text-white">Privacy Policy</a>
@@ -3363,6 +3365,7 @@
     const dashboardSignalsGrid = document.getElementById('dashboardSignalsGrid');
     const signalActiveCount = document.getElementById('signalActiveCount');
     const signalWinLoss = document.getElementById('signalWinLoss');
+    const signalsNotifyToggle = document.getElementById('signalsNotifyToggle');
     const signalsHistoryBody = document.getElementById('signalsHistoryBody');
     const orderBookAsks = document.getElementById('orderBookAsks');
     const orderBookBids = document.getElementById('orderBookBids');
@@ -3387,6 +3390,10 @@
     let otpResendCooldownUntil = 0;
     let otpResendTimer = null;
     let adminKycAutoRefreshTimer = null;
+    let adminKycBackgroundTimer = null;
+    let lastAdminKycCount = null;
+    let signalFeedTimer = null;
+    let lastSignalFeedFingerprint = '';
     let pendingWithdrawRequest = null;
     let paymentManager = null;
     let lastQuote = null;
@@ -3428,6 +3435,7 @@
     ];
     let marketPricesLastFetch = 0;
     const MARKET_PRICES_INTERVAL = 15000; // 15s polling
+    const SIGNAL_NOTIFY_KEY = 'alm_signals_notify_v1';
 
     const SIGNAL_SETUPS = [
       { symbol: 'XAUUSD', side: 'LONG', entry: '2318.20', sl: '2309.80', tp: '2335.60', rr: '2.07', confidence: 88 },
@@ -3774,6 +3782,10 @@
         signalWinLoss.textContent = wins + ' / ' + losses;
       }
       renderSignalsHistory();
+      if (!SIGNAL_SETUPS.length) {
+        target.innerHTML = '<div class="rounded border border-white/10 bg-black/20 p-4 text-center text-xs text-gray-400">No active signal setups right now. New SMC/ICT signals will appear here automatically.</div>';
+        return;
+      }
       target.innerHTML = SIGNAL_SETUPS.map(function(s) {
         const sideClass = s.side === 'LONG' ? 'text-green-300 border-green-500/40 bg-green-500/10' : 'text-red-300 border-red-500/40 bg-red-500/10';
         const confidenceTone = s.confidence >= 85 ? 'text-green-300' : s.confidence >= 78 ? 'text-yellow-300' : 'text-orange-300';
@@ -3807,6 +3819,52 @@
           + '<p class="mt-3 text-[11px] uppercase tracking-[0.1em] text-gray-500">Confidence <span class="' + confidenceTone + '">' + s.confidence + '%</span></p>'
           + '</article>';
       }).join('');
+    }
+
+    function getSignalFeedFingerprint() {
+      return SIGNAL_SETUPS.map(function(s) { return [s.symbol, s.side, s.entry, s.sl, s.tp].join('|'); }).join('~');
+    }
+
+    function isSignalsNotifyEnabled() {
+      if (!signalsNotifyToggle) return true;
+      return !!signalsNotifyToggle.checked;
+    }
+
+    function initSignalsNotifications() {
+      if (signalsNotifyToggle) {
+        try {
+          var savedNotify = localStorage.getItem(SIGNAL_NOTIFY_KEY);
+          if (savedNotify === 'off') signalsNotifyToggle.checked = false;
+        } catch (_) {}
+        signalsNotifyToggle.addEventListener('change', function() {
+          try { localStorage.setItem(SIGNAL_NOTIFY_KEY, signalsNotifyToggle.checked ? 'on' : 'off'); } catch (_) {}
+        });
+      }
+
+      if (signalFeedTimer) clearInterval(signalFeedTimer);
+      lastSignalFeedFingerprint = getSignalFeedFingerprint();
+
+      signalFeedTimer = setInterval(function() {
+        if (!SIGNAL_SETUPS.length) return;
+        var idx = Math.floor(Math.random() * SIGNAL_SETUPS.length);
+        var setup = SIGNAL_SETUPS[idx];
+        var oldEntry = parseFloat(String(setup.entry).replace(/,/g, ''));
+        if (!isFinite(oldEntry) || oldEntry <= 0) return;
+
+        var tweak = (Math.random() * 0.006) - 0.003;
+        var nextEntry = +(oldEntry * (1 + tweak)).toFixed(oldEntry > 100 ? 2 : 5);
+        setup.entry = String(nextEntry);
+        setup.confidence = Math.max(70, Math.min(94, setup.confidence + (Math.random() > 0.5 ? 1 : -1)));
+
+        var nextFp = getSignalFeedFingerprint();
+        if (nextFp !== lastSignalFeedFingerprint) {
+          lastSignalFeedFingerprint = nextFp;
+          renderSignalCards(dashboardSignalsGrid);
+          if (isSignalsNotifyEnabled()) {
+            addNotification('New signal update: ' + setup.symbol + ' ' + setup.side + ' entry adjusted to ' + setup.entry + '.', 'good');
+          }
+        }
+      }, 90000);
     }
 
     function renderOrderBook() {
@@ -4587,6 +4645,7 @@
       renderSignalCards(dashboardSignalsGrid);
       renderSecuritySessions();
       renderActivity();
+      initSignalsNotifications();
       setPositionsMode(currentPositionsMode);
       updateChartControlState();
       initCommandCenterCarousel();
@@ -4641,6 +4700,14 @@
       if (adminKycAutoRefreshTimer) {
         clearInterval(adminKycAutoRefreshTimer);
         adminKycAutoRefreshTimer = null;
+      }
+      if (adminKycBackgroundTimer) {
+        clearInterval(adminKycBackgroundTimer);
+        adminKycBackgroundTimer = null;
+      }
+      if (signalFeedTimer) {
+        clearInterval(signalFeedTimer);
+        signalFeedTimer = null;
       }
       if (dashboardPulseTimer) {
         clearInterval(dashboardPulseTimer);
@@ -5252,6 +5319,7 @@
       dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
       renderKycState(user);
       applyAdminKycAccess(user);
+      startAdminKycBackgroundPolling();
       renderBrokerSignupState(user);
       restoreSecurityPrefs(user);
       initProDashboardWidgets();
@@ -5437,9 +5505,46 @@
       if (profileAdminKycMenuBtn) profileAdminKycMenuBtn.classList.toggle('hidden', !allowed);
       const adminSection = document.getElementById('profileAdminKycSection');
       if (adminSection && !allowed) adminSection.classList.add('hidden');
+      if (!allowed && adminKycBackgroundTimer) {
+        clearInterval(adminKycBackgroundTimer);
+        adminKycBackgroundTimer = null;
+      }
       // Show/hide owner nav button
       var ownerNavBtn = document.getElementById('ownerNavBtn');
       if (ownerNavBtn) ownerNavBtn.classList.toggle('hidden', !allowed);
+    }
+
+    async function pollAdminKycBackground(initial) {
+      if (!isCurrentUserAdmin()) return;
+      const h = authHeaders();
+      if (!h) return;
+      try {
+        const res = await fetch('/api/kyc', {
+          method: 'POST',
+          headers: h,
+          body: JSON.stringify({ action: 'admin_queue' })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) return;
+        const queue = Array.isArray(data.queue) ? data.queue : [];
+        const count = queue.length;
+        if (!initial && lastAdminKycCount !== null && count > lastAdminKycCount) {
+          const delta = count - lastAdminKycCount;
+          addNotification('Admin alert: ' + delta + ' new KYC submission' + (delta > 1 ? 's' : '') + ' pending review.', 'warn');
+        }
+        lastAdminKycCount = count;
+      } catch (_) {
+        // background polling is best-effort
+      }
+    }
+
+    function startAdminKycBackgroundPolling() {
+      if (!isCurrentUserAdmin()) return;
+      if (adminKycBackgroundTimer) clearInterval(adminKycBackgroundTimer);
+      pollAdminKycBackground(true);
+      adminKycBackgroundTimer = setInterval(function() {
+        pollAdminKycBackground(false);
+      }, 30000);
     }
 
     // ── Owner Dashboard Functions ──────────────────────────

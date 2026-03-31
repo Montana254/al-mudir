@@ -76,6 +76,76 @@ async function sendTelegramDoc(buffer, fileName, mimeType, caption) {
   return res.ok ? (await res.json()) : null;
 }
 
+async function sendAdminKycEmailAlert(payload) {
+  const adminTo = (process.env.ADMIN_ALERT_EMAIL || process.env.COMPLIANCE_EMAIL || process.env.EMAIL_FROM || '').trim();
+  if (!adminTo) return null;
+
+  const to = adminTo.includes('<')
+    ? adminTo.replace(/^.*<([^>]+)>.*$/, '$1').trim()
+    : adminTo;
+  if (!to || !to.includes('@')) return null;
+
+  const subject = 'AL-MUDIR KYC Submission — ' + (payload.email || 'unknown');
+  const text = [
+    'New KYC submission received.',
+    'Name: ' + (payload.fullName || 'N/A'),
+    'Email: ' + (payload.email || 'N/A'),
+    'User ID: ' + (payload.userId || 'N/A'),
+    'ID Type: ' + (payload.idType || 'N/A'),
+    'Document Number: ' + (payload.idDocNumber || 'N/A'),
+    'Nationality: ' + (payload.nationality || 'N/A'),
+    'Submitted: ' + (payload.submittedAt || ''),
+    'IP: ' + (payload.ip || 'unknown')
+  ].join('\n');
+
+  // Try Resend first.
+  const resendKey = (process.env.RESEND_API_KEY || '').trim();
+  if (resendKey) {
+    try {
+      const from = (process.env.EMAIL_FROM || 'AL-MUDIR <noreply@al-mudir.org>').trim();
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + resendKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from,
+          to: [to],
+          subject,
+          text
+        })
+      });
+      if (res.ok) return { provider: 'resend' };
+    } catch (_) { /* fall through */ }
+  }
+
+  // SMTP fallback.
+  const smtpHost = (process.env.SMTP_HOST || '').trim();
+  const smtpUser = (process.env.SMTP_USER || '').trim();
+  const smtpPass = (process.env.SMTP_PASS || '').trim();
+  if (smtpHost && smtpUser && smtpPass) {
+    try {
+      const nodemailer = require('nodemailer');
+      const transport = nodemailer.createTransport({
+        host: smtpHost,
+        port: parseInt(process.env.SMTP_PORT || '587', 10),
+        secure: parseInt(process.env.SMTP_PORT || '587', 10) === 465,
+        auth: { user: smtpUser, pass: smtpPass }
+      });
+      await transport.sendMail({
+        from: process.env.EMAIL_FROM || 'AL-MUDIR <noreply@al-mudir.org>',
+        to,
+        subject,
+        text
+      });
+      return { provider: 'smtp' };
+    } catch (_) { /* ignore */ }
+  }
+
+  return null;
+}
+
 function dataUrlToBuffer(dataUrl) {
   const base64 = dataUrl.split(',')[1] || '';
   return Buffer.from(base64, 'base64');
@@ -429,8 +499,9 @@ module.exports = withDb(async function handler(req, res) {
     await redis('SET', 'user:' + user.email, JSON.stringify(user));
     await saveUserProfileSnapshot(redis, user);
 
-    // ── Notify admin via Telegram ──────────────────────
+    // ── Notify admin via Telegram + email ──────────────
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+    const safeIp = sanitize(ip, 80);
     await sendTelegramText([
       '🔐 AL-MUDIR KYC SUBMISSION',
       '===========================',
@@ -455,12 +526,24 @@ module.exports = withDb(async function handler(req, res) {
       'Type: ' + residenceDocType.replace(/_/g, ' '),
       'File: ' + (kycData.residenceDocName || 'uploaded'),
       '',
-      'IP: ' + sanitize(ip, 80),
+      'IP: ' + safeIp,
       'Submitted: ' + submittedAt,
       '',
       '⏳ Status: PENDING REVIEW',
       'Documents attached below ↓'
     ]);
+
+    // Best-effort compliance email alert for faster admin response.
+    await sendAdminKycEmailAlert({
+      fullName,
+      email: user.email,
+      userId: user.userId || 'N/A',
+      idType: idMeta.label,
+      idDocNumber,
+      nationality,
+      submittedAt,
+      ip: safeIp
+    });
 
     // Send documents to Telegram
     const idLabel = user.email + ' — ' + idMeta.label;
