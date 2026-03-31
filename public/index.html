@@ -1220,7 +1220,7 @@
               <button type="button" class="password-toggle" data-toggle-password="loginPassword">Show</button>
             </div>
             <div class="flex justify-end">
-              <button id="forgotPasswordBtn" type="button" class="text-[11px] uppercase tracking-[0.12em] text-gray-500 hover:text-white">Forgot Password?</button>
+              <button id="forgotPasswordBtn" type="button" class="text-[11px] uppercase tracking-[0.12em] text-gray-500 hover:text-white underline">Forgot password?</button>
             </div>
             <button class="btn-outline w-full rounded py-3 text-xs uppercase tracking-[0.15em]" type="submit">Access Dashboard</button>
             <p id="loginStatus" class="hidden text-center text-xs"></p>
@@ -1253,27 +1253,8 @@
             <button id="resendOtpBtn" type="button" class="text-xs text-gray-400 hover:text-white underline">Resend code</button>
             <button id="backToAuthBtn" type="button" class="text-xs text-gray-500 hover:text-white">&#8592; Back to login</button>
           </div>
-          <p id="otpResendTimer" class="hidden text-center text-[11px] text-gray-500"></p>
+          <p id="resendTimerLabel" class="text-center text-[11px] text-gray-500 hidden">Resend available in 00:30</p>
           <p id="otpStatus" class="hidden text-center text-xs"></p>
-        </div>
-      </div>
-
-      <div id="forgotPasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-        <div class="mx-4 w-full max-w-md rounded-xl border border-white/10 bg-[#0b1117] p-5 space-y-3">
-          <div class="flex items-center justify-between">
-            <p class="text-xs uppercase tracking-[0.16em] text-gray-400">Password Recovery</p>
-            <button id="forgotPasswordClose" type="button" class="text-gray-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-          <p class="text-xs text-gray-400">Request a 6-digit reset code, then set a new password.</p>
-          <input id="forgotEmail" type="email" maxlength="120" autocomplete="email" placeholder="EMAIL ADDRESS" class="auth-input w-full">
-          <div class="flex gap-2">
-            <input id="forgotOtp" type="text" maxlength="6" inputmode="numeric" placeholder="RESET OTP" class="auth-input w-1/2">
-            <button id="forgotSendOtpBtn" type="button" class="w-1/2 rounded border border-white/10 py-2 text-[11px] uppercase tracking-[0.12em] text-gray-300 hover:bg-white/5">Send OTP</button>
-          </div>
-          <input id="forgotNewPassword" type="password" minlength="8" maxlength="72" autocomplete="new-password" placeholder="NEW PASSWORD (MIN 8)" class="auth-input w-full">
-          <input id="forgotConfirmPassword" type="password" minlength="8" maxlength="72" autocomplete="new-password" placeholder="CONFIRM NEW PASSWORD" class="auth-input w-full">
-          <button id="forgotResetBtn" type="button" class="btn-gold w-full rounded py-2.5 text-xs">Reset Password</button>
-          <p id="forgotStatus" class="hidden text-center text-xs"></p>
         </div>
       </div>
 
@@ -2226,12 +2207,13 @@
                         <select id="depositNetworkSelect" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm"></select>
                       </div>
                     </div>
+                    <p id="depositNetworkWarning" class="hidden text-[10px] text-yellow-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Connected wallet network does not match the selected deposit network. Sending on the wrong network may cause permanent loss.</p>
                     <div id="depositAddressCard" class="hidden rounded border border-[var(--dash-accent)]/20 bg-[var(--dash-accent)]/5 p-4 space-y-2">
                       <div class="flex items-center justify-between">
                         <p class="text-[10px] uppercase tracking-[0.14em] text-gray-400">Deposit Address · <span id="depositNetworkLabel" class="text-[var(--dash-accent)]">—</span></p>
                         <button id="copyDepositAddrBtn" class="rounded border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-gray-400 hover:border-white/30 hover:text-white"><i class="fa-solid fa-copy mr-1"></i>Copy</button>
                       </div>
-                      <p id="depositAddrDisplay" class="break-all font-mono text-xs text-white select-all">—</p>
+                      <p id="depositAddrDisplay" class="break-all font-mono text-xs text-white select-all">Select coin and network to reveal your deposit address.</p>
                       <p class="text-[10px] text-yellow-500/80"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Only send <span id="depositCoinLabel" class="font-semibold">—</span> on the selected network. Sending other coins may result in permanent loss.</p>
                     </div>
                     <div>
@@ -2271,6 +2253,7 @@
                     <p class="text-[10px] uppercase tracking-[0.18em] text-gray-400"><i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>Withdraw Funds</p>
                     <span class="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-green-400">Available 24/7</span>
                   </div>
+                  <p class="text-[10px] text-gray-500">Limits: max $50,000 per withdrawal, max $100,000 daily.</p>
 
                   <div class="grid gap-3 sm:grid-cols-2">
                     <div>
@@ -2507,6 +2490,12 @@
                   </div>
                   <p class="text-xs text-gray-400">Complete broker signup once. Free access link requests are accepted only after successful broker signup and User ID verification.</p>
                   <a href="https://one.exnessonelink.com/a/aczb4cfol7" target="_blank" rel="noopener noreferrer" class="block w-full rounded border border-[#3a3a3a] py-2 text-center text-[11px] uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>Open Official Broker Partnership Link</a>
+                  <div class="rounded border border-blue-500/20 bg-blue-500/5 p-3 space-y-1">
+                    <p class="text-[10px] uppercase tracking-[0.12em] text-blue-300">Find Your Exness Client ID</p>
+                    <p class="text-[11px] text-gray-300">1. Complete Exness signup and log in.</p>
+                    <p class="text-[11px] text-gray-300">2. Open your Personal Area profile and copy the numeric Client ID.</p>
+                    <p class="text-[11px] text-gray-300">3. Paste it below exactly to verify broker linkage.</p>
+                  </div>
                   <div class="grid gap-3 md:grid-cols-2">
                     <div>
                       <p class="text-[11px] uppercase tracking-[0.15em] text-gray-500">Broker Name</p>
@@ -2533,7 +2522,30 @@
                     </div>
                     <span class="text-[10px] uppercase tracking-[0.14em] text-[var(--dash-accent)]">SMC / ICT Engine</span>
                   </div>
+                  <div class="mt-3 grid gap-2 sm:grid-cols-3">
+                    <div class="rounded border border-white/10 bg-black/20 p-2.5 text-center">
+                      <p class="text-[10px] uppercase tracking-[0.12em] text-gray-500">Active Setups</p>
+                      <p id="signalActiveCount" class="mt-1 text-sm font-semibold text-white">0</p>
+                    </div>
+                    <div class="rounded border border-white/10 bg-black/20 p-2.5 text-center">
+                      <p class="text-[10px] uppercase tracking-[0.12em] text-gray-500">Win / Loss</p>
+                      <p id="signalWinLoss" class="mt-1 text-sm font-semibold text-white">0 / 0</p>
+                    </div>
+                    <div class="rounded border border-white/10 bg-black/20 p-2.5 text-center">
+                      <p class="text-[10px] uppercase tracking-[0.12em] text-gray-500">Signal Alerts</p>
+                      <label class="mt-1 inline-flex items-center gap-2 text-xs text-gray-300">
+                        <input id="signalsNotifyToggle" type="checkbox" class="h-3.5 w-3.5" checked>
+                        Enabled
+                      </label>
+                    </div>
+                  </div>
                   <div id="dashboardSignalsGrid" class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3"></div>
+                  <div class="mt-4 overflow-hidden rounded-lg border border-white/10">
+                    <div class="grid grid-cols-[1fr_0.8fr_0.8fr_0.8fr_0.7fr] bg-black/25 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-gray-500">
+                      <span>Pair</span><span>Side</span><span>Result</span><span>Pips</span><span>Status</span>
+                    </div>
+                    <div id="signalsHistoryBody" class="text-xs"></div>
+                  </div>
                 </div>
               </div>
 
@@ -2550,6 +2562,10 @@
                   <span id="kycBadge" class="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.12em] font-semibold text-red-400">Unverified</span>
                 </div>
                 <p class="text-xs text-gray-400">Complete KYC verification to unlock higher funding limits and full trading access. Provide valid government-issued identity documents and proof of residence. All data is encrypted and stored securely.</p>
+                <div class="rounded border border-[var(--dash-accent)]/20 bg-[var(--dash-accent)]/5 p-3">
+                  <p class="text-[10px] uppercase tracking-[0.12em] text-[var(--dash-accent)]">Before You Start</p>
+                  <p class="mt-1 text-[11px] text-gray-300">Keep these ready: government ID, proof of residence dated within 3 months, and clear photos/scans under 5 MB per file.</p>
+                </div>
 
                 <div id="kycForm" class="space-y-4">
                   <!-- Step 1: Personal Details -->
@@ -3064,6 +3080,40 @@
     </div>
   </section>
 
+  <div id="forgotPasswordModal" class="hidden fixed inset-0 z-[95] bg-black/75 backdrop-blur-sm p-4">
+    <div class="mx-auto mt-16 max-w-md rounded-xl border border-white/15 bg-[#0e1114] p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs uppercase tracking-[0.14em] text-gray-400">Reset Password</p>
+        <button id="forgotPasswordClose" type="button" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <input id="forgotEmail" type="email" maxlength="120" placeholder="ACCOUNT EMAIL" class="auth-input w-full">
+      <div class="grid grid-cols-[1fr_auto] gap-2">
+        <input id="forgotCode" type="text" maxlength="6" placeholder="6-DIGIT RESET CODE" class="auth-input w-full">
+        <button id="forgotSendCode" type="button" class="rounded border border-white/15 px-3 text-[10px] uppercase tracking-[0.12em] text-gray-300 hover:border-white/30">Send Code</button>
+      </div>
+      <input id="forgotNewPassword" type="password" maxlength="72" placeholder="NEW PASSWORD" class="auth-input w-full">
+      <input id="forgotConfirmPassword" type="password" maxlength="72" placeholder="CONFIRM NEW PASSWORD" class="auth-input w-full">
+      <button id="forgotResetBtn" type="button" class="btn-gold w-full rounded py-2.5 text-xs">Reset Password</button>
+      <p id="forgotStatus" class="hidden text-center text-xs"></p>
+    </div>
+  </div>
+
+  <div id="withdraw2faModal" class="hidden fixed inset-0 z-[96] bg-black/75 backdrop-blur-sm p-4">
+    <div class="mx-auto mt-20 max-w-sm rounded-xl border border-white/15 bg-[#0e1114] p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs uppercase tracking-[0.14em] text-gray-400">Withdrawal 2FA</p>
+        <button id="withdraw2faClose" type="button" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-[11px] text-gray-400">A one-time code is required before submitting this withdrawal.</p>
+      <div class="grid grid-cols-[1fr_auto] gap-2">
+        <input id="withdraw2faCode" type="text" maxlength="6" placeholder="6-DIGIT CODE" class="auth-input w-full">
+        <button id="withdraw2faSend" type="button" class="rounded border border-white/15 px-3 text-[10px] uppercase tracking-[0.12em] text-gray-300 hover:border-white/30">Send Code</button>
+      </div>
+      <button id="withdraw2faConfirm" type="button" class="btn-gold w-full rounded py-2.5 text-xs">Verify &amp; Submit</button>
+      <p id="withdraw2faStatus" class="hidden text-center text-xs"></p>
+    </div>
+  </div>
+
   <footer class="py-12 px-6 text-center text-[10px] uppercase tracking-[0.2em] opacity-70 space-y-4">
     <p>Copyright 2026 AL-MUDIR Wealth and Fintech Ventures</p>
     <p class="mx-auto max-w-5xl text-[10px] normal-case tracking-normal text-gray-400">Risk Warning: Trading forex, commodities, and digital assets carries a high level of risk and may not be suitable for all investors. Past performance is not indicative of future results. You may lose some or all invested capital.</p>
@@ -3092,15 +3142,15 @@
     const otpEmailDisplay = document.getElementById('otpEmailDisplay');
     const verifyOtpBtn = document.getElementById('verifyOtpBtn');
     const resendOtpBtn = document.getElementById('resendOtpBtn');
-    const otpResendTimer = document.getElementById('otpResendTimer');
+    const resendTimerLabel = document.getElementById('resendTimerLabel');
     const backToAuthBtn = document.getElementById('backToAuthBtn');
     const otpStatus = document.getElementById('otpStatus');
     const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
     const forgotPasswordModal = document.getElementById('forgotPasswordModal');
     const forgotPasswordClose = document.getElementById('forgotPasswordClose');
     const forgotEmail = document.getElementById('forgotEmail');
-    const forgotOtp = document.getElementById('forgotOtp');
-    const forgotSendOtpBtn = document.getElementById('forgotSendOtpBtn');
+    const forgotCode = document.getElementById('forgotCode');
+    const forgotSendCode = document.getElementById('forgotSendCode');
     const forgotNewPassword = document.getElementById('forgotNewPassword');
     const forgotConfirmPassword = document.getElementById('forgotConfirmPassword');
     const forgotResetBtn = document.getElementById('forgotResetBtn');
@@ -3193,6 +3243,7 @@
     // ── Deposit flow refs ──
     const depositCoinSelect = document.getElementById('depositCoinSelect');
     const depositNetworkSelect = document.getElementById('depositNetworkSelect');
+    const depositNetworkWarning = document.getElementById('depositNetworkWarning');
     const depositAddressCard = document.getElementById('depositAddressCard');
     const depositNetworkLabel = document.getElementById('depositNetworkLabel');
     const depositAddrDisplay = document.getElementById('depositAddrDisplay');
@@ -3240,6 +3291,12 @@
     const withdrawFeeCard = document.getElementById('withdrawFeeCard');
     const withdrawSubmitBtn = document.getElementById('withdrawSubmitBtn');
     const withdrawStatus = document.getElementById('withdrawStatus');
+    const withdraw2faModal = document.getElementById('withdraw2faModal');
+    const withdraw2faClose = document.getElementById('withdraw2faClose');
+    const withdraw2faCode = document.getElementById('withdraw2faCode');
+    const withdraw2faSend = document.getElementById('withdraw2faSend');
+    const withdraw2faConfirm = document.getElementById('withdraw2faConfirm');
+    const withdraw2faStatus = document.getElementById('withdraw2faStatus');
 
     // ── Fiat Deposit refs ──
     const fiatDepositMethod = document.getElementById('fiatDepositMethod');
@@ -3277,6 +3334,9 @@
     const heroCanvasChart = document.getElementById('heroCanvasChart');
     const landingSignalsGrid = document.getElementById('landingSignalsGrid');
     const dashboardSignalsGrid = document.getElementById('dashboardSignalsGrid');
+    const signalActiveCount = document.getElementById('signalActiveCount');
+    const signalWinLoss = document.getElementById('signalWinLoss');
+    const signalsHistoryBody = document.getElementById('signalsHistoryBody');
     const orderBookAsks = document.getElementById('orderBookAsks');
     const orderBookBids = document.getElementById('orderBookBids');
     const securityStatus = document.getElementById('securityStatus');
@@ -3297,7 +3357,10 @@
 
     let currentUser = null;
     let pendingVerification = null;
-    let otpResendInterval = null;
+    let otpResendCooldownUntil = 0;
+    let otpResendTimer = null;
+    let adminKycAutoRefreshTimer = null;
+    let pendingWithdrawRequest = null;
     let paymentManager = null;
     let lastQuote = null;
     let walletFallbackLink = '';
@@ -3347,6 +3410,13 @@
       { symbol: 'NAS100', side: 'LONG', entry: '18940', sl: '18760', tp: '19340', rr: '2.22', confidence: 83 }
     ];
 
+    const SIGNAL_HISTORY = [
+      { pair: 'XAUUSD', side: 'LONG', result: 'TP1', pips: '+62', status: 'Closed' },
+      { pair: 'BTCUSDT', side: 'SHORT', result: 'SL', pips: '-44', status: 'Closed' },
+      { pair: 'EURUSD', side: 'SHORT', result: 'TP2', pips: '+71', status: 'Closed' },
+      { pair: 'ETHUSDT', side: 'LONG', result: 'BE', pips: '+3', status: 'Closed' }
+    ];
+
     const THEME_KEY = 'alm_theme';
     const securityPrefs = {
       twoFA: false,
@@ -3389,6 +3459,90 @@
 
     function normalize(value, max) {
       return String(value || '').replace(/[\x00-\x1F\x7F]/g, ' ').trim().slice(0, max);
+    }
+
+    function setOtpCooldown(seconds) {
+      otpResendCooldownUntil = Date.now() + Math.max(0, Number(seconds || 0)) * 1000;
+      if (otpResendTimer) clearInterval(otpResendTimer);
+      otpResendTimer = setInterval(refreshOtpCooldownUi, 1000);
+      refreshOtpCooldownUi();
+    }
+
+    function refreshOtpCooldownUi() {
+      if (!resendOtpBtn || !resendTimerLabel) return;
+      var leftMs = otpResendCooldownUntil - Date.now();
+      if (leftMs <= 0) {
+        resendOtpBtn.disabled = false;
+        resendOtpBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        resendTimerLabel.classList.add('hidden');
+        if (otpResendTimer) {
+          clearInterval(otpResendTimer);
+          otpResendTimer = null;
+        }
+        return;
+      }
+      var totalSeconds = Math.ceil(leftMs / 1000);
+      var mm = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+      var ss = String(totalSeconds % 60).padStart(2, '0');
+      resendOtpBtn.disabled = true;
+      resendOtpBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      resendTimerLabel.textContent = 'Resend available in ' + mm + ':' + ss;
+      resendTimerLabel.classList.remove('hidden');
+    }
+
+    function isValidTxHash(network, txHash) {
+      var hash = String(txHash || '').trim();
+      var net = String(network || '').toLowerCase();
+      if (!hash) return false;
+      if (net === 'erc20' || net === 'bep20' || net === 'polygon' || net === 'avax-c') return /^0x[a-fA-F0-9]{64}$/.test(hash);
+      if (net === 'bitcoin' || net === 'litecoin' || net === 'dogecoin' || net === 'trc20' || net === 'xrp' || net === 'stellar' || net === 'polkadot') return /^[a-fA-F0-9]{64}$/.test(hash);
+      if (net === 'solana' || net === 'ton') return /^[1-9A-HJ-NP-Za-km-z]{43,88}$/.test(hash);
+      return hash.length >= 32;
+    }
+
+    function validateWithdrawalAddress(network, address) {
+      var net = String(network || '').toUpperCase();
+      var addr = String(address || '').trim();
+      if (!addr) return false;
+      if (net === 'TRC20') return /^T[A-Za-z1-9]{33}$/.test(addr);
+      if (net === 'ERC20' || net === 'BEP20' || net === 'POLYGON' || net === 'AVAX') return /^0x[a-fA-F0-9]{40}$/.test(addr);
+      if (net === 'BTC') return /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,62}$/.test(addr);
+      if (net === 'SOL') return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr);
+      if (net === 'XLM') return /^G[A-Z2-7]{55}$/.test(addr);
+      return addr.length >= 20;
+    }
+
+    function renderSignalsHistory() {
+      if (!signalsHistoryBody) return;
+      if (!SIGNAL_HISTORY.length) {
+        signalsHistoryBody.innerHTML = '<div class="px-3 py-3 text-center text-xs text-gray-500">No signal history yet.</div>';
+        return;
+      }
+      signalsHistoryBody.innerHTML = SIGNAL_HISTORY.map(function(item) {
+        var sideCls = item.side === 'LONG' ? 'text-green-300' : 'text-red-300';
+        var pipsCls = String(item.pips || '').startsWith('-') ? 'text-red-300' : 'text-green-300';
+        return '<div class="market-row grid grid-cols-[1fr_0.8fr_0.8fr_0.8fr_0.7fr] items-center px-3 py-2">'
+          + '<span class="font-semibold text-white">' + item.pair + '</span>'
+          + '<span class="' + sideCls + '">' + item.side + '</span>'
+          + '<span class="text-gray-300">' + item.result + '</span>'
+          + '<span class="' + pipsCls + '">' + item.pips + '</span>'
+          + '<span class="text-gray-400">' + item.status + '</span>'
+          + '</div>';
+      }).join('');
+    }
+
+    function updateDepositNetworkWarning() {
+      if (!depositNetworkWarning || !depositNetworkSelect) return;
+      var manager = initializePaymentManager();
+      if (!manager || !manager.walletConnected || !manager.chainId) {
+        depositNetworkWarning.classList.add('hidden');
+        return;
+      }
+      var chainNetworkMap = { 1: 'erc20', 56: 'bep20', 137: 'polygon', 43114: 'avax-c' };
+      var currentWalletNet = chainNetworkMap[manager.chainId] || '';
+      var selectedNet = String(depositNetworkSelect.value || '').toLowerCase();
+      var mismatch = currentWalletNet && selectedNet && currentWalletNet !== selectedNet;
+      depositNetworkWarning.classList.toggle('hidden', !mismatch);
     }
 
     function setPasswordVisibility(inputId, visible) {
@@ -3585,6 +3739,13 @@
 
     function renderSignalCards(target) {
       if (!target) return;
+      if (signalActiveCount) signalActiveCount.textContent = String(SIGNAL_SETUPS.length);
+      if (signalWinLoss) {
+        var wins = SIGNAL_HISTORY.filter(function(row) { return String(row.result || '').toUpperCase().indexOf('TP') === 0; }).length;
+        var losses = SIGNAL_HISTORY.filter(function(row) { return String(row.result || '').toUpperCase() === 'SL'; }).length;
+        signalWinLoss.textContent = wins + ' / ' + losses;
+      }
+      renderSignalsHistory();
       target.innerHTML = SIGNAL_SETUPS.map(function(s) {
         const sideClass = s.side === 'LONG' ? 'text-green-300 border-green-500/40 bg-green-500/10' : 'text-red-300 border-red-500/40 bg-red-500/10';
         const confidenceTone = s.confidence >= 85 ? 'text-green-300' : s.confidence >= 78 ? 'text-yellow-300' : 'text-orange-300';
@@ -3765,36 +3926,7 @@
     }
 
     function setOtpResendCooldown(seconds) {
-      if (!resendOtpBtn || !otpResendTimer) return;
-      if (otpResendInterval) {
-        clearInterval(otpResendInterval);
-        otpResendInterval = null;
-      }
-      var remain = Math.max(0, parseInt(seconds, 10) || 0);
-      if (remain <= 0) {
-        resendOtpBtn.disabled = false;
-        resendOtpBtn.classList.remove('opacity-50', 'pointer-events-none');
-        otpResendTimer.classList.add('hidden');
-        otpResendTimer.textContent = '';
-        return;
-      }
-      resendOtpBtn.disabled = true;
-      resendOtpBtn.classList.add('opacity-50', 'pointer-events-none');
-      otpResendTimer.classList.remove('hidden');
-      otpResendTimer.textContent = 'Resend available in ' + remain + 's';
-      otpResendInterval = setInterval(function() {
-        remain -= 1;
-        if (remain <= 0) {
-          clearInterval(otpResendInterval);
-          otpResendInterval = null;
-          resendOtpBtn.disabled = false;
-          resendOtpBtn.classList.remove('opacity-50', 'pointer-events-none');
-          otpResendTimer.classList.add('hidden');
-          otpResendTimer.textContent = '';
-          return;
-        }
-        otpResendTimer.textContent = 'Resend available in ' + remain + 's';
-      }, 1000);
+      setOtpCooldown(seconds);
     }
 
     function formatPrice(symbol, value) {
@@ -3866,6 +3998,10 @@
     function renderPositions(mode) {
       if (!positionsTableBody) return;
       const rows = mode === 'history' ? POSITION_HISTORY : OPEN_POSITIONS;
+      if (!rows.length) {
+        positionsTableBody.innerHTML = '<div class="px-3 py-4 text-center text-xs text-gray-500">No positions yet. Your trades will appear here once executed.</div>';
+        return;
+      }
       positionsTableBody.innerHTML = rows.map((r) => {
         const pnlUp = String(r.pnl).startsWith('+');
         return '<div class="market-row grid grid-cols-[1fr_0.8fr_0.7fr_0.8fr_0.7fr] items-center px-3 py-2">'
@@ -4466,6 +4602,10 @@
 
     function performLogout(reason) {
       stopInactivityTimer();
+      if (adminKycAutoRefreshTimer) {
+        clearInterval(adminKycAutoRefreshTimer);
+        adminKycAutoRefreshTimer = null;
+      }
       if (dashboardPulseTimer) {
         clearInterval(dashboardPulseTimer);
         dashboardPulseTimer = null;
@@ -5081,6 +5221,12 @@
       initProDashboardWidgets();
       populateDepositSelects();
       loadSystemWallet({ force: true, background: true });
+      try {
+        if (localStorage.getItem('alm_bot_active_v1') === '1') {
+          botPurchaseGate.classList.add('hidden');
+          botDashboard.classList.remove('hidden');
+        }
+      } catch (_) {}
       loadBotStatus();
       markSessionActive();
       const nextPanel = preferredDashboardPanel || 'home';
@@ -5136,6 +5282,10 @@
 
     // ── Profile service menu navigation ──
     function closeProfileSections() {
+      if (adminKycAutoRefreshTimer) {
+        clearInterval(adminKycAutoRefreshTimer);
+        adminKycAutoRefreshTimer = null;
+      }
       document.querySelectorAll('.profile-section').forEach(function(s) { s.classList.add('hidden'); });
     }
 
@@ -5154,6 +5304,10 @@
       }
       if (sectionId === 'profileAdminKycSection') {
         loadAdminKycQueue(true);
+        if (adminKycAutoRefreshTimer) clearInterval(adminKycAutoRefreshTimer);
+        adminKycAutoRefreshTimer = setInterval(function() {
+          loadAdminKycQueue(false);
+        }, 20000);
       }
     }
 
@@ -5649,6 +5803,7 @@
       }
       // Sync quick deposit panel
       syncQuickDepositState();
+      updateDepositNetworkWarning();
     }
 
     function hideWalletConnectedCard() {
@@ -5661,6 +5816,7 @@
       if (homeCard) homeCard.classList.add('hidden');
       // Sync quick deposit panel
       syncQuickDepositState();
+      updateDepositNetworkWarning();
     }
 
     // ══════════════════════════════════════════════════════
@@ -5883,6 +6039,7 @@
       var network = depositNetworkSelect.value;
       var addrs = systemWalletData.treasuryAddresses || {};
       var addr = addrs[network] || '';
+      updateDepositNetworkWarning();
       if (!addr || !network) {
         depositAddressCard.classList.add('hidden');
         return;
@@ -6108,6 +6265,7 @@
         otpArea.classList.remove('hidden');
         setOtpResendCooldown(60);
         otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setOtpCooldown(30);
         await notifyEvent('user.created', { name, email, message: 'Client account created — pending verification' });
         trackAnalyticsEvent('account_created', { source: 'portal' });
       } catch (_) {
@@ -6152,6 +6310,7 @@
           otpArea.classList.remove('hidden');
           setOtpResendCooldown(60);
           otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setOtpCooldown(30);
           return;
         }
         if (result.requiresOtp) {
@@ -6172,6 +6331,7 @@
           otpArea.classList.remove('hidden');
           setOtpResendCooldown(60);
           otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setOtpCooldown(30);
           return;
         }
         if (!res.ok || !result.ok) {
@@ -6189,111 +6349,85 @@
       }
     });
 
-    function closeForgotPasswordModal() {
-      if (!forgotPasswordModal) return;
-      forgotPasswordModal.classList.add('hidden');
-      if (forgotStatus) forgotStatus.classList.add('hidden');
-    }
-
-    if (forgotPasswordBtn) {
+    if (forgotPasswordBtn && forgotPasswordModal) {
       forgotPasswordBtn.addEventListener('click', function() {
-        if (!forgotPasswordModal) return;
-        if (forgotEmail) forgotEmail.value = normalize(document.getElementById('loginEmail').value || '', 120).toLowerCase();
-        if (forgotOtp) forgotOtp.value = '';
-        if (forgotNewPassword) forgotNewPassword.value = '';
-        if (forgotConfirmPassword) forgotConfirmPassword.value = '';
-        if (forgotStatus) forgotStatus.classList.add('hidden');
+        if (forgotEmail) forgotEmail.value = normalize(document.getElementById('loginEmail').value, 120).toLowerCase();
         forgotPasswordModal.classList.remove('hidden');
       });
     }
 
-    if (forgotPasswordClose) {
-      forgotPasswordClose.addEventListener('click', closeForgotPasswordModal);
+    if (forgotPasswordClose && forgotPasswordModal) {
+      forgotPasswordClose.addEventListener('click', function() {
+        forgotPasswordModal.classList.add('hidden');
+      });
     }
 
-    if (forgotSendOtpBtn) {
-      forgotSendOtpBtn.addEventListener('click', async function() {
-        const email = normalize((forgotEmail && forgotEmail.value) || '', 120).toLowerCase();
+    if (forgotSendCode) {
+      forgotSendCode.addEventListener('click', async function() {
+        var email = normalize((forgotEmail && forgotEmail.value) || '', 120).toLowerCase();
         if (!email) {
-          showStatus(forgotStatus, 'Enter your email address.', 'error');
+          showStatus(forgotStatus, 'Enter your account email first.', 'error');
           return;
         }
-        forgotSendOtpBtn.disabled = true;
+        forgotSendCode.disabled = true;
         showStatus(forgotStatus, 'Sending reset code...', 'neutral');
         try {
-          const res = await fetch('/api/auth-login', {
+          var res = await fetch('/api/auth-forgot-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'forgot_password_request', email: email })
+            body: JSON.stringify({ action: 'request', email: email })
           });
-          const result = await res.json();
+          var result = await res.json();
           if (!res.ok || !result.ok) {
-            if (result.error === 'cooldown_active') {
-              showStatus(forgotStatus, 'Please wait ' + (result.retryAfter || 60) + 's before requesting a new code.', 'error');
-            } else {
-              showStatus(forgotStatus, result.error || 'Could not send reset code.', 'error');
-            }
+            showStatus(forgotStatus, result.error || 'Could not send reset code.', 'error');
             return;
           }
-          showStatus(forgotStatus, 'Reset code sent. Check your delivery channel and enter the 6-digit OTP.', 'success');
+          showStatus(forgotStatus, 'If the account exists, a reset code was sent.', 'success');
         } catch (_) {
           showStatus(forgotStatus, 'Network error. Please retry.', 'error');
         } finally {
-          forgotSendOtpBtn.disabled = false;
+          forgotSendCode.disabled = false;
         }
       });
     }
 
     if (forgotResetBtn) {
       forgotResetBtn.addEventListener('click', async function() {
-        const email = normalize((forgotEmail && forgotEmail.value) || '', 120).toLowerCase();
-        const otp = normalize((forgotOtp && forgotOtp.value) || '', 10);
-        const newPassword = (forgotNewPassword && forgotNewPassword.value) || '';
-        const confirmPassword = (forgotConfirmPassword && forgotConfirmPassword.value) || '';
-
-        if (!email || !otp || !newPassword || !confirmPassword) {
-          showStatus(forgotStatus, 'All fields are required.', 'error');
+        var email = normalize((forgotEmail && forgotEmail.value) || '', 120).toLowerCase();
+        var code = normalize((forgotCode && forgotCode.value) || '', 10).replace(/\D/g, '');
+        var nextPassword = String((forgotNewPassword && forgotNewPassword.value) || '');
+        var confirmPassword = String((forgotConfirmPassword && forgotConfirmPassword.value) || '');
+        if (!email || !code || !nextPassword) {
+          showStatus(forgotStatus, 'Email, reset code, and new password are required.', 'error');
           return;
         }
-        if (newPassword.length < 8) {
-          showStatus(forgotStatus, 'Password must be at least 8 characters.', 'error');
+        if (nextPassword.length < 8) {
+          showStatus(forgotStatus, 'New password must be at least 8 characters.', 'error');
           return;
         }
-        if (newPassword !== confirmPassword) {
+        if (nextPassword !== confirmPassword) {
           showStatus(forgotStatus, 'Password confirmation does not match.', 'error');
           return;
         }
-
         forgotResetBtn.disabled = true;
         showStatus(forgotStatus, 'Resetting password...', 'neutral');
         try {
-          const res = await fetch('/api/auth-login', {
+          var resetRes = await fetch('/api/auth-forgot-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'forgot_password_confirm',
-              email: email,
-              otp: otp,
-              newPassword: newPassword,
-              confirmPassword: confirmPassword
-            })
+            body: JSON.stringify({ action: 'confirm', email: email, code: code, newPassword: nextPassword })
           });
-          const result = await res.json();
-          if (!res.ok || !result.ok) {
-            const msg = result.error === 'otp_invalid' ? 'Incorrect OTP code.'
-              : result.error === 'otp_expired' || result.error === 'otp_expired_or_invalid' ? 'OTP expired. Request a new code.'
-              : result.error === 'password_too_short' ? 'Password must be at least 8 characters.'
-              : result.error === 'password_mismatch' ? 'Password confirmation does not match.'
-              : (result.error || 'Reset failed.');
-            showStatus(forgotStatus, msg, 'error');
+          var resetData = await resetRes.json();
+          if (!resetRes.ok || !resetData.ok) {
+            showStatus(forgotStatus, resetData.error || 'Password reset failed.', 'error');
             return;
           }
-
-          showStatus(forgotStatus, 'Password updated. You can now sign in.', 'success');
+          showStatus(forgotStatus, 'Password reset complete. You can now sign in.', 'success');
           setTimeout(function() {
-            closeForgotPasswordModal();
-            if (document.getElementById('loginEmail')) document.getElementById('loginEmail').value = email;
-            if (document.getElementById('loginPassword')) document.getElementById('loginPassword').focus();
+            forgotPasswordModal.classList.add('hidden');
+            if (forgotCode) forgotCode.value = '';
+            if (forgotNewPassword) forgotNewPassword.value = '';
+            if (forgotConfirmPassword) forgotConfirmPassword.value = '';
           }, 1200);
         } catch (_) {
           showStatus(forgotStatus, 'Network error. Please retry.', 'error');
@@ -6586,7 +6720,7 @@
 
     resendOtpBtn.addEventListener('click', async () => {
       if (!pendingVerification || !pendingVerification.email) return;
-      if (resendOtpBtn.disabled) return;
+      if (Date.now() < otpResendCooldownUntil) return;
       showStatus(otpStatus, 'Sending new code...', 'neutral');
       try {
         const res = await fetch('/api/auth-resend-otp', {
@@ -6623,7 +6757,8 @@
       otpArea.classList.add('hidden');
       authArea.classList.remove('hidden');
       otpStatus.classList.add('hidden');
-      setOtpResendCooldown(0);
+      otpResendCooldownUntil = 0;
+      refreshOtpCooldownUi();
       clearOtpDigits();
       document.getElementById('loginEmail').focus();
     });
@@ -6665,6 +6800,19 @@
         convertStatus.className = 'mt-3 text-center text-xs text-red-400';
       }
     });
+
+    (function bindConvertGuard() {
+      var amountInput = document.getElementById('payAmount');
+      if (!amountInput || !convertBtn) return;
+      function syncConvertBtn() {
+        var value = parseFloat(amountInput.value) || 0;
+        convertBtn.disabled = value <= 0;
+        convertBtn.classList.toggle('opacity-50', value <= 0);
+        convertBtn.classList.toggle('cursor-not-allowed', value <= 0);
+      }
+      amountInput.addEventListener('input', syncConvertBtn);
+      syncConvertBtn();
+    })();
 
     connectWalletBtn.addEventListener('click', async () => {
       // If wallet is already linked, just reconnect the provider session
@@ -7037,7 +7185,7 @@
       const amount = parseFloat(depositAmountInput.value) || 0;
       const txHash = ((depositTxHashInput && depositTxHashInput.value) || '').trim();
       if (amount <= 0) { showStatus(depositStatus, 'Enter the amount you deposited.', 'error'); return; }
-      if (!txHash || txHash.length < 10) { showStatus(depositStatus, 'A valid blockchain transaction hash is required.', 'error'); return; }
+      if (!isValidTxHash(network, txHash)) { showStatus(depositStatus, 'Transaction hash format is invalid for ' + String(network || 'this network').toUpperCase() + '.', 'error'); return; }
       const h = authHeaders();
       if (!h) { showStatus(depositStatus, 'Sign in required.', 'error'); return; }
 
@@ -7116,18 +7264,7 @@
       updateWithdrawFees();
     });
 
-    withdrawSubmitBtn.addEventListener('click', async function() {
-      var coin = withdrawCoinSelect.value;
-      var amount = parseFloat(withdrawAmount.value) || 0;
-      var address = (withdrawAddress.value || '').trim();
-      var network = withdrawNetworkSelect.value;
-
-      if (amount <= 0) { showStatus(withdrawStatus, 'Enter a valid withdrawal amount.', 'error'); return; }
-      if (!address || address.length < 10) { showStatus(withdrawStatus, 'Enter a valid withdrawal address.', 'error'); return; }
-
-      var bals = systemWalletData.balances || {};
-      if (amount > (bals[coin] || 0)) { showStatus(withdrawStatus, 'Insufficient ' + coin + ' balance.', 'error'); return; }
-
+    async function submitWithdrawalRequest(payload) {
       var h = authHeaders();
       if (!h) { showStatus(withdrawStatus, 'Sign in required.', 'error'); return; }
 
@@ -7137,7 +7274,7 @@
       try {
         var r = await fetch('/api/wallet', {
           method: 'POST', headers: h,
-          body: JSON.stringify({ action: 'withdraw', coin: coin, amount: amount, address: address, network: network, method: 'crypto' })
+          body: JSON.stringify(payload)
         });
         var d = await r.json();
         if (!r.ok || !d.ok) {
@@ -7151,16 +7288,117 @@
         withdrawAddress.value = '';
         updateWithdrawInfo();
         var wdTxId = d.tx && d.tx.id ? ' · ' + d.tx.id : '';
-        showStatus(withdrawStatus, 'Withdrawal submitted! ' + amount + ' ' + coin + ' → ' + address.substring(0, 12) + '...' + wdTxId, 'success');
-        addNotification('Withdrawal of ' + amount + ' ' + coin + ' submitted for processing.', 'good');
-        trackAnalyticsEvent('withdrawal_submitted', { coin: coin, amount: amount, network: network, txId: d.tx && d.tx.id });
+        showStatus(withdrawStatus, 'Withdrawal submitted! ' + payload.amount + ' ' + payload.coin + ' → ' + payload.address.substring(0, 12) + '...' + wdTxId, 'success');
+        addNotification('Withdrawal of ' + payload.amount + ' ' + payload.coin + ' submitted for processing.', 'good');
+        trackAnalyticsEvent('withdrawal_submitted', { coin: payload.coin, amount: payload.amount, network: payload.network, txId: d.tx && d.tx.id });
       } catch (err) {
         showStatus(withdrawStatus, 'Withdrawal error: ' + (err.message || 'Unknown error'), 'error');
       } finally {
         withdrawSubmitBtn.disabled = false;
         withdrawSubmitBtn.innerHTML = '<i class="fa-solid fa-arrow-right-from-bracket"></i>Submit Withdrawal';
       }
+    }
+
+    withdrawSubmitBtn.addEventListener('click', async function() {
+      var coin = withdrawCoinSelect.value;
+      var amount = parseFloat(withdrawAmount.value) || 0;
+      var address = (withdrawAddress.value || '').trim();
+      var network = withdrawNetworkSelect.value;
+
+      if (amount <= 0) { showStatus(withdrawStatus, 'Enter a valid withdrawal amount.', 'error'); return; }
+      if (!validateWithdrawalAddress(network, address)) { showStatus(withdrawStatus, 'Address format does not match the selected network.', 'error'); return; }
+
+      var price = (systemWalletData.prices && systemWalletData.prices[coin]) || 0;
+      var usdValue = price > 0 ? amount * price : amount;
+      if (usdValue > 50000) { showStatus(withdrawStatus, 'Per-transaction limit is $50,000.', 'error'); return; }
+
+      var bals = systemWalletData.balances || {};
+      if (amount > (bals[coin] || 0)) { showStatus(withdrawStatus, 'Insufficient ' + coin + ' balance.', 'error'); return; }
+
+      var payload = { action: 'withdraw', coin: coin, amount: amount, address: address, network: network, method: 'crypto' };
+      var twoFaEnabled = !!(document.getElementById('security2fa') && document.getElementById('security2fa').checked);
+      if (twoFaEnabled) {
+        pendingWithdrawRequest = payload;
+        if (withdraw2faCode) withdraw2faCode.value = '';
+        if (withdraw2faModal) withdraw2faModal.classList.remove('hidden');
+        if (withdraw2faStatus) showStatus(withdraw2faStatus, 'Send and verify your one-time code to continue.', 'neutral');
+        return;
+      }
+
+      await submitWithdrawalRequest(payload);
     });
+
+    if (withdraw2faClose) {
+      withdraw2faClose.addEventListener('click', function() {
+        pendingWithdrawRequest = null;
+        withdraw2faModal.classList.add('hidden');
+      });
+    }
+
+    if (withdraw2faSend) {
+      withdraw2faSend.addEventListener('click', async function() {
+        var h = authHeaders();
+        if (!h) return;
+        withdraw2faSend.disabled = true;
+        showStatus(withdraw2faStatus, 'Sending one-time code...', 'neutral');
+        try {
+          var res = await fetch('/api/auth-withdraw-otp', {
+            method: 'POST',
+            headers: h,
+            body: JSON.stringify({ action: 'send' })
+          });
+          var data = await res.json();
+          if (!res.ok || !data.ok) {
+            showStatus(withdraw2faStatus, data.error || 'Could not send code.', 'error');
+            return;
+          }
+          showStatus(withdraw2faStatus, 'Code sent. Enter it to confirm withdrawal.', 'success');
+        } catch (_) {
+          showStatus(withdraw2faStatus, 'Network error while sending code.', 'error');
+        } finally {
+          withdraw2faSend.disabled = false;
+        }
+      });
+    }
+
+    if (withdraw2faConfirm) {
+      withdraw2faConfirm.addEventListener('click', async function() {
+        if (!pendingWithdrawRequest) {
+          showStatus(withdraw2faStatus, 'No pending withdrawal request found.', 'error');
+          return;
+        }
+        var code = normalize((withdraw2faCode && withdraw2faCode.value) || '', 10).replace(/\D/g, '');
+        if (!code || code.length !== 6) {
+          showStatus(withdraw2faStatus, 'Enter the 6-digit code.', 'error');
+          return;
+        }
+        var h = authHeaders();
+        if (!h) return;
+        withdraw2faConfirm.disabled = true;
+        showStatus(withdraw2faStatus, 'Verifying code...', 'neutral');
+        try {
+          var res = await fetch('/api/auth-withdraw-otp', {
+            method: 'POST',
+            headers: h,
+            body: JSON.stringify({ action: 'verify', code: code })
+          });
+          var data = await res.json();
+          if (!res.ok || !data.ok) {
+            showStatus(withdraw2faStatus, data.error || 'Invalid code.', 'error');
+            return;
+          }
+          withdraw2faModal.classList.add('hidden');
+          var payload = pendingWithdrawRequest;
+          payload.withdraw2faToken = data.token;
+          pendingWithdrawRequest = null;
+          await submitWithdrawalRequest(payload);
+        } catch (_) {
+          showStatus(withdraw2faStatus, 'Network error while verifying code.', 'error');
+        } finally {
+          withdraw2faConfirm.disabled = false;
+        }
+      });
+    }
 
     // ══════════ Fiat Deposit (Apple Pay / GPay / Card → direct_deposit) ══════════
     fiatDepositAmount.addEventListener('input', function() {
@@ -7466,12 +7704,14 @@
 
     function renderBotState() {
       if (botActive && botData) {
+        try { localStorage.setItem('alm_bot_active_v1', '1'); } catch (_) {}
         botPurchaseGate.classList.add('hidden');
         botDashboard.classList.remove('hidden');
         renderBotStats();
         renderBotTradeHistory();
         populateBotCoins();
       } else {
+        try { localStorage.removeItem('alm_bot_active_v1'); } catch (_) {}
         botPurchaseGate.classList.remove('hidden');
         botDashboard.classList.add('hidden');
       }
@@ -7517,6 +7757,10 @@
     botBuyBtn.addEventListener('click', async function() {
       var h = authHeaders();
       if (!h) { showStatus(botPurchaseStatus, 'Sign in required.', 'error'); return; }
+      if (!confirm('Confirm bot activation charge of $399.00?')) {
+        showStatus(botPurchaseStatus, 'Activation cancelled.', 'neutral');
+        return;
+      }
 
       // Show checkout modal for bot purchase
       showCheckoutModal({
@@ -7538,6 +7782,7 @@
       var h = authHeaders();
       if (!h) { showStatus(botTradeStatus, 'Sign in required.', 'error'); return; }
       if (!botActive) { showStatus(botTradeStatus, 'Activate the bot first.', 'error'); return; }
+      if (botRunNowBtn.disabled) return;
 
       var coin = botCoinSelect.value || 'BTC';
       var stratKey = botStrategySelect.value || 'auto';

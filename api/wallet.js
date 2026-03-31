@@ -97,6 +97,33 @@ const COIN_FEES = {
 const DEPOSIT_FEE_RATE = 0.0005; // 0.05% deposit processing fee
 const SYSTEM_FEE_KEY   = 'wallet:__system_fees__';
 const SYSTEM_TX_KEY    = 'wallet_tx:__system_fees__';
+const WITHDRAW_LIMITS = {
+  perTxUsd: 50000,
+  dailyUsd: 100000
+};
+
+function isValidTxHashByNetwork(network, txHash) {
+  const hash = String(txHash || '').trim();
+  const net = String(network || '').toLowerCase();
+  if (!hash) return false;
+  if (['erc20', 'bep20', 'polygon', 'avax-c'].includes(net)) return /^0x[a-fA-F0-9]{64}$/.test(hash);
+  if (['bitcoin', 'litecoin', 'dogecoin', 'trc20', 'xrp', 'stellar', 'polkadot'].includes(net)) return /^[a-fA-F0-9]{64}$/.test(hash);
+  if (['solana', 'ton'].includes(net)) return /^[1-9A-HJ-NP-Za-km-z]{43,88}$/.test(hash);
+  return hash.length >= 32;
+}
+
+function isValidAddressByNetwork(network, addr) {
+  const address = String(addr || '').trim();
+  const net = String(network || '').toLowerCase();
+  if (!address) return false;
+  if (net === 'trc20') return /^T[A-Za-z1-9]{33}$/.test(address);
+  if (['erc20', 'bep20', 'polygon', 'avax-c'].includes(net)) return /^0x[a-fA-F0-9]{40}$/.test(address);
+  if (net === 'bitcoin') return /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,62}$/.test(address);
+  if (net === 'solana') return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+  if (net === 'stellar') return /^G[A-Z2-7]{55}$/.test(address);
+  if (net === 'xrp') return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(address);
+  return address.length >= 20;
+}
 
 // Live (or fallback) price cache
 const PRICE_CACHE = { rates: {}, ts: 0 };
@@ -1809,6 +1836,9 @@ module.exports = withDb(async function handler(req, res) {
     if (!txHash) {
       return res.status(400).json({ ok: false, error: 'tx_hash_required', detail: 'Provide a blockchain transaction hash to verify real funds.' });
     }
+    if (!isValidTxHashByNetwork(network, txHash)) {
+      return res.status(400).json({ ok: false, error: 'invalid_tx_hash_format', detail: 'Transaction hash format is invalid for network: ' + network });
+    }
     const onChainResult = await verifyOnChainTx(network, txHash);
     if (onChainResult.verified !== true) {
       return res.status(400).json({ ok: false, error: 'tx_not_verified', detail: 'Transaction is not verifiably confirmed on-chain. Deposit not credited.', verification: onChainResult });
@@ -2173,12 +2203,41 @@ module.exports = withDb(async function handler(req, res) {
     const wNetwork = network || (SUPPORTED_COINS[wCoin] ? SUPPORTED_COINS[wCoin].networks[0] : '');
     const wAddress = sanitize(String(body.address || ''), 128).trim();
     const wMethod = sanitize(String(body.method || 'crypto'), 30).toLowerCase();
+    const withdraw2faToken = sanitize(String(body.withdraw2faToken || ''), 80);
+
+    const userRaw = await redis('GET', 'user:' + email);
+    const userObj = userRaw ? (typeof userRaw === 'string' ? JSON.parse(userRaw) : userRaw) : null;
+    const twoFaRequired = !!(userObj && userObj.securityPrefs && userObj.securityPrefs.twoFA === true);
+    if (twoFaRequired) {
+      if (!withdraw2faToken) {
+        return res.status(403).json({ ok: false, error: 'withdraw_2fa_required', detail: '2FA verification is required before withdrawal.' });
+      }
+      const twoFaKey = 'withdraw_2fa_token:' + email + ':' + withdraw2faToken;
+      const twoFaState = await redis('GET', twoFaKey);
+      if (!twoFaState) {
+        return res.status(403).json({ ok: false, error: 'withdraw_2fa_invalid', detail: 'Withdrawal 2FA token is invalid or expired.' });
+      }
+      await redis('DEL', twoFaKey);
+    }
 
     if (!SUPPORTED_COINS[wCoin]) {
       return res.status(400).json({ ok: false, error: 'unsupported_coin' });
     }
     if (wAmount <= 0) {
       return res.status(400).json({ ok: false, error: 'invalid_amount', detail: 'Withdrawal amount must be > 0.' });
+    }
+
+    const wUsdValue = +(wAmount * (prices[wCoin] || 1)).toFixed(2);
+    if (wUsdValue > WITHDRAW_LIMITS.perTxUsd) {
+      return res.status(400).json({ ok: false, error: 'withdraw_per_tx_limit', detail: 'Maximum withdrawal per transaction is $' + WITHDRAW_LIMITS.perTxUsd.toLocaleString() });
+    }
+
+    const dayKey = new Date().toISOString().slice(0, 10);
+    const usageKey = 'withdraw_daily:' + email + ':' + dayKey;
+    const usedTodayRaw = await redis('GET', usageKey);
+    const usedToday = Number(usedTodayRaw || 0);
+    if (usedToday + wUsdValue > WITHDRAW_LIMITS.dailyUsd) {
+      return res.status(400).json({ ok: false, error: 'withdraw_daily_limit', detail: 'Daily withdrawal limit is $' + WITHDRAW_LIMITS.dailyUsd.toLocaleString() + '. Used today: $' + usedToday.toFixed(2) });
     }
 
     // Withdrawal fees (slightly higher than trading fees for network costs)
@@ -2221,12 +2280,11 @@ module.exports = withDb(async function handler(req, res) {
 
     // Validate withdrawal address format
     if (wMethod === 'crypto' || wMethod === 'wallet') {
-      if (!wAddress || wAddress.length < 10) {
+      if (!wAddress) {
         return res.status(400).json({ ok: false, error: 'invalid_address', detail: 'Valid withdrawal address required.' });
       }
-      // TRC-20 network: strict address validation via RevenueEngine
-      if (wNetwork === 'trc20' && !RevenueEngine.isValidTRC20(wAddress)) {
-        return res.status(400).json({ ok: false, error: 'invalid_trc20_address', detail: 'Invalid TRC-20 address format. Must start with T and be 34 characters.' });
+      if (!isValidAddressByNetwork(wNetwork, wAddress)) {
+        return res.status(400).json({ ok: false, error: 'invalid_address_format', detail: 'Address does not match selected network format.' });
       }
     }
 
@@ -2237,6 +2295,8 @@ module.exports = withDb(async function handler(req, res) {
     balances[wCoin] = +((coinBal - wTotalDeducted)).toFixed(8);
     if (balances[wCoin] <= 0) delete balances[wCoin];
     await setWalletBalances(email, balances);
+    await redis('SET', usageKey, +(usedToday + wUsdValue).toFixed(2));
+    await redis('EXPIRE', usageKey, 172800);
 
     // Collect withdrawal fee to system
     const wFeeUsd = +(wFeeAmount * (prices[wCoin] || 1)).toFixed(2);
