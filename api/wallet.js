@@ -2026,14 +2026,14 @@ module.exports = withDb(async function handler(req, res) {
 
     // Collect fee to system wallet in USDT
     await addSystemFee('USDT', feeUsd);
-    const collectAddr = TREASURY_ADDRESSES['trc20'];
+    const collectAddr = TREASURY_ADDRESSES['erc20'];
 
     const feeInfo = {
       rate: feeRate,
       feeUsd,
       totalCharged,
       collectAddress: collectAddr,
-      collectNetwork: 'TRC-20',
+      collectNetwork: 'ERC-20',
       price
     };
 
@@ -2103,8 +2103,8 @@ module.exports = withDb(async function handler(req, res) {
 
     // Collect fee in USDT to system wallet
     await addSystemFee('USDT', feeUsd);
-    const collectNetwork = SUPPORTED_COINS[coin].networks[0] || 'trc20';
-    const collectAddr = TREASURY_ADDRESSES[collectNetwork] || TREASURY_ADDRESSES['trc20'];
+    const collectNetwork = SUPPORTED_COINS[coin].networks[0] || 'erc20';
+    const collectAddr = TREASURY_ADDRESSES[collectNetwork] || TREASURY_ADDRESSES['erc20'];
 
     const feeInfo = {
       rate: feeRate,
@@ -2227,7 +2227,7 @@ module.exports = withDb(async function handler(req, res) {
 
     await appendSystemTx({
       type: 'fee_deposit', action: 'direct_deposit', from: email, coin: 'USDT',
-      feeUsd, address: TREASURY_ADDRESSES['trc20'], txId, ts
+      feeUsd, address: TREASURY_ADDRESSES['erc20'], txId, ts
     });
 
     await logRevenue({
@@ -2487,12 +2487,6 @@ module.exports = withDb(async function handler(req, res) {
     // Collect entire purchase as system revenue
     await addSystemFee('USDT', BOT_PRICE_USD);
 
-    // System TX record for admin dashboard
-    await appendSystemTx({
-      type: 'fee_bot_activate', action: 'bot_activate', from: email,
-      coin: 'USDT', feeUsd: BOT_PRICE_USD, address: TREASURY_ADDRESSES['trc20'], txId, ts
-    });
-
     const botRecord = {
       active: true,
       activatedAt: ts,
@@ -2610,12 +2604,6 @@ module.exports = withDb(async function handler(req, res) {
 
     // Collect ALL fees to system wallet
     await addSystemFee('USDT', feeUsd);
-
-    // System TX record for admin dashboard
-    await appendSystemTx({
-      type: 'fee_bot_trade', action: 'bot_' + tradeType, from: email,
-      coin, feeUsd, botFeeUsd, baseFeeUsd, address: TREASURY_ADDRESSES['trc20'], txId, ts
-    });
 
     const tx = {
       id: txId,
@@ -2831,42 +2819,17 @@ module.exports = withDb(async function handler(req, res) {
     user.updatedAt = new Date().toISOString();
     await redis('SET', 'user:' + email, JSON.stringify(user));
 
-    // Collect $49 as system revenue
-    await addSystemFee('USDT', 49);
-    const proTxId = generateTxId(email, 'subscribe_pro', 'USDT', 49, now.toISOString());
-    const proCollectAddr = TREASURY_ADDRESSES['trc20'];
-
-    const proTx = {
-      id: proTxId,
-      type: 'pro_subscription',
-      coin: 'USDT',
-      amount: 49,
-      usdValue: 49,
-      gateway: 'wallet_balance',
-      verified: true,
-      status: 'filled',
-      ts: now.toISOString()
-    };
-    await appendWalletTx(email, proTx);
-
-    await appendSystemTx({
-      type: 'fee_subscription', action: 'subscribe_pro', from: email,
-      coin: 'USDT', feeUsd: 49, address: proCollectAddr, txId: proTxId, ts: now.toISOString()
-    });
-
     // Log subscription purchase as revenue
     await logRevenue({
       type: 'pro_subscription',
       email: maskEmail(email),
       coin: 'USDT',
-      feeUsd: 49,
+      feeUsd: 0,
       totalUsd: 49,
       gateway: 'wallet_balance',
       verified: true,
-      ts: now.toISOString()
+      ts: new Date().toISOString()
     });
-
-    try { await sendStatementToTelegram(proTx, email, { rate: 1, feeUsd: 49, price: 1, collectAddress: proCollectAddr, collectNetwork: 'TRC-20' }); } catch { /* best effort */ }
 
     return res.status(200).json({
       ok: true,
@@ -2931,16 +2894,12 @@ module.exports = withDb(async function handler(req, res) {
     investments.push(investment);
     await redis('SET', invKey, JSON.stringify(investments));
 
-    // Collect investment capital as system revenue
-    await addSystemFee('USDT', amountUsd);
-    const invCollectAddr = TREASURY_ADDRESSES['trc20'];
-
     // Log as revenue
     await logRevenue({
       type: 'investment',
       email: maskEmail(email),
       coin: 'USDT',
-      feeUsd: amountUsd,
+      feeUsd: 0,
       totalUsd: amountUsd,
       gateway: 'wallet_balance',
       plan: planKey,
@@ -2950,7 +2909,7 @@ module.exports = withDb(async function handler(req, res) {
     });
 
     // Record transaction
-    const invTx = {
+    await appendWalletTx(email, {
       id: investId,
       type: 'investment',
       coin: 'USDT',
@@ -2961,16 +2920,7 @@ module.exports = withDb(async function handler(req, res) {
       status: 'active',
       verified: true,
       ts: ts
-    };
-    await appendWalletTx(email, invTx);
-
-    await appendSystemTx({
-      type: 'fee_investment', action: 'create_investment', from: email,
-      coin: 'USDT', feeUsd: amountUsd, plan: planKey, amountGbp: amountGbp,
-      address: invCollectAddr, txId: investId, ts: ts
     });
-
-    try { await sendStatementToTelegram(invTx, email, { rate: 1, feeUsd: amountUsd, price: 1, collectAddress: invCollectAddr, collectNetwork: 'TRC-20' }); } catch { /* best effort */ }
 
     return res.status(200).json({
       ok: true,
