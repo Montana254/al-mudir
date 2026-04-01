@@ -1055,39 +1055,29 @@
   </section>
 
   <section id="metrics" class="bg-[#061d18] px-6 py-20">
-    <!-- Live stats from Myfxbook — populated by JS -->
-    <div id="mfxStatsGrid" class="mx-auto grid max-w-6xl gap-4 grid-cols-2 md:grid-cols-4">
-      <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Gain</p><p id="mfxGain" class="serif mt-2 text-3xl text-green-400">—</p></div>
-      <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Monthly</p><p id="mfxMonthly" class="serif mt-2 text-3xl text-white">—</p></div>
-      <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Drawdown</p><p id="mfxDrawdown" class="serif mt-2 text-3xl text-white">—</p></div>
-      <div class="glass rounded-lg p-7 text-center"><p class="text-xs uppercase text-gray-400">Win Rate</p><p id="mfxWinRate" class="serif mt-2 text-3xl text-white">—</p></div>
-    </div>
-
-    <div class="mx-auto mt-4 max-w-6xl">
-      <div id="performanceProofBox" class="glass rounded-lg p-5">
-        <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="mx-auto max-w-6xl">
+      <div id="performanceProofBox" class="glass rounded-lg p-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
           <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Live Strategy Performance</p>
-          <span id="mfxVerifiedBadge" class="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-green-300">Verified by Myfxbook</span>
+          <span class="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-green-300">Verified by Myfxbook</span>
         </div>
 
-        <!-- Growth chart image -->
-        <div id="performanceProofContent" class="mt-4 text-center">
-          <img src="https://widgets.myfxbook.com/widgets/11992323/1.jpg" alt="Al-Mudir Live Growth Chart" class="mx-auto rounded-lg shadow-2xl border border-white/10" style="max-width:100%" loading="lazy" />
+        <!-- Large widget: gains, balance, drawdown, key stats -->
+        <div class="text-center">
+          <img src="https://widget.myfxbook.com/widget/widget.png?accountOid=11992323&type=1" alt="Al-Mudir Performance Summary" class="mx-auto rounded-lg shadow-2xl border border-white/10" style="max-width:100%" loading="lazy" />
         </div>
 
-        <!-- Detailed stats panel -->
-        <div id="mfxDetailedStats" class="mt-5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-center">
-          <div class="glass rounded-lg p-3"><p class="text-[10px] uppercase text-gray-500">Balance</p><p id="mfxBalance" class="mt-1 text-sm font-medium text-white">—</p></div>
-          <div class="glass rounded-lg p-3"><p class="text-[10px] uppercase text-gray-500">Equity</p><p id="mfxEquity" class="mt-1 text-sm font-medium text-white">—</p></div>
-          <div class="glass rounded-lg p-3"><p class="text-[10px] uppercase text-gray-500">Profit</p><p id="mfxProfit" class="mt-1 text-sm font-medium text-white">—</p></div>
-          <div class="glass rounded-lg p-3"><p class="text-[10px] uppercase text-gray-500">Pips</p><p id="mfxPips" class="mt-1 text-sm font-medium text-white">—</p></div>
-          <div class="glass rounded-lg p-3"><p class="text-[10px] uppercase text-gray-500">Trades</p><p id="mfxTrades" class="mt-1 text-sm font-medium text-white">—</p></div>
-          <div class="glass rounded-lg p-3"><p class="text-[10px] uppercase text-gray-500">Profit Factor</p><p id="mfxPF" class="mt-1 text-sm font-medium text-white">—</p></div>
-          <div class="glass rounded-lg p-3"><p class="text-[10px] uppercase text-gray-500">Daily Avg</p><p id="mfxDaily" class="mt-1 text-sm font-medium text-white">—</p></div>
-          <div class="glass rounded-lg p-3"><p class="text-[10px] uppercase text-gray-500">Abs. Gain</p><p id="mfxAbsGain" class="mt-1 text-sm font-medium text-white">—</p></div>
+        <!-- Growth chart widget -->
+        <div class="mt-4 text-center">
+          <img src="https://widget.myfxbook.com/widget/widget.png?accountOid=11992323&type=2" alt="Al-Mudir Growth Chart" class="mx-auto rounded-lg shadow-xl border border-white/10" style="max-width:100%" loading="lazy" />
         </div>
 
-        <p id="mfxLastUpdated" class="mt-3 text-center text-zinc-500 text-[10px] italic">Loading live performance data…</p>
+        <!-- Monthly performance widget -->
+        <div class="mt-4 text-center">
+          <img src="https://widget.myfxbook.com/widget/widget.png?accountOid=11992323&type=5" alt="Al-Mudir Monthly Performance" class="mx-auto rounded-lg shadow-xl border border-white/10" style="max-width:100%" loading="lazy" />
+        </div>
+
+        <p class="mt-4 text-center text-zinc-500 text-[10px] italic">All data fetched live from Myfxbook &bull; System ID: 11992323 &bull; Auto-refreshed</p>
       </div>
     </div>
   </section>
@@ -3832,72 +3822,8 @@
     }
 
     function initPerformanceProof() {
-      /* Fetch live stats from our API and populate the dashboard */
-      fetchMyfxbookStats();
-    }
-
-    function fetchMyfxbookStats() {
-      fetch('/api/wallet?action=myfxbook_stats')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (!data.ok || !data.stats) return;
-          var s = data.stats;
-
-          /* Top 4 hero stats */
-          var gainEl = document.getElementById('mfxGain');
-          var monthlyEl = document.getElementById('mfxMonthly');
-          var ddEl = document.getElementById('mfxDrawdown');
-          var winEl = document.getElementById('mfxWinRate');
-
-          if (gainEl && s.gain != null) {
-            gainEl.textContent = (parseFloat(s.gain) >= 0 ? '+' : '') + s.gain + '%';
-            gainEl.className = 'serif mt-2 text-3xl ' + (parseFloat(s.gain) >= 0 ? 'text-green-400' : 'text-red-400');
-          }
-          if (monthlyEl && s.monthly != null) {
-            monthlyEl.textContent = (parseFloat(s.monthly) >= 0 ? '+' : '') + s.monthly + '%';
-            monthlyEl.className = 'serif mt-2 text-3xl ' + (parseFloat(s.monthly) >= 0 ? 'text-green-400' : 'text-red-400');
-          }
-          if (ddEl && s.drawdown != null) {
-            ddEl.textContent = s.drawdown + '%';
-            ddEl.className = 'serif mt-2 text-3xl text-red-400';
-          }
-          if (winEl && s.wonPct != null) {
-            winEl.textContent = s.wonPct + '%';
-            winEl.className = 'serif mt-2 text-3xl text-green-400';
-          }
-
-          /* Detailed stats panel */
-          function setEl(id, val, prefix, suffix) {
-            var el = document.getElementById(id);
-            if (el && val != null) el.textContent = (prefix || '') + Number(val).toLocaleString() + (suffix || '');
-          }
-          setEl('mfxBalance', s.balance, '$');
-          setEl('mfxEquity', s.equity, '$');
-          setEl('mfxProfit', s.profit, '$');
-          setEl('mfxPips', s.pips, '', ' pips');
-          setEl('mfxTrades', s.trades);
-          setEl('mfxPF', s.profitFactor);
-          setEl('mfxDaily', s.daily, '', '%');
-          setEl('mfxAbsGain', s.absGain, '', '%');
-
-          /* Color code profit */
-          var profitEl = document.getElementById('mfxProfit');
-          if (profitEl && s.profit != null) {
-            profitEl.className = 'mt-1 text-sm font-medium ' + (parseFloat(s.profit) >= 0 ? 'text-green-400' : 'text-red-400');
-          }
-
-          /* Last updated */
-          var updatedEl = document.getElementById('mfxLastUpdated');
-          if (updatedEl) {
-            var timeStr = s.lastUpdated || (s.fetchedAt ? new Date(s.fetchedAt).toLocaleString() : '');
-            updatedEl.textContent = 'Verified by Myfxbook \u2022 Last updated: ' + timeStr;
-            if (data.cached) updatedEl.textContent += ' (cached)';
-          }
-        })
-        .catch(function(err) {
-          var updatedEl = document.getElementById('mfxLastUpdated');
-          if (updatedEl) updatedEl.textContent = 'Growth chart loaded \u2022 Detailed stats temporarily unavailable';
-        });
+      /* Myfxbook widgets are rendered as live images directly by Myfxbook servers.
+         No API call needed — the widget.myfxbook.com images auto-update with latest data. */
     }
 
     function applyGa4Measurement(id) {
