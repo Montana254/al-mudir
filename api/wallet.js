@@ -104,8 +104,8 @@ const DEFAULT_OWNER_SETTINGS = {
   officeAddress: 'ABT 5 Tower, Office 1003, Mamzar, Sharjah, UAE'
 };
 const WITHDRAW_LIMITS = {
-  perTxUsd: 50000,
-  dailyUsd: 100000
+  perTxUsd: 500000,
+  dailyUsd: 1000000
 };
 
 function isValidTxHashByNetwork(network, txHash) {
