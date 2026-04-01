@@ -99,18 +99,9 @@ const SYSTEM_FEE_KEY   = 'wallet:__system_fees__';
 const SYSTEM_TX_KEY    = 'wallet_tx:__system_fees__';
 const OWNER_SETTINGS_KEY = 'system:owner_settings';
 const DEFAULT_OWNER_SETTINGS = {
-  myfxbookUrl: 'https://www.myfxbook.com/portfolio/al-mudir/11992323',
   ga4MeasurementId: '',
   licenceNumber: '620822',
-  officeAddress: 'ABT 5 Tower, Office 1003, Mamzar, Sharjah, UAE',
-  perfGain: '',
-  perfMonthly: '',
-  perfDrawdown: '',
-  perfWinRate: '',
-  perfTrades: '',
-  perfSharpe: '',
-  perfProfitFactor: '',
-  perfBalance: ''
+  officeAddress: 'ABT 5 Tower, Office 1003, Mamzar, Sharjah, UAE'
 };
 const WITHDRAW_LIMITS = {
   perTxUsd: 50000,
@@ -1354,18 +1345,9 @@ module.exports = withDb(async function handler(req, res) {
           ok: true,
           action: 'public_settings',
           settings: {
-            myfxbookUrl: String(merged.myfxbookUrl || ''),
             ga4MeasurementId: String(merged.ga4MeasurementId || ''),
             licenceNumber: String(merged.licenceNumber || DEFAULT_OWNER_SETTINGS.licenceNumber),
-            officeAddress: String(merged.officeAddress || DEFAULT_OWNER_SETTINGS.officeAddress),
-            perfGain: String(merged.perfGain || ''),
-            perfMonthly: String(merged.perfMonthly || ''),
-            perfDrawdown: String(merged.perfDrawdown || ''),
-            perfWinRate: String(merged.perfWinRate || ''),
-            perfTrades: String(merged.perfTrades || ''),
-            perfSharpe: String(merged.perfSharpe || ''),
-            perfProfitFactor: String(merged.perfProfitFactor || ''),
-            perfBalance: String(merged.perfBalance || '')
+            officeAddress: String(merged.officeAddress || DEFAULT_OWNER_SETTINGS.officeAddress)
           }
         });
       }
@@ -2708,18 +2690,9 @@ module.exports = withDb(async function handler(req, res) {
       systemTransactions: sysTx.slice(0, 100),
       gateways,
       ownerSettings: {
-        myfxbookUrl: String(ownerSettings.myfxbookUrl || ''),
         ga4MeasurementId: String(ownerSettings.ga4MeasurementId || ''),
         licenceNumber: String(ownerSettings.licenceNumber || DEFAULT_OWNER_SETTINGS.licenceNumber),
-        officeAddress: String(ownerSettings.officeAddress || DEFAULT_OWNER_SETTINGS.officeAddress),
-        perfGain: String(ownerSettings.perfGain || ''),
-        perfMonthly: String(ownerSettings.perfMonthly || ''),
-        perfDrawdown: String(ownerSettings.perfDrawdown || ''),
-        perfWinRate: String(ownerSettings.perfWinRate || ''),
-        perfTrades: String(ownerSettings.perfTrades || ''),
-        perfSharpe: String(ownerSettings.perfSharpe || ''),
-        perfProfitFactor: String(ownerSettings.perfProfitFactor || ''),
-        perfBalance: String(ownerSettings.perfBalance || '')
+        officeAddress: String(ownerSettings.officeAddress || DEFAULT_OWNER_SETTINGS.officeAddress)
       }
     });
   }
@@ -2772,39 +2745,18 @@ module.exports = withDb(async function handler(req, res) {
       return res.status(403).json({ ok: false, error: 'forbidden', detail: 'Owner access required.' });
     }
 
-    const myfxbookUrl = sanitize(String(body.myfxbookUrl || '')).trim().slice(0, 500);
     const ga4MeasurementId = sanitize(String(body.ga4MeasurementId || '')).trim().toUpperCase().slice(0, 30);
     const licenceNumber = sanitize(String(body.licenceNumber || DEFAULT_OWNER_SETTINGS.licenceNumber)).trim().slice(0, 120);
     const officeAddress = sanitize(String(body.officeAddress || DEFAULT_OWNER_SETTINGS.officeAddress)).trim().slice(0, 260);
-    const perfGain = sanitize(String(body.perfGain || '')).trim().slice(0, 30);
-    const perfMonthly = sanitize(String(body.perfMonthly || '')).trim().slice(0, 30);
-    const perfDrawdown = sanitize(String(body.perfDrawdown || '')).trim().slice(0, 30);
-    const perfWinRate = sanitize(String(body.perfWinRate || '')).trim().slice(0, 30);
-    const perfTrades = sanitize(String(body.perfTrades || '')).trim().slice(0, 30);
-    const perfSharpe = sanitize(String(body.perfSharpe || '')).trim().slice(0, 30);
-    const perfProfitFactor = sanitize(String(body.perfProfitFactor || '')).trim().slice(0, 30);
-    const perfBalance = sanitize(String(body.perfBalance || '')).trim().slice(0, 30);
 
-    if (myfxbookUrl && !/^https:\/\//i.test(myfxbookUrl)) {
-      return res.status(400).json({ ok: false, error: 'invalid_myfxbook_url', detail: 'Myfxbook URL must start with https://.' });
-    }
     if (ga4MeasurementId && !/^G-[A-Z0-9]+$/i.test(ga4MeasurementId)) {
       return res.status(400).json({ ok: false, error: 'invalid_ga4_id', detail: 'GA4 ID must look like G-XXXXXXXXXX.' });
     }
 
     const updated = {
-      myfxbookUrl,
       ga4MeasurementId,
       licenceNumber,
       officeAddress,
-      perfGain,
-      perfMonthly,
-      perfDrawdown,
-      perfWinRate,
-      perfTrades,
-      perfSharpe,
-      perfProfitFactor,
-      perfBalance,
       updatedAt: new Date().toISOString(),
       updatedBy: maskEmail(email)
     };
