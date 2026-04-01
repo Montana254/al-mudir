@@ -49,8 +49,8 @@
     }],
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Office 1702, The Binary by Omniyat",
-      "addressLocality": "Business Bay, Dubai",
+      "streetAddress": "ABT 5 Tower, Office 1003",
+      "addressLocality": "Mamzar, Sharjah",
       "addressCountry": "AE"
     }
   }
@@ -70,7 +70,7 @@
       {"@type": "Country", "name": "United States"}
     ],
     "serviceType": ["Managed Forex Accounts", "XAUUSD Fund Management", "Digital Asset Management", "Copy Trading", "Algorithmic Trading"],
-    "address": {"@type": "PostalAddress", "streetAddress": "Office 1702, The Binary by Omniyat", "addressLocality": "Business Bay, Dubai", "addressCountry": "AE"}
+    "address": {"@type": "PostalAddress", "streetAddress": "ABT 5 Tower, Office 1003", "addressLocality": "Mamzar, Sharjah", "addressCountry": "AE"}
   }
   </script>
   <script type="application/ld+json">
@@ -1084,8 +1084,8 @@
         <div class="glass rounded-lg p-5"><p class="text-xs uppercase text-gray-500">Markets</p><p class="mt-1">FX, Commodities, Digital Assets</p></div>
         <div class="glass rounded-lg p-5">
           <p class="text-xs uppercase text-gray-500">Company Registration</p>
-          <p id="aboutLicenceNo" class="mt-1">UAE Trade Licence No: TL-ALM-2026-00184</p>
-          <p id="aboutOfficeAddress" class="mt-1 text-sm text-gray-300">Registered Office: Office 1702, The Binary by Omniyat, Business Bay, Dubai, UAE</p>
+          <p id="aboutLicenceNo" class="mt-1">TLN Permit No: 620822</p>
+          <p id="aboutOfficeAddress" class="mt-1 text-sm text-gray-300">Registered Office: ABT 5 Tower, Office 1003, Mamzar, Sharjah, UAE</p>
         </div>
       </div>
     </div>
@@ -3204,7 +3204,7 @@
   <footer class="py-12 px-6 text-center text-[10px] uppercase tracking-[0.2em] opacity-70 space-y-4">
     <p>Copyright 2026 AL-MUDIR Wealth and Fintech Ventures</p>
     <p class="mx-auto max-w-5xl text-[10px] normal-case tracking-normal text-gray-400">Risk Warning: Trading forex, commodities, and digital assets carries a high level of risk and may not be suitable for all investors. Past performance is not indicative of future results. You may lose some or all invested capital.</p>
-    <p id="footerRegulatoryNotice" class="mx-auto max-w-5xl text-[10px] normal-case tracking-normal text-gray-400">Regulatory notice: UAE Trade Licence No: TL-ALM-2026-00184 · Registered Office: Office 1702, The Binary by Omniyat, Business Bay, Dubai, UAE · Compliance: legal@al-mudir.com.</p>
+    <p id="footerRegulatoryNotice" class="mx-auto max-w-5xl text-[10px] normal-case tracking-normal text-gray-400">Regulatory notice: TLN Permit No: 620822 · Registered Office: ABT 5 Tower, Office 1003, Mamzar, Sharjah, UAE · Compliance: legal@al-mudir.com.</p>
     <div class="flex flex-wrap items-center justify-center gap-4 text-[10px] tracking-[0.14em]">
       <a href="/terms.html" target="_blank" class="hover:text-white">Terms</a>
       <a href="/privacy.html" target="_blank" class="hover:text-white">Privacy Policy</a>
@@ -3858,7 +3858,7 @@
 
       if (licence) {
         var aboutLicence = document.getElementById('aboutLicenceNo');
-        if (aboutLicence) aboutLicence.textContent = 'UAE Trade Licence No: ' + licence;
+        if (aboutLicence) aboutLicence.textContent = 'TLN Permit No: ' + licence;
       }
       if (office) {
         var aboutOffice = document.getElementById('aboutOfficeAddress');
@@ -3866,9 +3866,9 @@
       }
       var footerNotice = document.getElementById('footerRegulatoryNotice');
       if (footerNotice && (licence || office)) {
-        var licText = licence || 'TL-ALM-2026-00184';
-        var officeText = office || 'Office 1702, The Binary by Omniyat, Business Bay, Dubai, UAE';
-        footerNotice.textContent = 'Regulatory notice: UAE Trade Licence No: ' + licText + ' · Registered Office: ' + officeText + ' · Compliance: legal@al-mudir.com.';
+        var licText = licence || '620822';
+        var officeText = office || 'ABT 5 Tower, Office 1003, Mamzar, Sharjah, UAE';
+        footerNotice.textContent = 'Regulatory notice: TLN Permit No: ' + licText + ' · Registered Office: ' + officeText + ' · Compliance: legal@al-mudir.com.';
       }
 
       if (s.myfxbookUrl && /^https:\/\//i.test(String(s.myfxbookUrl))) {

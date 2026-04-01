@@ -99,10 +99,10 @@ const SYSTEM_FEE_KEY   = 'wallet:__system_fees__';
 const SYSTEM_TX_KEY    = 'wallet_tx:__system_fees__';
 const OWNER_SETTINGS_KEY = 'system:owner_settings';
 const DEFAULT_OWNER_SETTINGS = {
-  myfxbookUrl: '',
+  myfxbookUrl: 'https://www.myfxbook.com/portfolio/al-mudir/11992323',
   ga4MeasurementId: '',
-  licenceNumber: 'TL-ALM-2026-00184',
-  officeAddress: 'Office 1702, The Binary by Omniyat, Business Bay, Dubai, UAE'
+  licenceNumber: '620822',
+  officeAddress: 'ABT 5 Tower, Office 1003, Mamzar, Sharjah, UAE'
 };
 const WITHDRAW_LIMITS = {
   perTxUsd: 50000,
