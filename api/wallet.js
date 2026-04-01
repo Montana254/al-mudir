@@ -2773,6 +2773,72 @@ module.exports = withDb(async function handler(req, res) {
     return res.status(200).json({ ok: true, action: 'owner_settings_update', settings: updated });
   }
 
+  // ── Action: check_signal_access (get user's signal access tier) ──
+  if (action === 'check_signal_access') {
+    const userRaw = await redis('GET', 'user:' + email);
+    if (!userRaw) {
+      return res.status(200).json({ ok: true, action: 'check_signal_access', tier: 'public', message: 'Not logged in or subscription not found' });
+    }
+    const user = typeof userRaw === 'string' ? JSON.parse(userRaw) : userRaw;
+    const tier = user.subscriptionTier || 'free';
+    const expiry = user.subscriptionExpiry;
+    const isExpired = expiry && new Date(expiry) < new Date();
+    const brokerVerified = user.brokerSignup === true && user.brokerProfile && user.brokerProfile.clientId;
+    let accessTier = tier;
+    if (isExpired && tier === 'pro') {
+      accessTier = 'free';
+    }
+    if (brokerVerified && (tier === 'free' || isExpired)) {
+      accessTier = 'broker_verified';
+    }
+    return res.status(200).json({
+      ok: true,
+      action: 'check_signal_access',
+      accessTier: accessTier,
+      tier: tier,
+      expiry: expiry,
+      isExpired: isExpired,
+      brokerVerified: brokerVerified,
+      features: (SUBSCRIPTION_TIERS[accessTier] || {}).features || []
+    });
+  }
+
+  // ── Action: subscribe_pro (purchase $49/month Pro subscription) ──
+  if (action === 'subscribe_pro') {
+    const userRaw = await redis('GET', 'user:' + email);
+    if (!userRaw) {
+      return res.status(401).json({ ok: false, error: 'user_not_found', detail: 'You must be logged in to subscribe.' });
+    }
+    const user = typeof userRaw === 'string' ? JSON.parse(userRaw) : userRaw;
+    const now = new Date();
+    const expiryDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+
+    user.subscriptionTier = 'pro';
+    user.subscriptionExpiry = expiryDate.toISOString();
+    user.updatedAt = new Date().toISOString();
+    await redis('SET', 'user:' + email, JSON.stringify(user));
+
+    // Log subscription purchase as revenue
+    await logRevenue({
+      type: 'pro_subscription',
+      email: maskEmail(email),
+      coin: 'USDT',
+      feeUsd: 0,
+      totalUsd: 49,
+      gateway: 'stripe',
+      verified: true,
+      ts: new Date().toISOString()
+    });
+
+    return res.status(200).json({
+      ok: true,
+      action: 'subscribe_pro',
+      tier: 'pro',
+      expiry: expiryDate.toISOString(),
+      message: 'Successfully subscribed to Pro tier for 30 days'
+    });
+  }
+
   // ── Action: verify_all_balances (admin-only — audit & purge unverifiable balances) ──
   if (action === 'verify_all_balances') {
     if (!isAdminEmail(email)) {

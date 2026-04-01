@@ -3640,60 +3640,6 @@
           + '</div>';
       }).join('');
     }
-    // ─── Signals Paywall Functions ───
-    async function checkAndUpdateSignalAccess() {
-      if (!currentUser) {
-        currentSignalAccessTier = 'public';
-        currentUserSubscription = { tier: 'free', expiry: null, brokerVerified: false };
-        return;
-      }
-      try {
-        const res = await fetch('/api/wallet?action=check_signal_access', {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + (currentUser.token || ''), 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-        const data = await res.json();
-        if (data.ok) {
-          currentSignalAccessTier = data.accessTier || 'public';
-          currentUserSubscription = {
-            tier: data.tier,
-            expiry: data.expiry,
-            brokerVerified: data.brokerVerified,
-            features: data.features || []
-          };
-        }
-      } catch (err) {
-        console.warn('Signal access check error:', err);
-      }
-    }
-
-    function renderBlurredSignal(s) {
-      const sideClass = s.side === 'BUY' ? 'text-green-300 border-green-500/40 bg-green-500/10' : 'text-red-300 border-red-500/40 bg-red-500/10';
-      return '<article class="signal-card opacity-40">'
-        + '<div class="flex items-center justify-between">'
-        + '<p class="text-sm font-semibold text-white">' + s.symbol + '</p>'
-        + '<span class="signal-chip ' + sideClass + '">' + s.side + '</span>'
-        + '</div>'
-        + '<div class="mt-2 text-center text-xs text-gray-500">●●●●●●●●●●●</div>'
-        + '<div class="mt-3 grid grid-cols-2 gap-2 text-[11px] text-gray-600">'
-        + '<p>●●●●●●●●</p><p>●●●●●●●●</p>'
-        + '<p>●●●●●●●●</p><p>●●●●●●●●</p>'
-        + '</div>'
-        + '</article>';
-    }
-
-    function renderSignalPaywall() {
-      return '<div class="rounded border border-white/10 bg-blue-500/5 p-6 text-center">'
-        + '<h3 class="text-lg font-bold text-white mb-2">Unlock Full Signals</h3>'
-        + '<p class="text-sm text-gray-300 mb-4">Professional traders unlock real-time signal details, history, and alerts</p>'
-        + '<div class="space-y-2">'
-        + '<button id="signalsBrokerVerifyBtn" class="w-full rounded border border-green-500/50 bg-green-500/10 py-2 text-sm text-green-300 hover:bg-green-500/20">Verify Exness Broker (FREE)</button>'
-        + '<button id="signalsProSubscribeBtn" class="w-full rounded border border-blue-500/50 bg-blue-500/10 py-2 text-sm text-blue-300 hover:bg-blue-500/20"><i class="fa-solid fa-crown mr-1"></i>Pro Subscription - $49/month</button>'
-        + '</div>'
-        + '</div>';
-    }
-
 
     function ensureSignalSeedData() {
       if (!Array.isArray(SIGNAL_SETUPS) || !Array.isArray(SIGNAL_HISTORY)) return;
@@ -4019,18 +3965,7 @@
         target.innerHTML = '<div class="rounded border border-white/10 bg-black/20 p-4 text-center text-xs text-gray-400">No active signal setups right now. New SMC/ICT signals will appear here automatically.</div>';
         return;
       }
-      // PAYWALL: Check if user has access to full signals (broker verified or pro subscriber)
-      var hasFullAccess = currentSignalAccessTier === 'broker_verified' || currentSignalAccessTier === 'pro';
-      target.innerHTML = SIGNAL_SETUPS.map(function(s, idx) {
-        // PAYWALL: Free users see only last signal blurred + CTA
-        if (!hasFullAccess && idx === 0) {
-          return renderBlurredSignal(s) + renderSignalPaywall();
-        }
-        // PAYWALL: Skip showing other signals to free users
-        if (!hasFullAccess) return '';
-        // Full signal for paying customers
-      }).filter(function(h) { return !!h; }).join('') ||
-      SIGNAL_SETUPS.map(function(s) {
+      target.innerHTML = SIGNAL_SETUPS.map(function(s) {
         const sideClass = s.side === 'BUY' ? 'text-green-300 border-green-500/40 bg-green-500/10' : 'text-red-300 border-red-500/40 bg-red-500/10';
         const confidenceTone = s.confidence >= 85 ? 'text-green-300' : s.confidence >= 78 ? 'text-yellow-300' : 'text-orange-300';
         var livePrice = getSignalLivePrice(s.symbol);
@@ -5646,8 +5581,6 @@
       profileEmail.value = user.email;
       profileUserId.value = systemId;
       if (freeUserId) freeUserId.value = brokerId || '';
-      // Check signal access tier for paywall system
-      checkAndUpdateSignalAccess();
       // Avatar
       renderAvatar(user);
       // Restore linked wallet if saved on profile
@@ -6067,44 +6000,6 @@
       if (!btn) return;
       btn.addEventListener('click', function() { loadOwnerDashboard(); });
     })();
-
-    // Signal subscription handlers
-    (function() {
-      document.addEventListener('click', function(evt) {
-        if (evt.target.id === 'signalsProSubscribeBtn') {
-          if (!currentUser) { alert('Please sign in first'); return; }
-          evt.preventDefault();
-          handleProSubscription();
-        }
-        if (evt.target.id === 'signalsBrokerVerifyBtn') {
-          if (!currentUser) { alert('Please sign in first'); return; }
-          evt.preventDefault();
-          scrollToDashboardTab('profile');
-        }
-      });
-    })();
-
-    async function handleProSubscription() {
-      if (!currentUser || !currentUser.token) return alert('Sign in required');
-      try {
-        var h = authHeaders();
-        var r = await fetch('/api/wallet', { method: 'POST', headers: h, body: JSON.stringify({ action: 'subscribe_pro' }) });
-        var d = await r.json();
-        if (!r.ok || !d.ok) {
-          alert('Subscription error: ' + (d.detail || d.error || 'Failed'));
-          return;
-        }
-        currentUserSubscription.tier = 'pro';
-        currentUserSubscription.expiry = d.expiry;
-        currentSignalAccessTier = 'pro';
-        alert('✓ Successfully subscribed to Pro signals for 30 days!');
-        renderSignalCards(dashboardSignalsGrid);
-        checkAndUpdateSignalAccess();
-      } catch (e) {
-        console.error('Pro subscription error:', e);
-        alert('Network error processing subscription');
-      }
-    }
 
     function renderAdminKycQueue(items) {
       if (!adminKycQueueList || !adminKycQueueCount) return;

@@ -78,7 +78,11 @@ module.exports = withDb(async function handler(req, res) {
       brokerSignup: false,
       brokerProfile: null,
       freeAccess: false,
-      kycState: 'unverified'
+      kycState: 'unverified',
+      subscriptionTier: 'free',
+      subscriptionExpiry: null,
+      referralCode: null,
+      referralStats: { totalReferrals: 0, creditsEarned: 0 }
     };
 
     await redis('SET', 'user:' + email, JSON.stringify(user));
