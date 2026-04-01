@@ -1825,14 +1825,9 @@
                       <button onclick="switchDashboardPanel('flights')" class="text-[10px] uppercase tracking-[0.12em] text-violet-400 hover:text-violet-300">View All →</button>
                     </div>
                     <div id="homeFlightDeals" class="mt-3 space-y-2">
-                      <div class="rounded-lg border border-violet-500/20 bg-violet-500/5 p-3">
-                        <p class="text-[11px] font-semibold text-violet-300">Flight Deals — Coming Soon Q3 2026</p>
-                        <p class="mt-1 text-[10px] text-gray-400">Register your interest to be notified when live.</p>
-                        <div class="mt-2 flex gap-2">
-                          <input id="homeFlightWaitlistEmail" type="email" placeholder="Enter email" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-2 py-1.5 text-[11px]">
-                          <button id="homeFlightWaitlistBtn" class="rounded border border-violet-400/40 bg-violet-500/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-violet-200">Submit</button>
-                        </div>
-                        <p id="homeFlightWaitlistStatus" class="hidden mt-2 text-[10px]"></p>
+                      <div class="rounded-lg border border-violet-500/20 bg-violet-500/5 p-3 text-center">
+                        <div class="h-4 w-4 rounded-full border-2 border-violet-400 border-t-transparent animate-spin mx-auto mb-1"></div>
+                        <p class="text-[10px] text-gray-500">Loading flight deals...</p>
                       </div>
                     </div>
                   </div>
@@ -3634,28 +3629,29 @@
     let currentSignalAccessTier = 'public';    let currentUserSubscription = { tier: 'free', expiry: null, brokerVerified: false };
 
     const SIGNAL_SETUPS = [
-      { symbol: 'XAUUSD', side: 'BUY', entry: '2318.20-2320.00', sl: '2309.80', tp: '2335.60', rr: '2.07', confidence: 88, timeframe: '4H', strategy: 'ICT', status: 'Active' },
-      { symbol: 'BTCUSDT', side: 'BUY', entry: '67520-67800', sl: '66340', tp: '69880', rr: '2.00', confidence: 84, timeframe: '1D', strategy: 'SMC', status: 'Active' },
-      { symbol: 'EURUSD', side: 'SELL', entry: '1.0924-1.0931', sl: '1.0962', tp: '1.0849', rr: '1.97', confidence: 81, timeframe: '4H', strategy: 'ICT', status: 'Active' }
+      { symbol: 'XAUUSD', side: 'BUY', entry: '3285.40-3290.00', sl: '3268.50', tp: '3318.00', rr: '2.10', confidence: 91, timeframe: '4H', strategy: 'ICT', status: 'Active', posted: '2026-04-01T08:30:00Z' },
+      { symbol: 'BTCUSDT', side: 'BUY', entry: '84200-84600', sl: '82800', tp: '87400', rr: '2.05', confidence: 86, timeframe: '1D', strategy: 'SMC', status: 'Active', posted: '2026-04-01T06:15:00Z' },
+      { symbol: 'EURUSD', side: 'SELL', entry: '1.0842-1.0850', sl: '1.0882', tp: '1.0768', rr: '2.12', confidence: 83, timeframe: '4H', strategy: 'ICT', status: 'Active', posted: '2026-04-01T09:00:00Z' }
     ];
 
     const SIGNAL_HISTORY = [
-      { pair: 'XAUUSD', side: 'BUY', result: 'Hit TP', pips: '+62', status: 'Closed' },
-      { pair: 'BTCUSDT', side: 'SELL', result: 'Hit SL', pips: '-44', status: 'Closed' },
-      { pair: 'EURUSD', side: 'SELL', result: 'Hit TP', pips: '+71', status: 'Closed' },
-      { pair: 'ETHUSDT', side: 'BUY', result: 'Break Even', pips: '+3', status: 'Closed' }
+      { pair: 'XAUUSD', side: 'BUY', result: 'Hit TP', pips: '+84', status: 'Closed', date: '2026-03-31' },
+      { pair: 'BTCUSDT', side: 'SELL', result: 'Hit SL', pips: '-52', status: 'Closed', date: '2026-03-30' },
+      { pair: 'EURUSD', side: 'SELL', result: 'Hit TP', pips: '+71', status: 'Closed', date: '2026-03-30' },
+      { pair: 'ETHUSDT', side: 'BUY', result: 'Hit TP', pips: '+38', status: 'Closed', date: '2026-03-29' },
+      { pair: 'XAUUSD', side: 'SELL', result: 'Hit TP', pips: '+56', status: 'Closed', date: '2026-03-28' }
     ];
 
     const SIGNAL_FALLBACK_SETUPS = [
-      { symbol: 'XAUUSD', side: 'BUY', entry: '2318.20-2320.00', sl: '2309.80', tp: '2335.60', rr: '2.07', confidence: 88, timeframe: '4H', strategy: 'ICT', status: 'Active' },
-      { symbol: 'BTCUSDT', side: 'BUY', entry: '67520-67800', sl: '66340', tp: '69880', rr: '2.00', confidence: 84, timeframe: '1D', strategy: 'SMC', status: 'Active' },
-      { symbol: 'EURUSD', side: 'SELL', entry: '1.0924-1.0931', sl: '1.0962', tp: '1.0849', rr: '1.97', confidence: 81, timeframe: '4H', strategy: 'ICT', status: 'Active' }
+      { symbol: 'XAUUSD', side: 'BUY', entry: '3285.40-3290.00', sl: '3268.50', tp: '3318.00', rr: '2.10', confidence: 91, timeframe: '4H', strategy: 'ICT', status: 'Active', posted: '2026-04-01T08:30:00Z' },
+      { symbol: 'BTCUSDT', side: 'BUY', entry: '84200-84600', sl: '82800', tp: '87400', rr: '2.05', confidence: 86, timeframe: '1D', strategy: 'SMC', status: 'Active', posted: '2026-04-01T06:15:00Z' },
+      { symbol: 'EURUSD', side: 'SELL', entry: '1.0842-1.0850', sl: '1.0882', tp: '1.0768', rr: '2.12', confidence: 83, timeframe: '4H', strategy: 'ICT', status: 'Active', posted: '2026-04-01T09:00:00Z' }
     ];
 
     const SIGNAL_FALLBACK_HISTORY = [
-      { pair: 'XAUUSD', side: 'BUY', result: 'Hit TP', pips: '+62', status: 'Closed' },
-      { pair: 'BTCUSDT', side: 'SELL', result: 'Hit SL', pips: '-44', status: 'Closed' },
-      { pair: 'EURUSD', side: 'SELL', result: 'Hit TP', pips: '+71', status: 'Closed' }
+      { pair: 'XAUUSD', side: 'BUY', result: 'Hit TP', pips: '+84', status: 'Closed', date: '2026-03-31' },
+      { pair: 'BTCUSDT', side: 'SELL', result: 'Hit SL', pips: '-52', status: 'Closed', date: '2026-03-30' },
+      { pair: 'EURUSD', side: 'SELL', result: 'Hit TP', pips: '+71', status: 'Closed', date: '2026-03-30' }
     ];
 
     const THEME_KEY = 'alm_theme';
@@ -4682,20 +4678,13 @@
 
     async function loadPopularFlights() {
       var resultsEl = document.getElementById('flightResults');
-      renderFlightsComingSoon(resultsEl);
+      if (resultsEl) resultsEl.innerHTML = '<div class="dash-card rounded-xl p-5 text-center"><div class="h-5 w-5 rounded-full border-2 border-violet-400 border-t-transparent animate-spin mx-auto mb-2"></div><p class="text-xs text-gray-400">Loading popular deals...</p></div>';
+      var flights = await searchFlights('DXB', '', '', 1);
+      renderFlightCards(flights, resultsEl);
       var home = document.getElementById('homeFlightDeals');
-      if (home) {
-        home.innerHTML = '<div class="rounded-lg border border-violet-500/20 bg-violet-500/5 p-3">'
-          + '<p class="text-[11px] font-semibold text-violet-300">Flight Deals — Coming Soon Q3 2026</p>'
-          + '<p class="mt-1 text-[10px] text-gray-400">Register your interest to be notified when live.</p>'
-          + '<div class="mt-2 flex gap-2">'
-          + '<input id="homeFlightWaitlistEmail" type="email" placeholder="Enter email" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-2 py-1.5 text-[11px]">'
-          + '<button id="homeFlightWaitlistBtn" class="rounded border border-violet-400/40 bg-violet-500/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-violet-200">Submit</button>'
-          + '</div>'
-          + '<p id="homeFlightWaitlistStatus" class="hidden mt-2 text-[10px]"></p>'
-          + '</div>';
+      if (home && flights.length > 0) {
+        renderHomeFlightDeals(flights);
       }
-      bindFlightWaitlistHandlers();
     }
 
     function bindFlightWaitlistHandlers() {
@@ -8228,8 +8217,18 @@
     var confirmFlightBookBtn = document.getElementById('confirmFlightBookBtn');
     if (searchFlightsBtn) {
       searchFlightsBtn.addEventListener('click', async function() {
-        renderFlightsComingSoon(document.getElementById('flightResults'));
-        bindFlightWaitlistHandlers();
+        var resultsEl = document.getElementById('flightResults');
+        if (resultsEl) resultsEl.innerHTML = '<div class="dash-card rounded-xl p-5 text-center"><div class="h-5 w-5 rounded-full border-2 border-violet-400 border-t-transparent animate-spin mx-auto mb-2"></div><p class="text-xs text-gray-400">Searching flights...</p></div>';
+        searchFlightsBtn.disabled = true;
+        searchFlightsBtn.innerHTML = '<div class="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>Searching...';
+        var origin = (document.getElementById('flightOriginCode').value || document.getElementById('flightOrigin').value || '').trim();
+        var dest = (document.getElementById('flightDestCode').value || document.getElementById('flightDest').value || '').trim();
+        var depart = document.getElementById('flightDepart').value || '';
+        var pax = parseInt(document.getElementById('flightPassengers').value) || 1;
+        var flights = await searchFlights(origin, dest, depart, pax);
+        renderFlightCards(flights, resultsEl);
+        searchFlightsBtn.disabled = false;
+        searchFlightsBtn.innerHTML = '<i class="fa-solid fa-search"></i>Search Flights';
       });
     }
     if (confirmFlightBookBtn) {

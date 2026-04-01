@@ -9,6 +9,11 @@ const rateLimitMap = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQ = 15;
 
+// Per-email brute-force lockout: 5 wrong attempts → 15 min block
+const otpAttemptMap = new Map();
+const OTP_MAX_ATTEMPTS = 5;
+const OTP_LOCKOUT_MS = 15 * 60 * 1000;
+
 module.exports = withDb(async function handler(req, res) {
   try {
     if (req.method !== 'POST') {
@@ -40,6 +45,14 @@ module.exports = withDb(async function handler(req, res) {
 
     if (!email || !otp) return res.status(400).json({ ok: false, error: 'missing_fields' });
 
+    // Per-email brute-force lockout
+    const attemptKey = email;
+    const attemptEntry = otpAttemptMap.get(attemptKey);
+    if (attemptEntry && attemptEntry.lockedUntil && Date.now() < attemptEntry.lockedUntil) {
+      const remainMin = Math.ceil((attemptEntry.lockedUntil - Date.now()) / 60000);
+      return res.status(429).json({ ok: false, error: 'otp_locked', detail: 'Too many failed attempts. Try again in ' + remainMin + ' minute(s).' });
+    }
+
     const otpRaw = await redis('GET', 'otp:' + email);
     if (!otpRaw) return res.status(400).json({ ok: false, error: 'otp_expired_or_invalid' });
 
@@ -53,8 +66,21 @@ module.exports = withDb(async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'otp_expired' });
     }
     if (otp !== String(otpData.code)) {
-      return res.status(400).json({ ok: false, error: 'otp_invalid' });
+      // Track failed attempt per email
+      const cur = otpAttemptMap.get(attemptKey) || { count: 0, lockedUntil: null };
+      cur.count++;
+      if (cur.count >= OTP_MAX_ATTEMPTS) {
+        cur.lockedUntil = Date.now() + OTP_LOCKOUT_MS;
+        cur.count = 0;
+        otpAttemptMap.set(attemptKey, cur);
+        return res.status(429).json({ ok: false, error: 'otp_locked', detail: 'Too many failed attempts. Account locked for 15 minutes.' });
+      }
+      otpAttemptMap.set(attemptKey, cur);
+      return res.status(400).json({ ok: false, error: 'otp_invalid', attemptsLeft: OTP_MAX_ATTEMPTS - cur.count });
     }
+
+    // OTP correct — clear attempt counter
+    otpAttemptMap.delete(attemptKey);
 
     const userRaw = await redis('GET', 'user:' + email);
     if (!userRaw) return res.status(404).json({ ok: false, error: 'user_not_found' });
