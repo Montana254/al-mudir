@@ -3814,6 +3814,7 @@
     function initPerformanceProof() {
       var host = document.getElementById('performanceProofContent');
       if (!host) return;
+      var badge = document.querySelector('#performanceProofBox .rounded-full');
       var widgetUrl = '';
       try { widgetUrl = localStorage.getItem(MYFXBOOK_EMBED_KEY) || ''; } catch (_) {}
       if (!widgetUrl && window.__ownerBrandSettings && typeof window.__ownerBrandSettings.myfxbookUrl === 'string') {
@@ -3828,10 +3829,29 @@
         return;
       }
 
-      host.innerHTML = '<div class="rounded-lg border border-white/10 overflow-hidden">'
-        + '<iframe src="' + widgetUrl.replace(/"/g, '&quot;') + '" title="Performance Verification" class="w-full" style="min-height:320px;background:#05070c" loading="lazy" referrerpolicy="no-referrer"></iframe>'
-        + '</div>'
-        + '<p class="mt-2 text-[11px] text-gray-400">Independent source: ' + widgetUrl + '</p>';
+      /* Extract Myfxbook account ID for image widget */
+      var mfxMatch = widgetUrl.match(/myfxbook\.com\/(?:portfolio|members)\/[^\/]+\/(\d+)/);
+      if (mfxMatch) {
+        var acctId = mfxMatch[1];
+        var safeUrl = widgetUrl.replace(/"/g, '&quot;');
+        host.innerHTML = '<div class="myfxbook-widget text-center">'
+          + '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">'
+          + '<img src="https://widgets.myfxbook.com/widgets/' + acctId + '/large.png" alt="Al-Mudir Verified Performance" class="mx-auto rounded-lg border border-white/10" style="max-width:100%" loading="lazy" />'
+          + '</a>'
+          + '</div>'
+          + '<p class="mt-2 text-[11px] text-gray-400">Independently verified by <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="underline text-gold-400">Myfxbook</a></p>';
+      } else {
+        host.innerHTML = '<div class="rounded-lg border border-white/10 overflow-hidden">'
+          + '<iframe src="' + widgetUrl.replace(/"/g, '&quot;') + '" title="Performance Verification" class="w-full" style="min-height:320px;background:#05070c" loading="lazy" referrerpolicy="no-referrer"></iframe>'
+          + '</div>'
+          + '<p class="mt-2 text-[11px] text-gray-400">Independent source: ' + widgetUrl + '</p>';
+      }
+
+      /* Update badge to verified */
+      if (badge) {
+        badge.textContent = 'Verified';
+        badge.className = 'rounded-full border border-green-500/30 bg-green-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-green-300';
+      }
     }
 
     function applyGa4Measurement(id) {
