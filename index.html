@@ -1065,9 +1065,20 @@
       <div id="performanceProofBox" class="glass rounded-lg p-5">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Third-Party Verification</p>
-          <span class="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-yellow-300">Pending External Link</span>
+          <span class="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-green-300">Verified</span>
         </div>
-        <div id="performanceProofContent" class="mt-3 text-sm text-gray-300">Connect a public Myfxbook or equivalent verified track-record URL to display independent performance proof here.</div>
+        <div id="performanceProofContent" class="mt-3 text-sm text-gray-300">
+          <h3 class="text-lg font-serif text-amber-500 mb-3 text-center">LIVE STRATEGY PERFORMANCE</h3>
+          <div class="myfxbook-widget text-center">
+            <a href="https://www.myfxbook.com/members/Almudir/al-mudir/11992323" target="_blank" rel="noopener noreferrer">
+              <img src="https://widgets.myfxbook.com/widgets/11992323/1.jpg" alt="Al-Mudir Live Growth Chart" class="mx-auto rounded-lg shadow-2xl border border-white/10 hover:opacity-80 transition" style="max-width:100%" loading="lazy" />
+            </a>
+          </div>
+          <p class="mt-2 text-center text-zinc-500 text-[11px] italic">Verified by Myfxbook &bull; Updated Real-Time</p>
+          <div class="mt-3 text-center">
+            <a href="https://www.myfxbook.com/members/Almudir/al-mudir/11992323" target="_blank" rel="noopener noreferrer" class="text-amber-500 underline text-xs uppercase tracking-widest hover:text-white">View Full Verified Audit</a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -3834,12 +3845,14 @@
       if (mfxMatch) {
         var acctId = mfxMatch[1];
         var safeUrl = widgetUrl.replace(/"/g, '&quot;');
-        host.innerHTML = '<div class="myfxbook-widget text-center">'
+        host.innerHTML = '<h3 class="text-lg font-serif text-amber-500 mb-3 text-center">LIVE STRATEGY PERFORMANCE</h3>'
+          + '<div class="myfxbook-widget text-center">'
           + '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">'
-          + '<img src="https://widgets.myfxbook.com/widgets/' + acctId + '/large.png" alt="Al-Mudir Verified Performance" class="mx-auto rounded-lg border border-white/10" style="max-width:100%" loading="lazy" />'
+          + '<img src="https://widgets.myfxbook.com/widgets/' + acctId + '/1.jpg" alt="Al-Mudir Live Growth Chart" class="mx-auto rounded-lg shadow-2xl border border-white/10 hover:opacity-80 transition" style="max-width:100%" loading="lazy" />'
           + '</a>'
           + '</div>'
-          + '<p class="mt-2 text-[11px] text-gray-400">Independently verified by <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="underline text-gold-400">Myfxbook</a></p>';
+          + '<p class="mt-2 text-center text-zinc-500 text-[11px] italic">Verified by Myfxbook &bull; Updated Real-Time</p>'
+          + '<div class="mt-3 text-center"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="text-amber-500 underline text-xs uppercase tracking-widest hover:text-white">View Full Verified Audit</a></div>';
       } else {
         host.innerHTML = '<div class="rounded-lg border border-white/10 overflow-hidden">'
           + '<iframe src="' + widgetUrl.replace(/"/g, '&quot;') + '" title="Performance Verification" class="w-full" style="min-height:320px;background:#05070c" loading="lazy" referrerpolicy="no-referrer"></iframe>'
