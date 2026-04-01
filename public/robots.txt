@@ -5,6 +5,10 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin
+Disallow: /dashboard
+Disallow: /owner
+Disallow: /portal
+Disallow: /profile
 Disallow: /.env
 Disallow: /node_modules
 
@@ -18,8 +22,23 @@ User-agent: Bingbot
 Allow: /
 Disallow: /api/
 
+# Allow DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /api/
+
+# Allow Yandex
+User-agent: Yandex
+Allow: /
+Disallow: /api/
+
+# Allow Baidu
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+
+Sitemap: https://al-mudir.org/sitemap.xml
+
 # Crawl delay (optional)
 Crawl-delay: 1
 
-# Sitemap location
-Sitemap: https://al-mudir.org/sitemap.xml

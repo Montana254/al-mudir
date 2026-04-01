@@ -5,6 +5,10 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin
+Disallow: /dashboard
+Disallow: /owner
+Disallow: /portal
+Disallow: /profile
 Disallow: /.env
 Disallow: /node_modules
 
@@ -38,5 +42,3 @@ Sitemap: https://al-mudir.org/sitemap.xml
 # Crawl delay (optional)
 Crawl-delay: 1
 
-# Sitemap location
-Sitemap: https://al-mudir.org/sitemap.xml

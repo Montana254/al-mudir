@@ -1315,6 +1315,23 @@ module.exports = withDb(async function handler(req, res) {
     try {
       const peekBody = typeof req.body === 'object' ? req.body : {};
 
+      if (peekBody.action === 'flight_waitlist') {
+        const email = sanitize(String(peekBody.email || '')).toLowerCase().trim();
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+          return res.status(400).json({ ok: false, error: 'invalid_email' });
+        }
+        const WAITLIST_KEY = 'waitlist:flights:q3_2026';
+        const raw = await redis('GET', WAITLIST_KEY);
+        const list = (raw && Array.isArray(raw)) ? raw : [];
+        const existing = list.find((r) => String(r.email || '').toLowerCase() === email);
+        if (!existing) {
+          list.unshift({ email, ts: new Date().toISOString(), source: 'web' });
+          if (list.length > 5000) list.length = 5000;
+          await redis('SET', WAITLIST_KEY, list);
+        }
+        return res.status(200).json({ ok: true, action: 'flight_waitlist', queued: true });
+      }
+
       // Airport search for autocomplete
       if (peekBody.action === 'search_airports') {
         const q = sanitize(String(peekBody.query || '')).toUpperCase().trim();

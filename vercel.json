@@ -7,6 +7,16 @@
     { "path": "/api/cron-report", "schedule": "0 4 * * *" }
   ],
   "rewrites": [
+    { "source": "/pricing", "destination": "/pricing.html" },
+    { "source": "/pricing.html", "destination": "/pricing.html" },
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/about.html", "destination": "/about.html" },
+    { "source": "/fees", "destination": "/fees.html" },
+    { "source": "/fees.html", "destination": "/fees.html" },
+    { "source": "/blog", "destination": "/blog.html" },
+    { "source": "/blog.html", "destination": "/blog.html" },
+    { "source": "/managed-accounts", "destination": "/managed-accounts.html" },
+    { "source": "/managed-accounts.html", "destination": "/managed-accounts.html" },
     { "source": "/terms", "destination": "/terms.html" },
     { "source": "/terms.html", "destination": "/terms.html" },
     { "source": "/privacy", "destination": "/privacy.html" },
