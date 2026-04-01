@@ -1056,28 +1056,77 @@
 
   <section id="metrics" class="bg-[#061d18] px-6 py-20">
     <div class="mx-auto max-w-6xl">
-      <div id="performanceProofBox" class="glass rounded-lg p-6">
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
-          <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Live Strategy Performance</p>
-          <span class="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-green-300">Verified by Myfxbook</span>
+      <div class="text-center mb-10">
+        <p class="text-xs uppercase tracking-[0.35em] text-gray-500">Verified Track Record</p>
+        <h2 class="serif mt-3 text-3xl md:text-4xl text-gold-gradient">Strategy Performance</h2>
+        <p class="mt-3 text-sm text-gray-400 max-w-xl mx-auto">Independently audited by Myfxbook. Real account, real trades, real-time verification.</p>
+      </div>
+
+      <!-- Performance Stats Grid -->
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
+        <div class="glass rounded-xl p-4 text-center group hover:border-green-500/30 transition-all duration-300">
+          <p class="text-[10px] uppercase tracking-[0.16em] text-gray-500 mb-1">Total Gain</p>
+          <p id="perfGainDisplay" class="text-2xl font-bold text-green-400 serif">—</p>
+          <p class="text-[9px] text-gray-600 mt-1">Cumulative</p>
+        </div>
+        <div class="glass rounded-xl p-4 text-center group hover:border-green-500/30 transition-all duration-300">
+          <p class="text-[10px] uppercase tracking-[0.16em] text-gray-500 mb-1">Monthly Avg</p>
+          <p id="perfMonthlyDisplay" class="text-2xl font-bold text-green-400 serif">—</p>
+          <p class="text-[9px] text-gray-600 mt-1">Net Return</p>
+        </div>
+        <div class="glass rounded-xl p-4 text-center group hover:border-yellow-500/30 transition-all duration-300">
+          <p class="text-[10px] uppercase tracking-[0.16em] text-gray-500 mb-1">Max Drawdown</p>
+          <p id="perfDrawdownDisplay" class="text-2xl font-bold text-yellow-400 serif">—</p>
+          <p class="text-[9px] text-gray-600 mt-1">Peak-to-Trough</p>
+        </div>
+        <div class="glass rounded-xl p-4 text-center group hover:border-blue-500/30 transition-all duration-300">
+          <p class="text-[10px] uppercase tracking-[0.16em] text-gray-500 mb-1">Win Rate</p>
+          <p id="perfWinRateDisplay" class="text-2xl font-bold text-blue-400 serif">—</p>
+          <p class="text-[9px] text-gray-600 mt-1">All Trades</p>
+        </div>
+      </div>
+
+      <!-- Secondary Stats Row -->
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-8">
+        <div class="glass rounded-lg p-3 text-center">
+          <p class="text-[9px] uppercase tracking-[0.14em] text-gray-500">Total Trades</p>
+          <p id="perfTradesDisplay" class="text-lg font-semibold text-white mt-0.5">—</p>
+        </div>
+        <div class="glass rounded-lg p-3 text-center">
+          <p class="text-[9px] uppercase tracking-[0.14em] text-gray-500">Sharpe Ratio</p>
+          <p id="perfSharpeDisplay" class="text-lg font-semibold text-white mt-0.5">—</p>
+        </div>
+        <div class="glass rounded-lg p-3 text-center">
+          <p class="text-[9px] uppercase tracking-[0.14em] text-gray-500">Profit Factor</p>
+          <p id="perfProfitFactorDisplay" class="text-lg font-semibold text-white mt-0.5">—</p>
+        </div>
+        <div class="glass rounded-lg p-3 text-center">
+          <p class="text-[9px] uppercase tracking-[0.14em] text-gray-500">Balance</p>
+          <p id="perfBalanceDisplay" class="text-lg font-semibold text-white mt-0.5">—</p>
+        </div>
+      </div>
+
+      <!-- Growth Chart + Verification -->
+      <div id="performanceProofBox" class="glass rounded-xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+              <span class="text-[10px] uppercase tracking-[0.12em] text-green-300 font-medium">Verified by Myfxbook</span>
+            </span>
+          </div>
+          <a id="perfMyfxbookLink" href="https://www.myfxbook.com/members/Almudir/al-mudir/11992323" target="_blank" rel="noopener noreferrer" class="text-[10px] uppercase tracking-[0.14em] text-gray-400 hover:text-gold-gradient transition-colors flex items-center gap-1">
+            <span>View Full Report</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+          </a>
         </div>
 
-        <!-- Large widget: gains, balance, drawdown, key stats -->
-        <div class="text-center">
-          <img src="https://widget.myfxbook.com/widget/widget.png?accountOid=11992323&type=1" alt="Al-Mudir Performance Summary" class="mx-auto rounded-lg shadow-2xl border border-white/10" style="max-width:100%" loading="lazy" />
+        <!-- Myfxbook Growth Chart Widget -->
+        <div class="rounded-lg overflow-hidden border border-white/5 bg-black/20">
+          <img src="https://widget.myfxbook.com/widget/widget.png?accountOid=11992323&type=2" alt="Al-Mudir Equity Growth Chart — Myfxbook Verified" class="w-full" loading="lazy" />
         </div>
 
-        <!-- Growth chart widget -->
-        <div class="mt-4 text-center">
-          <img src="https://widget.myfxbook.com/widget/widget.png?accountOid=11992323&type=2" alt="Al-Mudir Growth Chart" class="mx-auto rounded-lg shadow-xl border border-white/10" style="max-width:100%" loading="lazy" />
-        </div>
-
-        <!-- Monthly performance widget -->
-        <div class="mt-4 text-center">
-          <img src="https://widget.myfxbook.com/widget/widget.png?accountOid=11992323&type=5" alt="Al-Mudir Monthly Performance" class="mx-auto rounded-lg shadow-xl border border-white/10" style="max-width:100%" loading="lazy" />
-        </div>
-
-        <p class="mt-4 text-center text-zinc-500 text-[10px] italic">All data fetched live from Myfxbook &bull; System ID: 11992323 &bull; Auto-refreshed</p>
+        <p class="mt-3 text-center text-[9px] text-zinc-600">Live equity curve from Myfxbook &bull; Account #11992323 &bull; Auto-updated</p>
       </div>
     </div>
   </section>
@@ -2842,6 +2891,17 @@
                   <input id="ownerLicenceNo" type="text" maxlength="120" placeholder="UAE Trade Licence Number" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
                   <input id="ownerOfficeAddress" type="text" maxlength="260" placeholder="Registered Office Address" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
                 </div>
+                <p class="text-[10px] uppercase tracking-[0.16em] text-gray-500 mt-2">Performance Stats (displayed publicly)</p>
+                <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  <input id="ownerPerfGain" type="text" maxlength="30" placeholder="Total Gain (e.g. +142.8%)" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  <input id="ownerPerfMonthly" type="text" maxlength="30" placeholder="Monthly Avg (e.g. +6.2%)" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  <input id="ownerPerfDrawdown" type="text" maxlength="30" placeholder="Max DD (e.g. -3.2%)" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  <input id="ownerPerfWinRate" type="text" maxlength="30" placeholder="Win Rate (e.g. 78%)" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  <input id="ownerPerfTrades" type="text" maxlength="30" placeholder="Total Trades (e.g. 2,841)" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  <input id="ownerPerfSharpe" type="text" maxlength="30" placeholder="Sharpe Ratio (e.g. 2.84)" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  <input id="ownerPerfProfitFactor" type="text" maxlength="30" placeholder="Profit Factor (e.g. 3.12)" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                  <input id="ownerPerfBalance" type="text" maxlength="30" placeholder="Balance (e.g. $7.8M)" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+                </div>
                 <button id="ownerSaveSettingsBtn" class="rounded border border-[var(--dash-accent)]/40 bg-[var(--dash-accent)]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--dash-accent)] hover:bg-[var(--dash-accent)]/20"><i class="fa-solid fa-floppy-disk mr-1"></i>Save Settings</button>
                 <p id="ownerSettingsStatus" class="hidden text-center text-xs"></p>
               </div>
@@ -3211,7 +3271,9 @@
     </div>
   </div>
 
-  <footer class="py-12 px-6 text-center text-[10px] uppercase tracking-[0.2em] opacity-70 space-y-4">
+  <footer class="border-t border-white/5 py-14 px-6 text-center text-[10px] uppercase tracking-[0.2em] opacity-70 space-y-5">
+    <div class="serif text-lg tracking-[0.18em] text-gold-gradient opacity-60">AL-MUDIR</div>
+    <p class="text-gray-500 normal-case tracking-normal text-[11px]">Sovereign Wealth and Fintech Innovation</p>
     <p>Copyright 2026 AL-MUDIR Wealth and Fintech Ventures</p>
     <p class="mx-auto max-w-5xl text-[10px] normal-case tracking-normal text-gray-400">Risk Warning: Trading forex, commodities, and digital assets carries a high level of risk and may not be suitable for all investors. Past performance is not indicative of future results. You may lose some or all invested capital.</p>
     <p id="footerRegulatoryNotice" class="mx-auto max-w-5xl text-[10px] normal-case tracking-normal text-gray-400">Regulatory notice: TLN Permit No: 620822 · Registered Office: ABT 5 Tower, Office 1003, Mamzar, Sharjah, UAE · Compliance: legal@al-mudir.com.</p>
@@ -3220,6 +3282,7 @@
       <a href="/privacy.html" target="_blank" class="hover:text-white">Privacy Policy</a>
       <a href="/risk-disclosure.html" target="_blank" class="hover:text-white">Risk Disclosure</a>
       <a href="/cookies.html" target="_blank" class="hover:text-white">Cookie Policy</a>
+      <a href="/about.html" target="_blank" class="hover:text-white">About</a>
     </div>
   </footer>
 
@@ -3867,6 +3930,23 @@
         try { localStorage.setItem(MYFXBOOK_EMBED_KEY, String(s.myfxbookUrl)); } catch (_) {}
       }
       if (s.ga4MeasurementId) applyGa4Measurement(s.ga4MeasurementId);
+
+      // Apply performance stats to public display
+      var perfFields = [
+        { key: 'perfGain', el: 'perfGainDisplay' },
+        { key: 'perfMonthly', el: 'perfMonthlyDisplay' },
+        { key: 'perfDrawdown', el: 'perfDrawdownDisplay' },
+        { key: 'perfWinRate', el: 'perfWinRateDisplay' },
+        { key: 'perfTrades', el: 'perfTradesDisplay' },
+        { key: 'perfSharpe', el: 'perfSharpeDisplay' },
+        { key: 'perfProfitFactor', el: 'perfProfitFactorDisplay' },
+        { key: 'perfBalance', el: 'perfBalanceDisplay' }
+      ];
+      perfFields.forEach(function(f) {
+        var el = document.getElementById(f.el);
+        if (el && s[f.key]) el.textContent = s[f.key];
+      });
+
       window.__ownerBrandSettings = s;
       initPerformanceProof();
     }
@@ -5917,6 +5997,20 @@
         if (ga4El) ga4El.value = data.ownerSettings.ga4MeasurementId || '';
         if (licEl) licEl.value = data.ownerSettings.licenceNumber || '';
         if (officeEl) officeEl.value = data.ownerSettings.officeAddress || '';
+        var perfInputs = [
+          { key: 'perfGain', el: 'ownerPerfGain' },
+          { key: 'perfMonthly', el: 'ownerPerfMonthly' },
+          { key: 'perfDrawdown', el: 'ownerPerfDrawdown' },
+          { key: 'perfWinRate', el: 'ownerPerfWinRate' },
+          { key: 'perfTrades', el: 'ownerPerfTrades' },
+          { key: 'perfSharpe', el: 'ownerPerfSharpe' },
+          { key: 'perfProfitFactor', el: 'ownerPerfProfitFactor' },
+          { key: 'perfBalance', el: 'ownerPerfBalance' }
+        ];
+        perfInputs.forEach(function(p) {
+          var el = document.getElementById(p.el);
+          if (el) el.value = data.ownerSettings[p.key] || '';
+        });
       }
 
       // System fee balances
@@ -6033,7 +6127,15 @@
           myfxbookUrl: (document.getElementById('ownerMyfxbookUrl') || {}).value || '',
           ga4MeasurementId: (document.getElementById('ownerGa4Id') || {}).value || '',
           licenceNumber: (document.getElementById('ownerLicenceNo') || {}).value || '',
-          officeAddress: (document.getElementById('ownerOfficeAddress') || {}).value || ''
+          officeAddress: (document.getElementById('ownerOfficeAddress') || {}).value || '',
+          perfGain: (document.getElementById('ownerPerfGain') || {}).value || '',
+          perfMonthly: (document.getElementById('ownerPerfMonthly') || {}).value || '',
+          perfDrawdown: (document.getElementById('ownerPerfDrawdown') || {}).value || '',
+          perfWinRate: (document.getElementById('ownerPerfWinRate') || {}).value || '',
+          perfTrades: (document.getElementById('ownerPerfTrades') || {}).value || '',
+          perfSharpe: (document.getElementById('ownerPerfSharpe') || {}).value || '',
+          perfProfitFactor: (document.getElementById('ownerPerfProfitFactor') || {}).value || '',
+          perfBalance: (document.getElementById('ownerPerfBalance') || {}).value || ''
         };
         btn.disabled = true;
         try {
