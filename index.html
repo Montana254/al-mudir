@@ -3837,7 +3837,7 @@
     }
 
     function fetchMyfxbookStats() {
-      fetch('/api/myfxbook-stats')
+      fetch('/api/wallet?action=myfxbook_stats')
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (!data.ok || !data.stats) return;
