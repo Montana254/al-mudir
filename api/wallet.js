@@ -97,6 +97,13 @@ const COIN_FEES = {
 const DEPOSIT_FEE_RATE = 0.0005; // 0.05% deposit processing fee
 const SYSTEM_FEE_KEY   = 'wallet:__system_fees__';
 const SYSTEM_TX_KEY    = 'wallet_tx:__system_fees__';
+const OWNER_SETTINGS_KEY = 'system:owner_settings';
+const DEFAULT_OWNER_SETTINGS = {
+  myfxbookUrl: '',
+  ga4MeasurementId: '',
+  licenceNumber: 'TL-ALM-2026-00184',
+  officeAddress: 'Office 1702, The Binary by Omniyat, Business Bay, Dubai, UAE'
+};
 const WITHDRAW_LIMITS = {
   perTxUsd: 50000,
   dailyUsd: 100000
@@ -1330,6 +1337,21 @@ module.exports = withDb(async function handler(req, res) {
           await redis('SET', WAITLIST_KEY, list);
         }
         return res.status(200).json({ ok: true, action: 'flight_waitlist', queued: true });
+      }
+
+      if (peekBody.action === 'public_settings') {
+        const raw = await redis('GET', OWNER_SETTINGS_KEY);
+        const merged = Object.assign({}, DEFAULT_OWNER_SETTINGS, (raw && typeof raw === 'object') ? raw : {});
+        return res.status(200).json({
+          ok: true,
+          action: 'public_settings',
+          settings: {
+            myfxbookUrl: String(merged.myfxbookUrl || ''),
+            ga4MeasurementId: String(merged.ga4MeasurementId || ''),
+            licenceNumber: String(merged.licenceNumber || DEFAULT_OWNER_SETTINGS.licenceNumber),
+            officeAddress: String(merged.officeAddress || DEFAULT_OWNER_SETTINGS.officeAddress)
+          }
+        });
       }
 
       // Airport search for autocomplete
@@ -2648,6 +2670,8 @@ module.exports = withDb(async function handler(req, res) {
     const sysTxRaw = await redis('GET', SYSTEM_TX_KEY);
     const sysTx = (sysTxRaw && Array.isArray(sysTxRaw)) ? sysTxRaw : [];
     const gateways = await checkGatewayHealth();
+    const ownerSettingsRaw = await redis('GET', OWNER_SETTINGS_KEY);
+    const ownerSettings = Object.assign({}, DEFAULT_OWNER_SETTINGS, (ownerSettingsRaw && typeof ownerSettingsRaw === 'object') ? ownerSettingsRaw : {});
 
     // Revenue summaries
     const now = new Date();
@@ -2666,7 +2690,13 @@ module.exports = withDb(async function handler(req, res) {
       revenueLog: revenueLog.slice(0, 100),
       users: { count: userData.count || 0, list: (userData.users || []).slice(0, 200) },
       systemTransactions: sysTx.slice(0, 100),
-      gateways
+      gateways,
+      ownerSettings: {
+        myfxbookUrl: String(ownerSettings.myfxbookUrl || ''),
+        ga4MeasurementId: String(ownerSettings.ga4MeasurementId || ''),
+        licenceNumber: String(ownerSettings.licenceNumber || DEFAULT_OWNER_SETTINGS.licenceNumber),
+        officeAddress: String(ownerSettings.officeAddress || DEFAULT_OWNER_SETTINGS.officeAddress)
+      }
     });
   }
 
@@ -2711,6 +2741,36 @@ module.exports = withDb(async function handler(req, res) {
     try { await sendStatementToTelegram(wTx, email, { rate: 0, feeUsd: 0, price: 1 }); } catch { /* best effort */ }
 
     return res.status(200).json({ ok: true, action: 'owner_withdraw', tx: wTx, systemFees: sysFees });
+  }
+
+  if (action === 'owner_settings_update') {
+    if (!isAdminEmail(email)) {
+      return res.status(403).json({ ok: false, error: 'forbidden', detail: 'Owner access required.' });
+    }
+
+    const myfxbookUrl = sanitize(String(body.myfxbookUrl || '')).trim().slice(0, 500);
+    const ga4MeasurementId = sanitize(String(body.ga4MeasurementId || '')).trim().toUpperCase().slice(0, 30);
+    const licenceNumber = sanitize(String(body.licenceNumber || DEFAULT_OWNER_SETTINGS.licenceNumber)).trim().slice(0, 120);
+    const officeAddress = sanitize(String(body.officeAddress || DEFAULT_OWNER_SETTINGS.officeAddress)).trim().slice(0, 260);
+
+    if (myfxbookUrl && !/^https:\/\//i.test(myfxbookUrl)) {
+      return res.status(400).json({ ok: false, error: 'invalid_myfxbook_url', detail: 'Myfxbook URL must start with https://.' });
+    }
+    if (ga4MeasurementId && !/^G-[A-Z0-9]+$/i.test(ga4MeasurementId)) {
+      return res.status(400).json({ ok: false, error: 'invalid_ga4_id', detail: 'GA4 ID must look like G-XXXXXXXXXX.' });
+    }
+
+    const updated = {
+      myfxbookUrl,
+      ga4MeasurementId,
+      licenceNumber,
+      officeAddress,
+      updatedAt: new Date().toISOString(),
+      updatedBy: maskEmail(email)
+    };
+    await redis('SET', OWNER_SETTINGS_KEY, updated);
+
+    return res.status(200).json({ ok: true, action: 'owner_settings_update', settings: updated });
   }
 
   // ── Action: verify_all_balances (admin-only — audit & purge unverifiable balances) ──
