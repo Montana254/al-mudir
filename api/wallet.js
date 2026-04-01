@@ -2805,6 +2805,15 @@ module.exports = withDb(async function handler(req, res) {
     const now = new Date();
     const expiryDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
+    // Deduct $49 USDT from wallet balance
+    const balances = await getWalletBalances(email);
+    const usdtBal = balances['USDT'] || 0;
+    if (usdtBal < 49) {
+      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $49.00 USDT but have $' + usdtBal.toFixed(2) + '. Deposit funds first.' });
+    }
+    balances['USDT'] = +(usdtBal - 49).toFixed(6);
+    await setWalletBalances(email, balances);
+
     user.subscriptionTier = 'pro';
     user.subscriptionExpiry = expiryDate.toISOString();
     user.updatedAt = new Date().toISOString();
@@ -2817,7 +2826,7 @@ module.exports = withDb(async function handler(req, res) {
       coin: 'USDT',
       feeUsd: 0,
       totalUsd: 49,
-      gateway: 'stripe',
+      gateway: 'wallet_balance',
       verified: true,
       ts: new Date().toISOString()
     });
@@ -2827,7 +2836,160 @@ module.exports = withDb(async function handler(req, res) {
       action: 'subscribe_pro',
       tier: 'pro',
       expiry: expiryDate.toISOString(),
-      message: 'Successfully subscribed to Pro tier for 30 days'
+      balances: balances,
+      message: 'Successfully subscribed to Pro tier for 30 days. $49 deducted from USDT balance.'
+    });
+  }
+
+  // ── Action: create_investment (invest in Silver/Gold/Platinum plan) ──
+  if (action === 'create_investment') {
+    const planKey = sanitize(String(body.plan || ''), 20).toLowerCase();
+    const PLANS = {
+      silver:   { name: 'Silver',   minGbp: 5000,   maxGbp: 9999,    returnMin: 0.003, returnMax: 0.005 },
+      gold:     { name: 'Gold',     minGbp: 10000,  maxGbp: 50000,   returnMin: 0.005, returnMax: 0.008 },
+      platinum: { name: 'Platinum', minGbp: 100000, maxGbp: 1000000, returnMin: 0.008, returnMax: 0.012 }
+    };
+    const plan = PLANS[planKey];
+    if (!plan) {
+      return res.status(400).json({ ok: false, error: 'invalid_plan', detail: 'Plan must be silver, gold, or platinum.' });
+    }
+    const amountGbp = parseFloat(body.amountGbp) || 0;
+    const amountUsd = parseFloat(body.amountUsd) || 0;
+    if (amountGbp < plan.minGbp || amountGbp > plan.maxGbp) {
+      return res.status(400).json({ ok: false, error: 'invalid_amount', detail: plan.name + ' plan requires £' + plan.minGbp.toLocaleString() + ' – £' + plan.maxGbp.toLocaleString() + ' GBP.' });
+    }
+    if (amountUsd <= 0) {
+      return res.status(400).json({ ok: false, error: 'invalid_amount', detail: 'USD amount must be positive.' });
+    }
+    // Verify USDT balance
+    const balances = await getWalletBalances(email);
+    const usdtBal = balances['USDT'] || 0;
+    if (usdtBal < amountUsd) {
+      return res.status(400).json({ ok: false, error: 'insufficient_balance', detail: 'Need $' + amountUsd.toFixed(2) + ' USDT but have $' + usdtBal.toFixed(2) + '.' });
+    }
+    // Deduct from balance
+    balances['USDT'] = +(usdtBal - amountUsd).toFixed(6);
+    await setWalletBalances(email, balances);
+
+    // Create investment record
+    const ts = new Date().toISOString();
+    const investId = 'inv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    const dailyRate = plan.returnMin + Math.random() * (plan.returnMax - plan.returnMin);
+    const investment = {
+      id: investId,
+      plan: planKey,
+      planName: plan.name,
+      amountGbp: amountGbp,
+      amountUsd: amountUsd,
+      dailyRate: +dailyRate.toFixed(6),
+      totalEarned: 0,
+      lastPayoutAt: ts,
+      createdAt: ts,
+      status: 'active'
+    };
+    // Store investments list in Redis
+    const invKey = 'investments:' + email;
+    const existingRaw = await redis('GET', invKey);
+    const investments = existingRaw ? (typeof existingRaw === 'string' ? JSON.parse(existingRaw) : existingRaw) : [];
+    investments.push(investment);
+    await redis('SET', invKey, JSON.stringify(investments));
+
+    // Log as revenue
+    await logRevenue({
+      type: 'investment',
+      email: maskEmail(email),
+      coin: 'USDT',
+      feeUsd: 0,
+      totalUsd: amountUsd,
+      gateway: 'wallet_balance',
+      plan: planKey,
+      investId: investId,
+      verified: true,
+      ts: ts
+    });
+
+    // Record transaction
+    await appendWalletTx(email, {
+      id: investId,
+      type: 'investment',
+      coin: 'USDT',
+      amount: amountUsd,
+      usdValue: amountUsd,
+      plan: planKey,
+      amountGbp: amountGbp,
+      status: 'active',
+      verified: true,
+      ts: ts
+    });
+
+    return res.status(200).json({
+      ok: true,
+      action: 'create_investment',
+      investment: investment,
+      balances: balances,
+      message: plan.name + ' investment of £' + amountGbp + ' activated. Payouts every 24 hours.'
+    });
+  }
+
+  // ── Action: get_investments (fetch user's active investments) ──
+  if (action === 'get_investments') {
+    const invKey = 'investments:' + email;
+    const existingRaw = await redis('GET', invKey);
+    const investments = existingRaw ? (typeof existingRaw === 'string' ? JSON.parse(existingRaw) : existingRaw) : [];
+
+    // Process 24h payouts for active investments
+    const PLANS = {
+      silver:   { returnMin: 0.003, returnMax: 0.005 },
+      gold:     { returnMin: 0.005, returnMax: 0.008 },
+      platinum: { returnMin: 0.008, returnMax: 0.012 }
+    };
+    const GBP_TO_USD = 1.27;
+    const now = new Date();
+    let totalPayout = 0;
+    let payoutsProcessed = 0;
+
+    for (const inv of investments) {
+      if (inv.status !== 'active') continue;
+      const lastPayout = new Date(inv.lastPayoutAt || inv.createdAt);
+      const hoursSince = (now - lastPayout) / (1000 * 60 * 60);
+      if (hoursSince >= 24) {
+        // Calculate payout
+        const daysPassed = Math.floor(hoursSince / 24);
+        const dailyProfit = inv.amountGbp * inv.dailyRate * GBP_TO_USD;
+        const payout = +(dailyProfit * daysPassed).toFixed(2);
+        inv.totalEarned = +((inv.totalEarned || 0) + payout).toFixed(2);
+        inv.lastPayoutAt = now.toISOString();
+        totalPayout += payout;
+        payoutsProcessed++;
+      }
+    }
+
+    // If payouts were processed, credit to balance and save
+    if (payoutsProcessed > 0) {
+      const balances = await getWalletBalances(email);
+      balances['USDT'] = +((balances['USDT'] || 0) + totalPayout).toFixed(6);
+      await setWalletBalances(email, balances);
+      await redis('SET', invKey, JSON.stringify(investments));
+      // Record payout tx
+      await appendWalletTx(email, {
+        id: 'payout_' + Date.now(),
+        type: 'investment_payout',
+        coin: 'USDT',
+        amount: totalPayout,
+        usdValue: totalPayout,
+        investmentsCount: payoutsProcessed,
+        status: 'filled',
+        verified: true,
+        ts: now.toISOString()
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      action: 'get_investments',
+      investments: investments.filter(function(i) { return i.status === 'active'; }),
+      totalPayout: totalPayout,
+      payoutsProcessed: payoutsProcessed
     });
   }
 

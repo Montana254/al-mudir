@@ -1529,8 +1529,7 @@
             <div class="pro-strip rounded-xl p-3 sm:p-4">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p class="text-[10px] uppercase tracking-[0.2em] text-gray-400"><i class="fa-solid fa-terminal mr-1 text-[var(--dash-accent)]/60"></i>Command Center</p>
-                  <h5 class="mt-1 text-base sm:text-lg text-white">Welcome back<span id="dashGreetName" class="text-gray-300"></span></h5>
+                  <h5 class="text-base sm:text-lg text-white">Welcome back<span id="dashGreetName" class="text-gray-300"></span></h5>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
@@ -1816,16 +1815,68 @@
 
                   <div class="dash-card rounded-xl p-5">
                     <div class="flex items-center justify-between">
-                      <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Risk Heatmap</p>
-                      <span class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Exposure Matrix</span>
+                      <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400"><i class="fa-solid fa-chart-line mr-1 text-[var(--dash-accent)]/60"></i>Investment Plans</p>
+                      <span class="text-[10px] uppercase tracking-[0.14em] text-gray-500">24h Payouts</span>
                     </div>
-                    <div class="mt-4 grid grid-cols-3 gap-2 text-[10px] uppercase tracking-[0.1em]">
-                      <div class="rounded p-3 text-center bg-green-500/20 text-green-200 border border-green-500/30">Gold<br>Low</div>
-                      <div class="rounded p-3 text-center bg-yellow-500/20 text-yellow-200 border border-yellow-500/30">BTC<br>Medium</div>
-                      <div class="rounded p-3 text-center bg-red-500/20 text-red-200 border border-red-500/30">ETH<br>High</div>
-                      <div class="rounded p-3 text-center bg-emerald-500/20 text-emerald-200 border border-emerald-500/30">USDJPY<br>Low</div>
-                      <div class="rounded p-3 text-center bg-amber-500/20 text-amber-200 border border-amber-500/30">EURUSD<br>Medium</div>
-                      <div class="rounded p-3 text-center bg-orange-500/20 text-orange-200 border border-orange-500/30">Altcoin<br>Elevated</div>
+                    <div id="investmentPlansGrid" class="mt-4 space-y-3">
+                      <!-- Silver Plan -->
+                      <div class="rounded-lg border border-gray-500/30 bg-gradient-to-r from-gray-500/10 to-gray-400/5 p-4 cursor-pointer hover:border-gray-400/50 transition-all invest-plan-card" data-plan="silver">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-gray-400/20 flex items-center justify-center"><i class="fa-solid fa-medal text-gray-300 text-sm"></i></div>
+                            <div>
+                              <p class="text-sm font-semibold text-white">Silver</p>
+                              <p class="text-[10px] text-gray-400">Min £5,000 GBP</p>
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <p class="text-sm font-bold text-green-400">0.3-0.5%</p>
+                            <p class="text-[9px] text-gray-500">daily return</p>
+                          </div>
+                        </div>
+                        <button onclick="openInvestModal('silver')" class="mt-3 w-full rounded bg-gray-500/20 border border-gray-500/30 py-1.5 text-[10px] uppercase tracking-[0.14em] text-gray-300 hover:bg-gray-500/30">Invest Now</button>
+                      </div>
+                      <!-- Gold Plan -->
+                      <div class="rounded-lg border border-yellow-500/30 bg-gradient-to-r from-yellow-500/10 to-amber-500/5 p-4 cursor-pointer hover:border-yellow-400/50 transition-all invest-plan-card" data-plan="gold">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center"><i class="fa-solid fa-crown text-yellow-300 text-sm"></i></div>
+                            <div>
+                              <p class="text-sm font-semibold text-white">Gold</p>
+                              <p class="text-[10px] text-gray-400">£10,000 – £50,000 GBP</p>
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <p class="text-sm font-bold text-green-400">0.5-0.8%</p>
+                            <p class="text-[9px] text-gray-500">daily return</p>
+                          </div>
+                        </div>
+                        <button onclick="openInvestModal('gold')" class="mt-3 w-full rounded bg-yellow-500/20 border border-yellow-500/30 py-1.5 text-[10px] uppercase tracking-[0.14em] text-yellow-300 hover:bg-yellow-500/30">Invest Now</button>
+                      </div>
+                      <!-- Platinum Plan -->
+                      <div class="rounded-lg border border-blue-400/30 bg-gradient-to-r from-blue-500/10 to-indigo-500/5 p-4 cursor-pointer hover:border-blue-400/50 transition-all invest-plan-card" data-plan="platinum">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center"><i class="fa-solid fa-gem text-blue-300 text-sm"></i></div>
+                            <div>
+                              <p class="text-sm font-semibold text-white">Platinum</p>
+                              <p class="text-[10px] text-gray-400">£100,000 – £1M+ GBP</p>
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <p class="text-sm font-bold text-green-400">0.8-1.2%</p>
+                            <p class="text-[9px] text-gray-500">daily return</p>
+                          </div>
+                        </div>
+                        <button onclick="openInvestModal('platinum')" class="mt-3 w-full rounded bg-blue-500/20 border border-blue-400/30 py-1.5 text-[10px] uppercase tracking-[0.14em] text-blue-300 hover:bg-blue-500/30">Invest Now</button>
+                      </div>
+                    </div>
+                    <!-- Active Investments Summary -->
+                    <div id="activeInvestmentsSummary" class="mt-4 hidden">
+                      <div class="border-t border-white/10 pt-3">
+                        <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-2">Your Active Investments</p>
+                        <div id="activeInvestmentsList" class="space-y-2 text-xs text-gray-300"></div>
+                      </div>
                     </div>
                   </div>
 
@@ -1901,84 +1952,41 @@
                   <p id="tradeFeeAmount" class="hidden">$0.00</p>
                 </div>
 
-                <!-- Payment method selector for trade -->
-                <div>
-                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Payment Method</p>
-                  <div class="relative">
-                    <button id="tradePayMethodToggle" type="button" class="w-full flex items-center justify-between rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:border-[var(--dash-accent)]">
-                      <span id="tradePayMethodLabel"><i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet</span>
-                      <i class="fa-solid fa-chevron-down text-[8px] text-gray-500"></i>
-                    </button>
-                    <div id="tradePayMethodDropdown" class="hidden absolute z-20 mt-1 w-full rounded border border-[#2f3741] bg-[#0f1317] shadow-xl overflow-hidden">
-                      <button data-trade-pay="crypto" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] bg-[var(--dash-accent)]/10 font-semibold hover:bg-[var(--dash-accent)]/20 border-b border-white/5"><i class="fa-brands fa-bitcoin mr-2"></i>Crypto Wallet</button>
-                      <button data-trade-pay="usdt_wallet" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-solid fa-wallet mr-2"></i>USDT / USDC Wallet</button>
-                      <button data-trade-pay="trust_wallet" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-solid fa-shield-halved mr-2"></i>Trust Wallet</button>
-                      <button data-trade-pay="apple" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-brands fa-apple mr-2"></i>Apple Pay</button>
-                      <button data-trade-pay="gpay" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-brands fa-google-pay mr-2"></i>Google Pay</button>
-                      <button data-trade-pay="visa" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-brands fa-cc-visa mr-2"></i>Visa / Debit Card</button>
-                      <button data-trade-pay="mastercard" class="trade-pay-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5"><i class="fa-brands fa-cc-mastercard mr-2"></i>Mastercard</button>
-                    </div>
-                  </div>
+                <!-- Payment: always from wallet balance -->
+                <div class="flex items-center gap-2 rounded border border-white/10 bg-black/20 px-3 py-2">
+                  <i class="fa-solid fa-wallet text-[var(--dash-accent)] text-sm"></i>
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-400">Paid from Wallet Balance</p>
                 </div>
 
                 <button id="executeTradeBtn" class="w-full rounded bg-green-500 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">Buy BTC</button>
                 <p id="tradeStatus" class="hidden text-center text-xs"></p>
               </div>
 
-              <!-- Convert section (existing) -->
+              <!-- Quick Convert (wallet balance only) -->
               <div class="dash-card mt-4 rounded-xl p-5 space-y-3">
                 <p class="text-[11px] uppercase tracking-[0.2em] text-gray-400">Quick Convert</p>
+                <p class="text-[10px] text-gray-500">Convert between assets using your wallet balance</p>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <input id="payAmount" type="number" min="1" step="0.01" placeholder="Amount" class="border-b border-gray-600 bg-transparent py-2 text-sm">
                   <select id="payFrom" class="border-b border-gray-600 bg-transparent py-2 text-sm">
-                    <option value="USD" class="text-black">USD</option>
-                    <option value="EUR" class="text-black">EUR</option>
-                    <option value="GBP" class="text-black">GBP</option>
+                    <option value="USDT" class="text-black">USDT</option>
                     <option value="BTC" class="text-black">BTC</option>
                     <option value="ETH" class="text-black">ETH</option>
-                    <option value="USDT" class="text-black">USDT</option>
+                    <option value="BNB" class="text-black">BNB</option>
+                    <option value="SOL" class="text-black">SOL</option>
+                    <option value="XRP" class="text-black">XRP</option>
                   </select>
                   <select id="payTo" class="border-b border-gray-600 bg-transparent py-2 text-sm">
                     <option value="ETH" class="text-black">ETH</option>
+                    <option value="BTC" class="text-black">BTC</option>
                     <option value="BNB" class="text-black">BNB</option>
+                    <option value="USDT" class="text-black">USDT</option>
+                    <option value="SOL" class="text-black">SOL</option>
+                    <option value="XRP" class="text-black">XRP</option>
                   </select>
                 </div>
                 <button id="convertBtn" class="w-full rounded border border-[#3a3a3a] py-2 text-xs uppercase tracking-[0.14em] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent)]">Convert</button>
                 <p id="convertStatus" class="text-center text-xs text-gray-400">Ready.</p>
-
-                <!-- Payment method selector -->
-                <div class="space-y-2">
-                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">Payment Method</p>
-                  <div class="relative">
-                    <button id="payMethodToggle" class="w-full flex items-center justify-between rounded border border-[var(--dash-accent)]/50 bg-[var(--dash-accent)]/10 px-3 py-2.5 text-[11px] uppercase tracking-[0.1em] text-[var(--dash-accent)] font-semibold hover:bg-[var(--dash-accent)]/20">
-                      <span id="payMethodLabel"><i class="fa-brands fa-bitcoin mr-1"></i>Crypto Wallet</span>
-                      <i class="fa-solid fa-chevron-down text-[10px] ml-2"></i>
-                    </button>
-                    <div id="payMethodDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 rounded border border-white/15 bg-[#0e1114] shadow-xl overflow-hidden">
-                      <button data-pay-method="crypto" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-[var(--dash-accent)] bg-[var(--dash-accent)]/10 font-semibold hover:bg-[var(--dash-accent)]/20 border-b border-white/5"><i class="fa-brands fa-bitcoin mr-2"></i>Crypto Wallet</button>
-                      <button data-pay-method="usdt_wallet" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-solid fa-wallet mr-2"></i>USDT / USDC Wallet</button>
-                      <button data-pay-method="trust_wallet" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-solid fa-shield-halved mr-2"></i>Trust Wallet</button>
-                      <button data-pay-method="apple" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-brands fa-apple mr-2"></i>Apple Pay</button>
-                      <button data-pay-method="gpay" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-brands fa-google-pay mr-2"></i>Google Pay</button>
-                      <button data-pay-method="visa" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5 border-b border-white/5"><i class="fa-brands fa-cc-visa mr-2"></i>Visa / Debit Card</button>
-                      <button data-pay-method="mastercard" class="pay-method-btn w-full flex items-center px-3 py-2.5 text-[10px] uppercase tracking-[0.1em] text-gray-300 hover:bg-white/5"><i class="fa-brands fa-cc-mastercard mr-2"></i>Mastercard</button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Card details (Visa / Mastercard) -->
-                <div id="cardInputArea" class="hidden space-y-3 rounded border border-white/10 bg-black/20 p-4">
-                  <p class="text-[10px] uppercase tracking-[0.14em] text-gray-400"><i class="fa-solid fa-credit-card mr-1"></i>Card Details</p>
-                  <input id="cardNumber" type="text" maxlength="19" inputmode="numeric" placeholder="Card Number" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm font-mono tracking-wider" autocomplete="cc-number">
-                  <div class="grid grid-cols-2 gap-3">
-                    <input id="cardExpiry" type="text" maxlength="5" inputmode="numeric" placeholder="MM/YY" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm font-mono" autocomplete="cc-exp">
-                    <input id="cardCvc" type="text" maxlength="4" inputmode="numeric" placeholder="CVC" class="rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm font-mono" autocomplete="cc-csc">
-                  </div>
-                  <input id="cardHolder" type="text" maxlength="50" placeholder="Cardholder Name" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm" autocomplete="cc-name">
-                </div>
-
-                <button id="payNowBtn" class="w-full rounded bg-[var(--dash-accent)] py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">Pay Now</button>
-                <p id="paymentStatus" class="hidden mt-3 text-center text-xs"></p>
               </div>
 
               <div class="dash-card mt-4 rounded-xl p-5">
@@ -3150,6 +3158,40 @@
           </div>
         </div>
 
+        <!-- Investment Plan Modal -->
+        <div id="investModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div class="mx-4 w-full max-w-md rounded-2xl border border-[var(--dash-accent)]/30 bg-[#0b1117] p-6 shadow-2xl space-y-4">
+            <div class="flex flex-col items-center text-center">
+              <div id="investModalIcon" class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[var(--dash-accent)]/40 bg-[var(--dash-accent)]/10">
+                <i class="fa-solid fa-chart-line text-xl text-[var(--dash-accent)]"></i>
+              </div>
+              <h4 class="mt-3 text-lg font-semibold text-white">Investment Plan</h4>
+              <p id="investModalPlanName" class="mt-1 text-sm text-gray-300 font-medium"></p>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-gray-500">Tier</span><span id="investModalTier" class="text-white font-medium"></span></div>
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-gray-500">Daily Return</span><span id="investModalReturn" class="text-green-400 font-medium"></span></div>
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-gray-500">Min Investment</span><span id="investModalMin" class="text-white"></span></div>
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-gray-500">Max Investment</span><span id="investModalMax" class="text-white"></span></div>
+              <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-gray-500">Payout Frequency</span><span class="text-white">Every 24 hours</span></div>
+              <div>
+                <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500 mb-1">Investment Amount (GBP)</p>
+                <input id="investAmountInput" type="number" min="0" step="100" placeholder="Enter amount in GBP" class="w-full rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-sm">
+              </div>
+              <div class="rounded border border-white/10 bg-black/20 p-3 space-y-1">
+                <div class="flex justify-between"><span class="text-gray-500">Your USDT Balance</span><span id="investUsdtBal" class="text-white">$0.00</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Est. USDT Cost</span><span id="investUsdtCost" class="text-yellow-300">—</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Est. Daily Profit</span><span id="investDailyProfit" class="text-green-400">—</span></div>
+              </div>
+            </div>
+            <p id="investModalStatus" class="hidden text-center text-xs"></p>
+            <div class="flex gap-3">
+              <button id="investModalCancel" class="flex-1 rounded border border-white/10 py-2 text-[11px] uppercase tracking-[0.14em] text-gray-400 hover:bg-white/5">Cancel</button>
+              <button id="investModalConfirm" class="flex-1 rounded bg-[var(--dash-accent)] py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">Confirm Investment</button>
+            </div>
+          </div>
+        </div>
+
         <!-- 3D Secure Checkout Confirmation Modal -->
         <div id="checkoutModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div class="mx-4 w-full max-w-md rounded-2xl border border-[var(--dash-accent)]/30 bg-[#0b1117] p-6 shadow-2xl space-y-4">
@@ -3774,12 +3816,15 @@
     }
 
     function renderSignalPaywall() {
+      var usdtBal = (systemWalletData && systemWalletData.balances && systemWalletData.balances['USDT']) || 0;
+      var balNote = usdtBal >= 49 ? '<p class="text-[10px] text-green-400 mt-1">Balance: $' + usdtBal.toFixed(2) + ' USDT ✓</p>' : '<p class="text-[10px] text-yellow-400 mt-1">Balance: $' + usdtBal.toFixed(2) + ' USDT — deposit needed</p>';
       return '<div class="rounded border border-white/10 bg-blue-500/5 p-6 text-center">'
         + '<h3 class="text-lg font-bold text-white mb-2">Unlock Full Signals</h3>'
         + '<p class="text-sm text-gray-300 mb-4">Professional traders unlock real-time signal details, history, and alerts</p>'
         + '<div class="space-y-2">'
         + '<button id="signalsBrokerVerifyBtn" class="w-full rounded border border-green-500/50 bg-green-500/10 py-2 text-sm text-green-300 hover:bg-green-500/20">Verify Exness Broker (FREE)</button>'
-        + '<button id="signalsProSubscribeBtn" class="w-full rounded border border-blue-500/50 bg-blue-500/10 py-2 text-sm text-blue-300 hover:bg-blue-500/20"><i class="fa-solid fa-crown mr-1"></i>Pro Subscription - $49/month</button>'
+        + '<button id="signalsProSubscribeBtn" class="w-full rounded border border-blue-500/50 bg-blue-500/10 py-2 text-sm text-blue-300 hover:bg-blue-500/20"><i class="fa-solid fa-crown mr-1"></i>Pro Subscription - $49/month (from balance)</button>'
+        + balNote
         + '</div>'
         + '</div>';
     }
@@ -6147,6 +6192,13 @@
 
     async function handleProSubscription() {
       if (!currentUser || !currentUser.token) return alert('Sign in required');
+      // Check available USDT balance first
+      var usdtBal = (systemWalletData && systemWalletData.balances && systemWalletData.balances['USDT']) || 0;
+      if (usdtBal < 49) {
+        alert('Insufficient balance. You need $49.00 USDT for Pro subscription but have $' + usdtBal.toFixed(2) + '. Please deposit funds first.');
+        return;
+      }
+      if (!confirm('Subscribe to Pro Signals for $49/month?\n\n$49.00 will be deducted from your USDT balance ($' + usdtBal.toFixed(2) + ' available).')) return;
       try {
         var h = authHeaders();
         var r = await fetch('/api/wallet', { method: 'POST', headers: h, body: JSON.stringify({ action: 'subscribe_pro' }) });
@@ -6155,10 +6207,12 @@
           alert('Subscription error: ' + (d.detail || d.error || 'Failed'));
           return;
         }
+        if (d.balances) { systemWalletData.balances = d.balances; renderSystemBalances(); }
         currentUserSubscription.tier = 'pro';
         currentUserSubscription.expiry = d.expiry;
         currentSignalAccessTier = 'pro';
-        alert('✓ Successfully subscribed to Pro signals for 30 days!');
+        alert('✓ Successfully subscribed to Pro signals for 30 days! $49 deducted from your balance.');
+        addNotification('Pro Signals activated — $49 deducted', 'good');
         renderSignalCards(dashboardSignalsGrid);
         checkAndUpdateSignalAccess();
       } catch (e) {
@@ -6503,6 +6557,7 @@
             updateTradePriceAndBalance();
             updateHomeTotalBalance();
             populateWithdrawCoins();
+            if (typeof loadActiveInvestments === 'function') loadActiveInvestments();
           }
         } catch { /* network error */ }
 
@@ -8619,6 +8674,127 @@
 
     // ── end trading bot ──────────────────────────────────
 
+    // ── Investment Plans Logic ──────────────────────────
+    var INVEST_PLANS = {
+      silver:   { name: 'Silver',   minGbp: 5000,   maxGbp: 9999,    returnMin: 0.003, returnMax: 0.005, icon: 'fa-medal',  color: 'gray' },
+      gold:     { name: 'Gold',     minGbp: 10000,  maxGbp: 50000,   returnMin: 0.005, returnMax: 0.008, icon: 'fa-crown',  color: 'yellow' },
+      platinum: { name: 'Platinum', minGbp: 100000, maxGbp: 1000000, returnMin: 0.008, returnMax: 0.012, icon: 'fa-gem',    color: 'blue' }
+    };
+    var GBP_TO_USD_RATE = 1.27; // approx GBP→USD for USDT conversion
+    var currentInvestPlan = null;
+
+    function openInvestModal(planKey) {
+      if (!currentUser) { alert('Please sign in first.'); return; }
+      var plan = INVEST_PLANS[planKey];
+      if (!plan) return;
+      currentInvestPlan = planKey;
+      document.getElementById('investModalPlanName').textContent = plan.name + ' Plan';
+      document.getElementById('investModalTier').textContent = plan.name;
+      document.getElementById('investModalReturn').textContent = (plan.returnMin * 100).toFixed(1) + '% – ' + (plan.returnMax * 100).toFixed(1) + '% daily';
+      document.getElementById('investModalMin').textContent = '£' + plan.minGbp.toLocaleString();
+      document.getElementById('investModalMax').textContent = '£' + plan.maxGbp.toLocaleString();
+      var usdtBal = (systemWalletData && systemWalletData.balances && systemWalletData.balances['USDT']) || 0;
+      document.getElementById('investUsdtBal').textContent = '$' + usdtBal.toFixed(2);
+      document.getElementById('investAmountInput').value = '';
+      document.getElementById('investAmountInput').min = plan.minGbp;
+      document.getElementById('investAmountInput').max = plan.maxGbp;
+      document.getElementById('investAmountInput').placeholder = '£' + plan.minGbp.toLocaleString() + ' – £' + plan.maxGbp.toLocaleString();
+      document.getElementById('investUsdtCost').textContent = '—';
+      document.getElementById('investDailyProfit').textContent = '—';
+      document.getElementById('investModalStatus').classList.add('hidden');
+      document.getElementById('investModalConfirm').disabled = false;
+      document.getElementById('investModal').classList.remove('hidden');
+    }
+
+    // Live calculation as user types amount
+    document.getElementById('investAmountInput').addEventListener('input', function() {
+      var plan = INVEST_PLANS[currentInvestPlan];
+      if (!plan) return;
+      var gbp = parseFloat(this.value) || 0;
+      var usdCost = +(gbp * GBP_TO_USD_RATE).toFixed(2);
+      var avgReturn = (plan.returnMin + plan.returnMax) / 2;
+      var dailyProfit = +(gbp * avgReturn * GBP_TO_USD_RATE).toFixed(2);
+      document.getElementById('investUsdtCost').textContent = gbp > 0 ? '$' + usdCost.toFixed(2) : '—';
+      document.getElementById('investDailyProfit').textContent = gbp > 0 ? '~$' + dailyProfit.toFixed(2) + '/day' : '—';
+    });
+
+    document.getElementById('investModalCancel').addEventListener('click', function() {
+      document.getElementById('investModal').classList.add('hidden');
+      currentInvestPlan = null;
+    });
+
+    document.getElementById('investModalConfirm').addEventListener('click', async function() {
+      var plan = INVEST_PLANS[currentInvestPlan];
+      if (!plan) return;
+      var gbpAmount = parseFloat(document.getElementById('investAmountInput').value) || 0;
+      var statusEl = document.getElementById('investModalStatus');
+      if (gbpAmount < plan.minGbp) {
+        showStatus(statusEl, 'Minimum investment is £' + plan.minGbp.toLocaleString() + ' GBP.', 'error');
+        return;
+      }
+      if (gbpAmount > plan.maxGbp) {
+        showStatus(statusEl, 'Maximum for ' + plan.name + ' plan is £' + plan.maxGbp.toLocaleString() + ' GBP.', 'error');
+        return;
+      }
+      var usdAmount = +(gbpAmount * GBP_TO_USD_RATE).toFixed(2);
+      var usdtBal = (systemWalletData && systemWalletData.balances && systemWalletData.balances['USDT']) || 0;
+      if (usdtBal < usdAmount) {
+        showStatus(statusEl, 'Insufficient balance. Need $' + usdAmount.toFixed(2) + ' USDT but have $' + usdtBal.toFixed(2) + '.', 'error');
+        return;
+      }
+      this.disabled = true;
+      showStatus(statusEl, 'Processing investment...', 'neutral');
+      try {
+        var h = authHeaders();
+        var r = await fetch('/api/wallet', {
+          method: 'POST', headers: h,
+          body: JSON.stringify({ action: 'create_investment', plan: currentInvestPlan, amountGbp: gbpAmount, amountUsd: usdAmount })
+        });
+        var d = await r.json();
+        if (!r.ok || !d.ok) {
+          showStatus(statusEl, d.detail || d.error || 'Investment failed.', 'error');
+          this.disabled = false;
+          return;
+        }
+        if (d.balances) { systemWalletData.balances = d.balances; renderSystemBalances(); }
+        showStatus(statusEl, '✓ ' + plan.name + ' investment of £' + gbpAmount.toLocaleString() + ' activated! Payouts every 24h.', 'success');
+        addNotification(plan.name + ' investment: £' + gbpAmount.toLocaleString() + ' GBP activated', 'good');
+        loadActiveInvestments();
+        setTimeout(function() { document.getElementById('investModal').classList.add('hidden'); currentInvestPlan = null; }, 2500);
+      } catch (e) {
+        showStatus(statusEl, 'Network error. Please retry.', 'error');
+        this.disabled = false;
+      }
+    });
+
+    async function loadActiveInvestments() {
+      if (!currentUser) return;
+      try {
+        var h = authHeaders();
+        var r = await fetch('/api/wallet', { method: 'POST', headers: h, body: JSON.stringify({ action: 'get_investments' }) });
+        var d = await r.json();
+        if (!d.ok) return;
+        var investments = d.investments || [];
+        var summaryEl = document.getElementById('activeInvestmentsSummary');
+        var listEl = document.getElementById('activeInvestmentsList');
+        if (!investments.length) { if (summaryEl) summaryEl.classList.add('hidden'); return; }
+        if (summaryEl) summaryEl.classList.remove('hidden');
+        if (listEl) {
+          listEl.innerHTML = investments.map(function(inv) {
+            var plan = INVEST_PLANS[inv.plan] || {};
+            var created = new Date(inv.createdAt).toLocaleDateString();
+            var totalEarned = (inv.totalEarned || 0).toFixed(2);
+            return '<div class="flex items-center justify-between rounded border border-white/10 bg-black/20 px-3 py-2">'
+              + '<div><p class="text-sm text-white font-medium">' + (plan.name || inv.plan) + '</p>'
+              + '<p class="text-[9px] text-gray-500">£' + (inv.amountGbp || 0).toLocaleString() + ' · Since ' + created + '</p></div>'
+              + '<div class="text-right"><p class="text-sm text-green-400 font-semibold">+$' + totalEarned + '</p>'
+              + '<p class="text-[9px] text-gray-500">earned</p></div></div>';
+          }).join('');
+        }
+      } catch (_) {}
+    }
+    // ── end investment plans ─────────────────────────────
+
     var selectedPayMethod = 'crypto';
     var payMethodBtns = document.querySelectorAll('.pay-method-btn');
     var payMethodToggle = document.getElementById('payMethodToggle');
@@ -9458,7 +9634,7 @@
       }
     });
 
-    payNowBtn.addEventListener('click', async () => {
+    if (payNowBtn) payNowBtn.addEventListener('click', async () => {
       if (!currentUser) {
         showStatus(paymentStatus, 'Please sign in first.', 'error');
         return;
