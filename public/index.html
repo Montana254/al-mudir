@@ -640,28 +640,83 @@
     }
 
     .btn-gold {
-      background: var(--gold);
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
       color: #04120f;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 12px rgba(212, 175, 55, 0.15);
     }
 
     .btn-gold:hover {
-      background: var(--gold-soft);
-      transform: translateY(-1px);
+      background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(212, 175, 55, 0.3);
+    }
+
+    .btn-gold:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
     }
 
     .btn-outline {
       border: 1px solid var(--gold);
       color: var(--gold);
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
     }
 
     .btn-outline:hover {
-      background: rgba(212, 175, 55, 0.1);
+      background: rgba(212, 175, 55, 0.12);
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.08);
+      transform: translateY(-1px);
     }
+
+    /* Animated gradient text for headings */
+    .text-gold-gradient-anim {
+      background: linear-gradient(90deg, var(--gold), var(--gold-soft), #fff, var(--gold-soft), var(--gold));
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: goldShimmer 6s ease-in-out infinite;
+    }
+
+    @keyframes goldShimmer {
+      0%, 100% { background-position: 0% center; }
+      50% { background-position: 200% center; }
+    }
+
+    /* Gradient border hover for feature cards */
+    .glass {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      backdrop-filter: blur(8px);
+      transition: all 0.35s ease;
+    }
+
+    .glass:hover {
+      border-color: rgba(212, 175, 55, 0.35);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    /* Scroll reveal with intersection observer */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .scroll-reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .scroll-reveal.delay-1 { transition-delay: 0.1s; }
+    .scroll-reveal.delay-2 { transition-delay: 0.2s; }
+    .scroll-reveal.delay-3 { transition-delay: 0.3s; }
+    .scroll-reveal.delay-4 { transition-delay: 0.4s; }
+    .scroll-reveal.delay-5 { transition-delay: 0.5s; }
 
     .dash-shell {
       background: linear-gradient(180deg, #0d0d0d 0%, #080808 100%);
@@ -1052,13 +1107,13 @@
   </style>
 </head>
 <body>
-  <nav class="fixed top-0 z-50 w-full border-b border-white/10 bg-black/55 backdrop-blur-sm">
+  <nav class="fixed top-0 z-50 w-full border-b border-white/10 bg-black/60 backdrop-blur-xl saturate-150">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
       <div class="serif text-xl tracking-[0.18em] text-gold-gradient">AL-MUDIR</div>
       <div id="navLandingLinks" class="hidden gap-8 md:flex text-xs uppercase tracking-[0.22em] text-gray-300">
-        <a href="#about" class="hover:text-white">About</a>
-        <a href="#metrics" class="hover:text-white">Why Us</a>
-        <a href="#terminal" class="hover:text-white">Services</a>
+        <a href="#about" class="hover:text-white transition-colors">About</a>
+        <a href="#metrics" class="hover:text-white transition-colors">Why Us</a>
+        <a href="#terminal" class="hover:text-white transition-colors">Services</a>
       </div>
       <div class="top-actions">
         <a href="#portalAuth" class="btn-outline rounded px-5 py-2 text-[11px] uppercase tracking-[0.18em]">Access Portal</a>
@@ -1089,7 +1144,7 @@
         <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
         <span class="text-[10px] uppercase tracking-[0.18em] text-gray-300">Live &bull; All Systems Operational</span>
       </div>
-      <h1 class="reveal r2 serif text-3xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl text-gold-gradient">Trade. Invest. Travel.</h1>
+      <h1 class="reveal r2 serif text-3xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl text-gold-gradient-anim">Trade. Invest. Travel.</h1>
       <p class="reveal r3 serif mt-2 text-xl sm:text-2xl md:text-3xl text-white/90">One platform. Infinite possibilities.</p>
       <p class="reveal r3 mx-auto mt-6 max-w-2xl text-sm text-gray-400 leading-relaxed">Crypto trading, flight bookings, AI-powered strategies, and managed wealth — all secured with bank-grade infrastructure from the UAE.</p>
       <div class="reveal r4 mt-10 flex flex-col justify-center gap-3 md:flex-row">
@@ -1129,42 +1184,42 @@
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group">
+        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group scroll-reveal">
           <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center mb-4 group-hover:bg-green-500/20 transition-colors">
             <i class="fa-solid fa-shield-halved text-green-400"></i>
           </div>
           <h3 class="text-sm font-semibold text-white mb-2">Bank-Grade Security</h3>
           <p class="text-[12px] text-gray-400 leading-relaxed">End-to-end encryption, KYC verification, and multi-layer authentication protecting every transaction.</p>
         </div>
-        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group">
+        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group scroll-reveal delay-1">
           <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
             <i class="fa-solid fa-bolt text-blue-400"></i>
           </div>
           <h3 class="text-sm font-semibold text-white mb-2">Instant Execution</h3>
           <p class="text-[12px] text-gray-400 leading-relaxed">Real-time order matching across 17+ crypto assets, flight bookings, and cross-border transfers.</p>
         </div>
-        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group">
+        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group scroll-reveal delay-2">
           <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center mb-4 group-hover:bg-violet-500/20 transition-colors">
             <i class="fa-solid fa-chart-line text-violet-400"></i>
           </div>
           <h3 class="text-sm font-semibold text-white mb-2">Smart Money Strategies</h3>
           <p class="text-[12px] text-gray-400 leading-relaxed">ICT and SMC methodology — institutional order flow analysis used by banks and hedge funds.</p>
         </div>
-        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group">
+        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group scroll-reveal delay-1">
           <div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center mb-4 group-hover:bg-yellow-500/20 transition-colors">
             <i class="fa-solid fa-globe text-yellow-400"></i>
           </div>
           <h3 class="text-sm font-semibold text-white mb-2">Multi-Asset Platform</h3>
           <p class="text-[12px] text-gray-400 leading-relaxed">Trade crypto, book flights, manage portfolios, and access AI trading — all from one unified platform.</p>
         </div>
-        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group">
+        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group scroll-reveal delay-2">
           <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
             <i class="fa-solid fa-wallet text-emerald-400"></i>
           </div>
           <h3 class="text-sm font-semibold text-white mb-2">Flexible Funding</h3>
           <p class="text-[12px] text-gray-400 leading-relaxed">On-chain crypto deposits — fund your account securely via blockchain.</p>
         </div>
-        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group">
+        <div class="glass rounded-2xl p-6 hover:border-[var(--gold)]/30 transition-all duration-300 group scroll-reveal delay-3">
           <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center mb-4 group-hover:bg-rose-500/20 transition-colors">
             <i class="fa-solid fa-headset text-rose-400"></i>
           </div>
@@ -3302,6 +3357,9 @@
   </div>
 
   <footer class="border-t border-white/5 py-14 px-6 text-center text-[10px] uppercase tracking-[0.2em] opacity-70 space-y-5">
+    <div class="mx-auto max-w-5xl mb-6">
+      <div class="h-px bg-gradient-to-r from-transparent via-[var(--gold)]/20 to-transparent"></div>
+    </div>
     <div class="serif text-lg tracking-[0.18em] text-gold-gradient opacity-60">AL-MUDIR</div>
     <p class="text-gray-500 normal-case tracking-normal text-[11px]">Sovereign Wealth and Fintech Innovation</p>
     <p>Copyright 2026 AL-MUDIR Wealth and Fintech Ventures</p>
@@ -3315,6 +3373,19 @@
       <a href="/about.html" target="_blank" class="hover:text-white">About</a>
     </div>
   </footer>
+
+  <!-- Cookie Consent Banner -->
+  <div id="cookieConsent">
+    <div class="mx-auto max-w-5xl flex flex-col sm:flex-row items-start sm:items-center gap-3">
+      <div class="flex-1 text-xs text-gray-300 leading-relaxed">
+        <p>This site uses essential cookies for authentication and session management, plus analytics cookies (Vercel Analytics) to improve the experience. By continuing, you consent to our use of cookies. <a href="/cookies" class="text-violet-300 underline hover:text-violet-200">Cookie Policy</a></p>
+      </div>
+      <div class="flex gap-2 shrink-0">
+        <button id="cookieReject" class="rounded border border-white/10 bg-transparent px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-gray-400 hover:bg-white/5 hover:text-white transition-colors">Reject Non-Essential</button>
+        <button id="cookieAccept" class="rounded bg-[var(--dash-accent)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-black hover:opacity-90 transition-opacity">Accept All</button>
+      </div>
+    </div>
+  </div>
 
   <script src="https://s3.tradingview.com/tv.js" onload="initPublicChart()"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -9766,19 +9837,6 @@
     loadPublicBrandSettings();
     renderNotifications();
     // Fetch real-time market prices immediately, then every 15s
-    <!-- Cookie Consent Banner -->
-    <div id="cookieConsent">
-      <div class="mx-auto max-w-5xl flex flex-col sm:flex-row items-start sm:items-center gap-3">
-        <div class="flex-1 text-xs text-gray-300 leading-relaxed">
-          <p>This site uses essential cookies for authentication and session management, plus analytics cookies (Vercel Analytics) to improve the experience. By continuing, you consent to our use of cookies. <a href="/cookies" class="text-violet-300 underline hover:text-violet-200">Cookie Policy</a></p>
-        </div>
-        <div class="flex gap-2 shrink-0">
-          <button id="cookieReject" class="rounded border border-white/10 bg-transparent px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-gray-400 hover:bg-white/5 hover:text-white transition-colors">Reject Non-Essential</button>
-          <button id="cookieAccept" class="rounded bg-[var(--dash-accent)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-black hover:opacity-90 transition-opacity">Accept All</button>
-        </div>
-      </div>
-    </div>
-
     fetchMarketPrices().then(function() { renderTickerTape(); renderMarketBoard(); });
     setInterval(fetchMarketPrices, MARKET_PRICES_INTERVAL);
     renderTickerTape();
@@ -9811,6 +9869,24 @@
     })();
 
     restoreSessionIfActive();
+
+    // Scroll-triggered reveal animations
+    (function() {
+      var revealEls = document.querySelectorAll('.scroll-reveal');
+      if (!revealEls.length || !('IntersectionObserver' in window)) {
+        revealEls.forEach(function(el) { el.classList.add('visible'); });
+        return;
+      }
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+      revealEls.forEach(function(el) { observer.observe(el); });
+    })();
   </script>
 </body>
 </html>
