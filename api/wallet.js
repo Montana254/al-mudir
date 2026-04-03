@@ -1305,6 +1305,25 @@ module.exports = withDb(async function handler(req, res) {
         }
       }
     } catch { /* forex unavailable */ }
+    // Gold (XAUUSD) price
+    let goldPrice = 0;
+    try {
+      const gr = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether-gold&vs_currencies=usd&include_24hr_change=true');
+      if (gr.ok) {
+        const gd = await gr.json();
+        if (gd['tether-gold'] && gd['tether-gold'].usd) {
+          goldPrice = gd['tether-gold'].usd;
+        }
+      }
+      // Fallback: use metals API
+      if (!goldPrice) {
+        const mr = await fetch('https://api.metalpriceapi.com/v1/latest?api_key=demo&base=XAU&currencies=USD');
+        if (mr.ok) {
+          const md = await mr.json();
+          if (md.rates && md.rates.USD) goldPrice = md.rates.USD;
+        }
+      }
+    } catch { /* gold price unavailable */ }
     const market = [];
     const cryptoSymbols = ['BTC','ETH','BNB','SOL','XRP','ADA','DOGE','AVAX','DOT','LINK','LTC','TRX','MATIC','TON','XLM'];
     for (const sym of cryptoSymbols) {
@@ -1312,6 +1331,9 @@ module.exports = withDb(async function handler(req, res) {
     }
     for (const [symbol, price] of Object.entries(forex)) {
       market.push({ symbol, price, change: 0, type: 'forex' });
+    }
+    if (goldPrice > 0) {
+      market.push({ symbol: 'XAUUSD', price: goldPrice, change: 0, type: 'commodity' });
     }
     return res.status(200).json({ ok: true, ts: Date.now(), market, prices, changes });
   }

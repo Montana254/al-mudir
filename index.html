@@ -131,6 +131,26 @@
       --surface-border: rgba(142, 109, 31, 0.22);
     }
 
+    /* Cookie consent banner */
+    #cookieConsent {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 9999;
+      background: rgba(11, 17, 23, 0.97);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(212, 175, 55, 0.15);
+      padding: 1rem 1.5rem;
+      transform: translateY(100%);
+      transition: transform 0.35s ease;
+    }
+    #cookieConsent.show { transform: translateY(0); }
+    @media (max-width: 639px) {
+      #cookieConsent { padding: 0.75rem 1rem; }
+    }
+
     * { box-sizing: border-box; }
     body {
       font-family: 'Lato', sans-serif;
@@ -1800,20 +1820,20 @@
                     <div class="mt-4 grid gap-3 md:grid-cols-3">
                       <div class="rounded-lg border border-white/10 bg-black/20 p-3">
                         <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">XAUUSD</p>
-                        <p class="mt-1 text-sm font-semibold text-white">2,321.45</p>
-                        <p class="text-[11px] text-green-300">+0.84%</p>
+                        <p id="assetPriceXAU" class="mt-1 text-sm font-semibold text-white">—</p>
+                        <p id="assetChangeXAU" class="text-[11px] text-gray-500">—</p>
                         <svg viewBox="0 0 120 32" class="mt-2 h-8 w-full"><polyline fill="none" stroke="#86efac" stroke-width="2" points="2,28 16,24 28,22 40,20 52,18 64,15 76,17 88,12 100,10 118,8"></polyline></svg>
                       </div>
                       <div class="rounded-lg border border-white/10 bg-black/20 p-3">
                         <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">BTCUSDT</p>
-                        <p class="mt-1 text-sm font-semibold text-white">67,350.10</p>
-                        <p class="text-[11px] text-green-300">+1.62%</p>
+                        <p id="assetPriceBTC" class="mt-1 text-sm font-semibold text-white">—</p>
+                        <p id="assetChangeBTC" class="text-[11px] text-gray-500">—</p>
                         <svg viewBox="0 0 120 32" class="mt-2 h-8 w-full"><polyline fill="none" stroke="#60a5fa" stroke-width="2" points="2,26 16,25 28,23 40,21 52,20 64,17 76,16 88,14 100,12 118,10"></polyline></svg>
                       </div>
                       <div class="rounded-lg border border-white/10 bg-black/20 p-3">
                         <p class="text-[10px] uppercase tracking-[0.14em] text-gray-500">ETHUSDT</p>
-                        <p class="mt-1 text-sm font-semibold text-white">3,512.90</p>
-                        <p class="text-[11px] text-red-300">-0.57%</p>
+                        <p id="assetPriceETH" class="mt-1 text-sm font-semibold text-white">—</p>
+                        <p id="assetChangeETH" class="text-[11px] text-gray-500">—</p>
                         <svg viewBox="0 0 120 32" class="mt-2 h-8 w-full"><polyline fill="none" stroke="#fca5a5" stroke-width="2" points="2,10 16,12 28,13 40,15 52,16 64,18 76,20 88,22 100,23 118,26"></polyline></svg>
                       </div>
                     </div>
@@ -2974,14 +2994,9 @@
               <div id="flightResults" class="space-y-3">
                 <div class="dash-card rounded-xl p-5">
                   <div class="rounded-lg border border-violet-500/20 bg-violet-500/5 p-4 text-center">
-                    <i class="fa-solid fa-plane-circle-xmark text-2xl text-violet-300/80 mb-2"></i>
-                    <p class="text-sm text-violet-200">Flight Deals — Coming Soon Q3 2026</p>
-                    <p class="text-[10px] text-gray-400 mt-1">Register your interest to be notified when live.</p>
-                    <div class="mt-3 flex flex-col sm:flex-row gap-2 justify-center">
-                      <input id="flightWaitlistEmail" type="email" placeholder="Email address" class="w-full sm:w-72 rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-xs">
-                      <button id="flightWaitlistBtn" class="rounded border border-violet-400/40 bg-violet-500/10 px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-violet-200">Submit</button>
-                    </div>
-                    <p id="flightWaitlistStatus" class="hidden mt-2 text-[10px]"></p>
+                    <i class="fa-solid fa-plane text-2xl text-violet-300/80 mb-2"></i>
+                    <p class="text-sm text-violet-200">Search for the best flight deals worldwide</p>
+                    <p class="text-[10px] text-gray-400 mt-1">Enter your route above to find exclusive prices.</p>
                   </div>
                 </div>
               </div>
@@ -3579,7 +3594,8 @@
       { symbol: 'ADAUSDT', price: 0, change: 0 },
       { symbol: 'DOGEUSDT', price: 0, change: 0 },
       { symbol: 'EURUSD', price: 0, change: 0 },
-      { symbol: 'USDJPY', price: 0, change: 0 }
+      { symbol: 'USDJPY', price: 0, change: 0 },
+      { symbol: 'XAUUSD', price: 0, change: 0 }
     ];
     let marketPricesLastFetch = 0;
     const MARKET_PRICES_INTERVAL = 15000; // 15s polling
@@ -4032,6 +4048,27 @@
           }
         }
       } catch { /* network error — keep last known prices */ }
+      updateAssetCards();
+    }
+
+    function updateAssetCards() {
+      var cards = [
+        { priceId: 'assetPriceXAU', changeId: 'assetChangeXAU', symbol: 'XAUUSD', decimals: 2 },
+        { priceId: 'assetPriceBTC', changeId: 'assetChangeBTC', symbol: 'BTCUSDT', decimals: 2 },
+        { priceId: 'assetPriceETH', changeId: 'assetChangeETH', symbol: 'ETHUSDT', decimals: 2 }
+      ];
+      cards.forEach(function(c) {
+        var entry = MARKET_SNAPSHOT.find(function(e) { return e.symbol === c.symbol; });
+        var priceEl = document.getElementById(c.priceId);
+        var changeEl = document.getElementById(c.changeId);
+        if (!entry || !priceEl || !changeEl) return;
+        if (entry.price > 0) {
+          priceEl.textContent = entry.price.toLocaleString(undefined, { minimumFractionDigits: c.decimals, maximumFractionDigits: c.decimals });
+          var ch = entry.change || 0;
+          changeEl.textContent = (ch >= 0 ? '+' : '') + ch.toFixed(2) + '%';
+          changeEl.className = 'text-[11px] ' + (ch >= 0 ? 'text-green-300' : 'text-red-300');
+        }
+      });
     }
 
     function tickMarketSnapshot() {
@@ -4603,18 +4640,11 @@
       if (!container) return;
       container.innerHTML = '<div class="dash-card rounded-xl p-5">'
         + '<div class="rounded-lg border border-violet-500/20 bg-violet-500/5 p-4 text-center">'
-        + '<i class="fa-solid fa-plane-circle-xmark text-2xl text-violet-300/80 mb-2"></i>'
-        + '<p class="text-sm text-violet-200">Flight Deals — Coming Soon Q3 2026</p>'
-        + '<p class="text-[10px] text-gray-400 mt-1">Register your interest to be notified when live.</p>'
-        + '<div class="mt-3 flex flex-col sm:flex-row gap-2 justify-center">'
-        + '<input id="flightWaitlistEmail" type="email" placeholder="Email address" class="w-full sm:w-72 rounded border border-[#2f3741] bg-[#0f1317] px-3 py-2 text-xs">'
-        + '<button id="flightWaitlistBtn" class="rounded border border-violet-400/40 bg-violet-500/10 px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-violet-200">Submit</button>'
-        + '</div>'
-        + '<p id="flightWaitlistStatus" class="hidden mt-2 text-[10px]"></p>'
+        + '<i class="fa-solid fa-plane text-2xl text-violet-300/80 mb-2"></i>'
+        + '<p class="text-sm text-violet-200">Search for the best flight deals worldwide</p>'
+        + '<p class="text-[10px] text-gray-400 mt-1">Enter your route above to find exclusive prices.</p>'
         + '</div>'
         + '</div>';
-      bindFlightWaitlistHandlers();
-    }
 
     async function loadPopularFlights() {
       if (!currentUser) {
@@ -9725,6 +9755,19 @@
     loadPublicBrandSettings();
     renderNotifications();
     // Fetch real-time market prices immediately, then every 15s
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsent">
+      <div class="mx-auto max-w-5xl flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div class="flex-1 text-xs text-gray-300 leading-relaxed">
+          <p>This site uses essential cookies for authentication and session management, plus analytics cookies (Vercel Analytics) to improve the experience. By continuing, you consent to our use of cookies. <a href="/cookies" class="text-violet-300 underline hover:text-violet-200">Cookie Policy</a></p>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          <button id="cookieReject" class="rounded border border-white/10 bg-transparent px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-gray-400 hover:bg-white/5 hover:text-white transition-colors">Reject Non-Essential</button>
+          <button id="cookieAccept" class="rounded bg-[var(--dash-accent)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-black hover:opacity-90 transition-opacity">Accept All</button>
+        </div>
+      </div>
+    </div>
+
     fetchMarketPrices().then(function() { renderTickerTape(); renderMarketBoard(); });
     setInterval(fetchMarketPrices, MARKET_PRICES_INTERVAL);
     renderTickerTape();
@@ -9734,6 +9777,28 @@
     addNotification('All market engines online.', 'good');
     bindInactivityTracking();
     populateConverterCurrencies();
+    // Cookie consent
+    (function() {
+      var COOKIE_KEY = 'alm_cookie_consent';
+      var consentEl = document.getElementById('cookieConsent');
+      var acceptBtn = document.getElementById('cookieAccept');
+      var rejectBtn = document.getElementById('cookieReject');
+      if (!consentEl) return;
+      try {
+        var stored = localStorage.getItem(COOKIE_KEY);
+        if (stored === 'accepted' || stored === 'rejected') return;
+      } catch (_) {}
+      setTimeout(function() { consentEl.classList.add('show'); }, 1200);
+      if (acceptBtn) acceptBtn.addEventListener('click', function() {
+        try { localStorage.setItem(COOKIE_KEY, 'accepted'); } catch (_) {}
+        consentEl.classList.remove('show');
+      });
+      if (rejectBtn) rejectBtn.addEventListener('click', function() {
+        try { localStorage.setItem(COOKIE_KEY, 'rejected'); } catch (_) {}
+        consentEl.classList.remove('show');
+      });
+    })();
+
     restoreSessionIfActive();
   </script>
 </body>
