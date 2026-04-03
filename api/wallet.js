@@ -2475,7 +2475,7 @@ module.exports = withDb(async function handler(req, res) {
       return res.status(400).json({
         ok: false,
         error: 'insufficient_balance',
-        detail: 'Your USDT balance is $' + usdBal.toFixed(2) + '. You need $' + BOT_PRICE_USD + ' USDT. Use Instant Deposit to add $' + (BOT_PRICE_USD - usdBal).toFixed(2) + ' more.'
+        detail: 'Your USDT balance is $' + usdBal.toFixed(2) + '. You need $' + BOT_PRICE_USD + ' USDT. Deposit crypto to add $' + (BOT_PRICE_USD - usdBal).toFixed(2) + ' more.'
       });
     }
 
@@ -2845,9 +2845,9 @@ module.exports = withDb(async function handler(req, res) {
   if (action === 'create_investment') {
     const planKey = sanitize(String(body.plan || ''), 20).toLowerCase();
     const PLANS = {
-      silver:   { name: 'Silver',   minGbp: 5000,   maxGbp: 9999,    returnMin: 0.003, returnMax: 0.005 },
-      gold:     { name: 'Gold',     minGbp: 10000,  maxGbp: 50000,   returnMin: 0.005, returnMax: 0.008 },
-      platinum: { name: 'Platinum', minGbp: 100000, maxGbp: 1000000, returnMin: 0.008, returnMax: 0.012 }
+      silver:   { name: 'Silver',   minGbp: 5000,   maxGbp: 9999,    returnMin: 0.004, returnMax: 0.006 },
+      gold:     { name: 'Gold',     minGbp: 10000,  maxGbp: 50000,   returnMin: 0.007, returnMax: 0.010 },
+      platinum: { name: 'Platinum', minGbp: 100000, maxGbp: 1000000, returnMin: 0.012, returnMax: 0.018 }
     };
     const plan = PLANS[planKey];
     if (!plan) {
@@ -2939,9 +2939,9 @@ module.exports = withDb(async function handler(req, res) {
 
     // Process 24h payouts for active investments
     const PLANS = {
-      silver:   { returnMin: 0.003, returnMax: 0.005 },
-      gold:     { returnMin: 0.005, returnMax: 0.008 },
-      platinum: { returnMin: 0.008, returnMax: 0.012 }
+      silver:   { returnMin: 0.004, returnMax: 0.006 },
+      gold:     { returnMin: 0.007, returnMax: 0.010 },
+      platinum: { returnMin: 0.012, returnMax: 0.018 }
     };
     const GBP_TO_USD = 1.27;
     const now = new Date();

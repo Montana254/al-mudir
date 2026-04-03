@@ -1,5 +1,5 @@
 // AL-MUDIR Crypto wallet and conversion helper
-// Supports injected EVM wallets: MetaMask, Trust Wallet, Coinbase Wallet, Binance Wallet, and auto-detect.
+// Supports injected EVM wallets: MetaMask, Trust Wallet, Coinbase Wallet, Binance Wallet, WalletConnect, and auto-detect.
 
 class CryptoPaymentManager {
   constructor() {
@@ -8,6 +8,7 @@ class CryptoPaymentManager {
     this.chainId = null;
     this.walletConnected = false;
     this.paymentInProgress = false;
+    this.walletConnectProvider = null;
 
     this.supportedChains = {
       1: { name: 'Ethereum', symbol: 'ETH', rpc: 'https://eth.llamarpc.com' },
@@ -255,7 +256,7 @@ class CryptoPaymentManager {
     if (matched) return matched;
 
     if (walletType === 'walletconnect') {
-      throw new Error('No extension detected. Open this page in a wallet app or scan the QR helper in Deposit.');
+      throw new Error('WalletConnect requested — will use connectViaWalletConnect instead.');
     }
 
     throw new Error('Selected wallet provider is not detected. Please install or enable that wallet.');
@@ -271,7 +272,19 @@ class CryptoPaymentManager {
   }
 
   async connectWallet(walletType = 'auto') {
-    const provider = this.pickProvider(walletType);
+    // If WalletConnect requested or no injected providers, use WalletConnect
+    const type = String(walletType || 'auto').toLowerCase();
+    if (type === 'walletconnect' || (!this.hasInjectedWallets() && type === 'auto')) {
+      return this.connectViaWalletConnect();
+    }
+
+    let provider;
+    try {
+      provider = this.pickProvider(walletType);
+    } catch (e) {
+      // Fallback to WalletConnect if no extension detected
+      return this.connectViaWalletConnect();
+    }
 
     const accounts = await provider.request({ method: 'eth_requestAccounts' });
     if (!accounts || !accounts.length) {
@@ -294,6 +307,71 @@ class CryptoPaymentManager {
       chainName: chainName,
       provider: this.detectProviderName(provider)
     };
+  }
+
+  async connectViaWalletConnect() {
+    // Use WalletConnect v2 via @walletconnect/ethereum-provider CDN
+    const WC_PROJECT_ID = '2f0c8b8c5e3c4e5b8f6a7d9e1c3b5a7d';
+    try {
+      let EthereumProvider;
+      if (typeof window !== 'undefined' && window.EthereumProvider) {
+        EthereumProvider = window.EthereumProvider;
+      } else if (typeof require === 'function') {
+        try {
+          const mod = require('@walletconnect/ethereum-provider');
+          EthereumProvider = mod.EthereumProvider || mod.default || mod;
+        } catch (_) {
+          EthereumProvider = null;
+        }
+      }
+
+      if (EthereumProvider && typeof EthereumProvider.init === 'function') {
+        const wcProvider = await EthereumProvider.init({
+          projectId: WC_PROJECT_ID,
+          chains: [1],
+          optionalChains: [56, 137, 43114, 42161, 10, 8453, 250],
+          showQrModal: true,
+          metadata: {
+            name: 'AL-MUDIR',
+            description: 'AL-MUDIR Wealth & Fintech',
+            url: 'https://al-mudir.org',
+            icons: ['https://al-mudir.org/icons/icon-192x192.png']
+          }
+        });
+
+        await wcProvider.enable();
+        const accounts = wcProvider.accounts;
+        if (!accounts || !accounts.length) throw new Error('WalletConnect returned no accounts.');
+
+        this.walletConnectProvider = wcProvider;
+        this.web3Instance = wcProvider;
+        this.userAccount = accounts[0];
+        this.walletConnected = true;
+        this.chainId = wcProvider.chainId || 1;
+
+        const chainInfo = this.supportedChains[this.chainId];
+        return {
+          account: this.userAccount,
+          chain: this.chainId,
+          chainName: chainInfo ? chainInfo.name : 'Chain ' + this.chainId,
+          provider: 'walletconnect'
+        };
+      }
+
+      // Fallback: Open this page inside wallet app browser via deep links
+      throw new Error('NO_WALLETCONNECT_SDK');
+    } catch (err) {
+      if (err.message === 'NO_WALLETCONNECT_SDK' || err.message.includes('WalletConnect')) {
+        // Provide deep link instructions — no extension needed if opened in wallet app
+        const dappUrl = typeof window !== 'undefined' ? window.location.href : 'https://al-mudir.org';
+        throw new Error(
+          'No wallet extension detected. Open al-mudir.org in your wallet app browser: ' +
+          'MetaMask → metamask.app.link | Trust Wallet → link.trustwallet.com | ' +
+          'Coinbase → go.cb-w.com — or scan the QR code in the Deposit section.'
+        );
+      }
+      throw err;
+    }
   }
 
   async getGasPrice() {
@@ -646,6 +724,82 @@ class CryptoPaymentManager {
     });
 
     return (parseInt(balanceHex, 16) / Math.pow(10, 18)).toFixed(4);
+  }
+
+  /**
+   * Send a deposit of a specific token (USDT, USDC, etc.) to the system treasury.
+   * Automatically routes to sendToken for ERC-20/BEP-20, or native transfer for ETH/BNB.
+   * Returns { transactionHash, amount, currency, chainId, recipientAddress, timestamp }
+   */
+  async sendDeposit(currency, amount) {
+    if (!this.walletConnected) throw new Error('Wallet not connected');
+    const code = String(currency || '').toUpperCase();
+    const numAmount = parseFloat(amount);
+    if (!numAmount || numAmount <= 0) throw new Error('Invalid deposit amount');
+
+    const tokenConfig = this.getTokenConfig(code, this.chainId);
+    if (tokenConfig) {
+      // ERC-20 / BEP-20 token transfer to treasury
+      return await this.sendToken(
+        tokenConfig.address,
+        numAmount,
+        tokenConfig.decimals,
+        null, // defaults to treasury address
+        false
+      );
+    }
+
+    // Native transfer (ETH, BNB, etc.)
+    return await this.processPayment({
+      amount: numAmount,
+      currency: code,
+      recipientAddress: this.treasuryNativeAddress[this.chainId] || this.treasuryNativeAddress[1],
+      description: 'AL-MUDIR Deposit'
+    });
+  }
+
+  /**
+   * Initiate a withdrawal from a system wallet address.
+   * Note: This requires the system wallet private key — only call from admin/backend context.
+   * In browser context, this opens the wallet extension for signing with the connected wallet.
+   */
+  async initWithdrawal(currency, amount, recipientAddress) {
+    if (!this.walletConnected) throw new Error('Wallet not connected');
+    if (!recipientAddress) throw new Error('Recipient address required');
+    const code = String(currency || '').toUpperCase();
+    const numAmount = parseFloat(amount);
+    if (!numAmount || numAmount <= 0) throw new Error('Invalid withdrawal amount');
+
+    const tokenConfig = this.getTokenConfig(code, this.chainId);
+    if (tokenConfig) {
+      return await this.sendToken(
+        tokenConfig.address,
+        numAmount,
+        tokenConfig.decimals,
+        recipientAddress,
+        false
+      );
+    }
+
+    return await this.processPayment({
+      amount: numAmount,
+      currency: code,
+      recipientAddress: recipientAddress,
+      description: 'AL-MUDIR Withdrawal'
+    });
+  }
+
+  /**
+   * Get treasury address for a specific coin / chain.
+   */
+  getTreasuryAddress(coin) {
+    const chain = this.chainId || 1;
+    const code = String(coin || '').toUpperCase();
+    // Check token addresses first
+    if (this.treasuryAddresses[code + '_ERC20']) return this.treasuryAddresses[code + '_ERC20'];
+    if (this.treasuryAddresses[code]) return this.treasuryAddresses[code];
+    // Fall back to native treasury for current chain
+    return this.treasuryNativeAddress[chain] || this.treasuryNativeAddress[1];
   }
 }
 
