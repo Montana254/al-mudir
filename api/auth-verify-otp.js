@@ -7,12 +7,12 @@ const { runAgent } = require('./_lib/agents');
 
 const rateLimitMap = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
-const MAX_REQ = 15;
+const MAX_REQ = 30;
 
 // Per-email brute-force lockout: 5 wrong attempts → 15 min block
 const otpAttemptMap = new Map();
-const OTP_MAX_ATTEMPTS = 5;
-const OTP_LOCKOUT_MS = 15 * 60 * 1000;
+const OTP_MAX_ATTEMPTS = 8;
+const OTP_LOCKOUT_MS = 5 * 60 * 1000;
 
 module.exports = withDb(async function handler(req, res) {
   try {

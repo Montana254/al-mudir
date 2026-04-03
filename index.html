@@ -3860,12 +3860,20 @@
       if (!otpCode) return;
       otpCode.addEventListener('input', function() {
         this.value = String(this.value || '').replace(/\D/g, '').slice(0, 6);
+        // Auto-submit when 6 digits entered
+        if (this.value.length === 6 && verifyOtpBtn && !verifyOtpBtn.disabled) {
+          verifyOtpBtn.click();
+        }
       });
       otpCode.addEventListener('paste', function(event) {
         var text = String((event.clipboardData && event.clipboardData.getData('text')) || '').replace(/\D/g, '').slice(0, 6);
         if (text) {
           event.preventDefault();
           this.value = text;
+          // Auto-submit on paste of full code
+          if (text.length === 6 && verifyOtpBtn && !verifyOtpBtn.disabled) {
+            setTimeout(function() { verifyOtpBtn.click(); }, 100);
+          }
         }
       });
     }
@@ -6920,9 +6928,10 @@
         authArea.classList.add('hidden');
         if (welcomeGate) welcomeGate.classList.add('hidden');
         otpArea.classList.remove('hidden');
-        setOtpResendCooldown(60);
+        setOtpResendCooldown(30);
         otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
         setOtpCooldown(30);
+        setTimeout(function() { if (otpCode) otpCode.focus(); }, 400);
         await notifyEvent('user.created', { name, email, message: 'Client account created — pending verification' });
         trackAnalyticsEvent('account_created', { source: 'portal' });
       } catch (_) {
@@ -6965,9 +6974,10 @@
           authArea.classList.add('hidden');
           if (welcomeGate) welcomeGate.classList.add('hidden');
           otpArea.classList.remove('hidden');
-          setOtpResendCooldown(60);
+          setOtpResendCooldown(30);
           otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
           setOtpCooldown(30);
+          setTimeout(function() { if (otpCode) otpCode.focus(); }, 400);
           return;
         }
         if (result.requiresOtp) {
@@ -6986,9 +6996,10 @@
           authArea.classList.add('hidden');
           if (welcomeGate) welcomeGate.classList.add('hidden');
           otpArea.classList.remove('hidden');
-          setOtpResendCooldown(60);
+          setOtpResendCooldown(30);
           otpArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
           setOtpCooldown(30);
+          setTimeout(function() { if (otpCode) otpCode.focus(); }, 400);
           return;
         }
         if (!res.ok || !result.ok) {

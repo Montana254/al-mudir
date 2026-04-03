@@ -6,8 +6,8 @@ const { ensureUserRecord } = require('./_lib/user-profile');
 
 const rateLimitMap = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
-const MAX_REQ = 3;
-const RESEND_COOLDOWN_SEC = 60;
+const MAX_REQ = 10;
+const RESEND_COOLDOWN_SEC = 30;
 
 module.exports = withDb(async function handler(req, res) {
   try {
