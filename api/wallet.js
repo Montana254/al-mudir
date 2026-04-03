@@ -2845,9 +2845,9 @@ module.exports = withDb(async function handler(req, res) {
   if (action === 'create_investment') {
     const planKey = sanitize(String(body.plan || ''), 20).toLowerCase();
     const PLANS = {
-      silver:   { name: 'Silver',   minGbp: 5000,   maxGbp: 9999,    returnMin: 0.004, returnMax: 0.006 },
-      gold:     { name: 'Gold',     minGbp: 10000,  maxGbp: 50000,   returnMin: 0.007, returnMax: 0.010 },
-      platinum: { name: 'Platinum', minGbp: 100000, maxGbp: 1000000, returnMin: 0.012, returnMax: 0.018 }
+      silver:   { name: 'Silver',   minGbp: 5000,   maxGbp: 9999,    returnMin: 0.15, returnMax: 0.15 },
+      gold:     { name: 'Gold',     minGbp: 10000,  maxGbp: 50000,   returnMin: 0.25, returnMax: 0.25 },
+      platinum: { name: 'Platinum', minGbp: 100000, maxGbp: 1000000, returnMin: 0.45, returnMax: 0.45 }
     };
     const plan = PLANS[planKey];
     if (!plan) {
@@ -2939,9 +2939,9 @@ module.exports = withDb(async function handler(req, res) {
 
     // Process 24h payouts for active investments
     const PLANS = {
-      silver:   { returnMin: 0.004, returnMax: 0.006 },
-      gold:     { returnMin: 0.007, returnMax: 0.010 },
-      platinum: { returnMin: 0.012, returnMax: 0.018 }
+      silver:   { returnMin: 0.15, returnMax: 0.15 },
+      gold:     { returnMin: 0.25, returnMax: 0.25 },
+      platinum: { returnMin: 0.45, returnMax: 0.45 }
     };
     const GBP_TO_USD = 1.27;
     const now = new Date();

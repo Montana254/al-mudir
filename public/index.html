@@ -536,27 +536,31 @@
       background: #ef4444;
     }
 
-    .otp-grid {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 0.5rem;
-    }
-
-    .otp-digit {
+    .otp-single-input {
+      width: 100%;
       border: 1px solid rgba(212, 175, 55, 0.24);
-      border-radius: 0.6rem;
+      border-radius: 0.75rem;
       background: rgba(0, 0, 0, 0.3);
-      height: 50px;
+      height: 56px;
       text-align: center;
-      font-size: 1.15rem;
+      font-size: 1.8rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.55em;
+      color: white;
+      padding: 0 1.5rem;
+      -webkit-appearance: none;
+      -moz-appearance: textfield;
     }
 
-    .otp-digit:focus {
+    .otp-single-input:focus {
       outline: none;
       border-color: rgba(212, 175, 55, 0.7);
       box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16);
+    }
+
+    .otp-single-input::placeholder {
+      color: rgba(255, 255, 255, 0.12);
+      letter-spacing: 0.55em;
     }
 
     .signal-card {
@@ -864,6 +868,23 @@
       section.px-6 { padding-left: 1rem; padding-right: 1rem; }
       .grid.gap-4 { gap: 0.5rem; }
       #panelFlights .grid.lg\\:grid-cols-4 { grid-template-columns: 1fr; }
+
+      /* Modals — full width on mobile */
+      #investModal > div, #checkoutModal > div, #flightBookingModal > div {
+        max-width: 100% !important;
+        margin: 0.5rem !important;
+        max-height: 90vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      /* Auth shell responsive */
+      .auth-shell { padding: 1.25rem !important; }
+      /* OTP input tighter on mobile */
+      .otp-single-input { font-size: 1.5rem; letter-spacing: 0.4em; height: 50px; }
+      /* Invest plan card touch-friendly */
+      .invest-plan-card { padding: 1rem; }
+      .invest-plan-card button { min-height: 44px; }
+
       #commandCenterCarousel {
         display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
@@ -1362,15 +1383,7 @@
           <p>Your AL-MUDIR ID: <span id="otpUserIdDisplay" class="font-semibold text-white">pending</span></p>
         </div>
         <div class="mt-6 space-y-4">
-          <input id="otpCode" type="hidden" autocomplete="one-time-code">
-          <div id="otpDigitWrap" class="otp-grid">
-            <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" aria-label="OTP digit 1">
-            <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" aria-label="OTP digit 2">
-            <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" aria-label="OTP digit 3">
-            <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" aria-label="OTP digit 4">
-            <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" aria-label="OTP digit 5">
-            <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" aria-label="OTP digit 6">
-          </div>
+          <input id="otpCode" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" aria-label="6-digit verification code" class="otp-single-input">
           <button id="verifyOtpBtn" class="btn-gold w-full rounded py-3 text-xs">Verify &amp; Enter Dashboard</button>
           <div class="flex justify-between">
             <button id="resendOtpBtn" type="button" class="text-xs text-gray-400 hover:text-white underline">Resend code</button>
@@ -1694,7 +1707,7 @@
                     </div>
                     <div id="investmentPlansGrid" class="mt-4 space-y-3">
                       <!-- Silver Plan -->
-                      <div class="rounded-lg border border-gray-500/30 bg-gradient-to-r from-gray-500/10 to-gray-400/5 p-4 cursor-pointer hover:border-gray-400/50 transition-all invest-plan-card" data-plan="silver">
+                      <div onclick="openInvestModal('silver')" class="rounded-lg border border-gray-500/30 bg-gradient-to-r from-gray-500/10 to-gray-400/5 p-4 cursor-pointer hover:border-gray-400/50 transition-all invest-plan-card" data-plan="silver">
                         <div class="flex items-center justify-between">
                           <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-full bg-gray-400/20 flex items-center justify-center"><i class="fa-solid fa-medal text-gray-300 text-sm"></i></div>
@@ -1705,13 +1718,13 @@
                           </div>
                           <div class="text-right">
                             <p class="text-sm font-bold text-green-400">15%</p>
-                            <p class="text-[9px] text-gray-500">monthly return</p>
+                            <p class="text-[9px] text-gray-500">daily return</p>
                           </div>
                         </div>
                         <button onclick="openInvestModal('silver')" class="mt-3 w-full rounded bg-gray-500/20 border border-gray-500/30 py-1.5 text-[10px] uppercase tracking-[0.14em] text-gray-300 hover:bg-gray-500/30">Invest Now</button>
                       </div>
                       <!-- Gold Plan -->
-                      <div class="rounded-lg border border-yellow-500/30 bg-gradient-to-r from-yellow-500/10 to-amber-500/5 p-4 cursor-pointer hover:border-yellow-400/50 transition-all invest-plan-card" data-plan="gold">
+                      <div onclick="openInvestModal('gold')" class="rounded-lg border border-yellow-500/30 bg-gradient-to-r from-yellow-500/10 to-amber-500/5 p-4 cursor-pointer hover:border-yellow-400/50 transition-all invest-plan-card" data-plan="gold">
                         <div class="flex items-center justify-between">
                           <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center"><i class="fa-solid fa-crown text-yellow-300 text-sm"></i></div>
@@ -1722,13 +1735,13 @@
                           </div>
                           <div class="text-right">
                             <p class="text-sm font-bold text-green-400">25%</p>
-                            <p class="text-[9px] text-gray-500">monthly return</p>
+                            <p class="text-[9px] text-gray-500">daily return</p>
                           </div>
                         </div>
                         <button onclick="openInvestModal('gold')" class="mt-3 w-full rounded bg-yellow-500/20 border border-yellow-500/30 py-1.5 text-[10px] uppercase tracking-[0.14em] text-yellow-300 hover:bg-yellow-500/30">Invest Now</button>
                       </div>
                       <!-- Platinum Plan -->
-                      <div class="rounded-lg border border-blue-400/30 bg-gradient-to-r from-blue-500/10 to-indigo-500/5 p-4 cursor-pointer hover:border-blue-400/50 transition-all invest-plan-card" data-plan="platinum">
+                      <div onclick="openInvestModal('platinum')" class="rounded-lg border border-blue-400/30 bg-gradient-to-r from-blue-500/10 to-indigo-500/5 p-4 cursor-pointer hover:border-blue-400/50 transition-all invest-plan-card" data-plan="platinum">
                         <div class="flex items-center justify-between">
                           <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center"><i class="fa-solid fa-gem text-blue-300 text-sm"></i></div>
@@ -1739,7 +1752,7 @@
                           </div>
                           <div class="text-right">
                             <p class="text-sm font-bold text-green-400">45%</p>
-                            <p class="text-[9px] text-gray-500">monthly return</p>
+                            <p class="text-[9px] text-gray-500">daily return</p>
                           </div>
                         </div>
                         <button onclick="openInvestModal('platinum')" class="mt-3 w-full rounded bg-blue-500/20 border border-blue-400/30 py-1.5 text-[10px] uppercase tracking-[0.14em] text-blue-300 hover:bg-blue-500/30">Invest Now</button>
@@ -3300,8 +3313,6 @@
     const signupForm = document.getElementById('signupForm');
     const otpArea = document.getElementById('otpArea');
     const otpCode = document.getElementById('otpCode');
-    const otpDigitWrap = document.getElementById('otpDigitWrap');
-    const otpDigits = otpDigitWrap ? Array.from(otpDigitWrap.querySelectorAll('.otp-digit')) : [];
     const otpEmailDisplay = document.getElementById('otpEmailDisplay');
     const verifyOtpBtn = document.getElementById('verifyOtpBtn');
     const resendOtpBtn = document.getElementById('resendOtpBtn');
@@ -3820,45 +3831,26 @@
     }
 
     function clearOtpDigits() {
-      otpDigits.forEach(function(d) { d.value = ''; });
       if (otpCode) otpCode.value = '';
     }
 
     function syncOtpValue() {
-      const value = otpDigits.map(function(d) { return String(d.value || '').replace(/\D/g, '').slice(0, 1); }).join('');
-      if (otpCode) otpCode.value = value;
-      return value;
+      if (!otpCode) return '';
+      otpCode.value = String(otpCode.value || '').replace(/\D/g, '').slice(0, 6);
+      return otpCode.value;
     }
 
     function bindOtpInputs() {
-      if (!otpDigits.length) return;
-      otpDigits.forEach(function(input, index) {
-        input.addEventListener('input', function() {
-          input.value = String(input.value || '').replace(/\D/g, '').slice(-1);
-          if (input.value && otpDigits[index + 1]) otpDigits[index + 1].focus();
-          syncOtpValue();
-        });
-        input.addEventListener('keydown', function(event) {
-          if (event.key === 'Backspace' && !input.value && otpDigits[index - 1]) {
-            otpDigits[index - 1].focus();
-            otpDigits[index - 1].value = '';
-            syncOtpValue();
-          }
-          if (event.key === 'ArrowLeft' && otpDigits[index - 1]) otpDigits[index - 1].focus();
-          if (event.key === 'ArrowRight' && otpDigits[index + 1]) otpDigits[index + 1].focus();
-        });
-        input.addEventListener('paste', function(event) {
-          const text = String((event.clipboardData && event.clipboardData.getData('text')) || '').replace(/\D/g, '').slice(0, 6);
-          if (!text) return;
+      if (!otpCode) return;
+      otpCode.addEventListener('input', function() {
+        this.value = String(this.value || '').replace(/\D/g, '').slice(0, 6);
+      });
+      otpCode.addEventListener('paste', function(event) {
+        var text = String((event.clipboardData && event.clipboardData.getData('text')) || '').replace(/\D/g, '').slice(0, 6);
+        if (text) {
           event.preventDefault();
-          for (let i = 0; i < 6; i += 1) {
-            if (!otpDigits[i]) continue;
-            otpDigits[i].value = text[i] || '';
-          }
-          syncOtpValue();
-          const focusIndex = Math.min(text.length, 5);
-          if (otpDigits[focusIndex]) otpDigits[focusIndex].focus();
-        });
+          this.value = text;
+        }
       });
     }
 
@@ -8621,9 +8613,9 @@
 
     // ── Investment Plans Logic ──────────────────────────
     var INVEST_PLANS = {
-      silver:   { name: 'Silver',   minGbp: 5000,   maxGbp: 9999,    returnMin: 0.004, returnMax: 0.006, icon: 'fa-medal',  color: 'gray' },
-      gold:     { name: 'Gold',     minGbp: 10000,  maxGbp: 50000,   returnMin: 0.007, returnMax: 0.010, icon: 'fa-crown',  color: 'yellow' },
-      platinum: { name: 'Platinum', minGbp: 100000, maxGbp: 1000000, returnMin: 0.012, returnMax: 0.018, icon: 'fa-gem',    color: 'blue' }
+      silver:   { name: 'Silver',   minGbp: 5000,   maxGbp: 9999,    returnMin: 0.15, returnMax: 0.15, icon: 'fa-medal',  color: 'gray' },
+      gold:     { name: 'Gold',     minGbp: 10000,  maxGbp: 50000,   returnMin: 0.25, returnMax: 0.25, icon: 'fa-crown',  color: 'yellow' },
+      platinum: { name: 'Platinum', minGbp: 100000, maxGbp: 1000000, returnMin: 0.45, returnMax: 0.45, icon: 'fa-gem',    color: 'blue' }
     };
     var GBP_TO_USD_RATE = 1.27; // approx GBP→USD for USDT conversion
     var currentInvestPlan = null;
@@ -8635,7 +8627,7 @@
       currentInvestPlan = planKey;
       document.getElementById('investModalPlanName').textContent = plan.name + ' Plan';
       document.getElementById('investModalTier').textContent = plan.name;
-      document.getElementById('investModalReturn').textContent = (plan.returnMin * 100 * 30).toFixed(0) + '% – ' + (plan.returnMax * 100 * 30).toFixed(0) + '% monthly';
+      document.getElementById('investModalReturn').textContent = (plan.returnMin * 100).toFixed(0) + '% daily';
       document.getElementById('investModalMin').textContent = '£' + plan.minGbp.toLocaleString();
       document.getElementById('investModalMax').textContent = '£' + plan.maxGbp.toLocaleString();
       var usdtBal = (systemWalletData && systemWalletData.balances && systemWalletData.balances['USDT']) || 0;
